@@ -36,7 +36,8 @@ routes = [
     (r'/pregame/([-\w]+)/version', pregame_handlers.PreGameVersionHandler),
     (r'/pregame/([-\w]+)/since/([\d]+)', pregame_handlers.PreGameSinceHandler),
     (r'/pregame/([-\w]+)/start', pregame_handlers.PreGameStartHandler),
-    (r'/pregame/([-\w]+)/abort', pregame_handlers.PreGameAbortHandler)
+    (r'/pregame/([-\w]+)/abort', pregame_handlers.PreGameAbortHandler),
+    (r'/pregame/join', pregame_handlers.PreGameJoinHandler)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)

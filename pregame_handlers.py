@@ -34,3 +34,8 @@ class PreGameStartHandler(webapp2.RequestHandler):
 class PreGameAbortHandler(webapp2.RequestHandler):
     def post(self, game_id):
         self.response.write('I\'ll abort pregame ' + game_id + '!')
+
+
+class PreGameJoinHandler(webapp2.RequestHandler):
+    def post(self):
+        self.response.write('I\'ll join some pregame!')
