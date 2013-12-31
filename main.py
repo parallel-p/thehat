@@ -15,17 +15,21 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers, complain_word_handlers
+import pregame_handlers, dictionaries_packages_handlers, userdictionary, results_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
 
+
+class SecondHandler(webapp2.RequestHandler):
+    def get(self):
+        self.response.write('Hello, second handler!')
+
 routes = [
     (r'/', MainHandler),
-    webapp2.Route(r'/<device_id:[-\w]+>/complain', handler=complain_word_handlers.ComplainWordHandler,
-                  name='complain'),
+    (r'/second/', SecondHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create', handler=pregame_handlers.PreGameNewHandler,
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
@@ -42,12 +46,16 @@ routes = [
                   name='pregame_abort'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
                   name='pregame_join'),
-    (r'/streams', dictionaries_packages.GetStreamsListHandler),
-    (r'/streams/([-\w]+)/to/([-\w]+)', dictionaries_packages.ChangeStreamStateHandler),
-    (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
-    (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
-    (r'/udict/([-\w]+)/change/', userdictionary.Change),
-    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
+    webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=dictionaries_packages_handlers.GetStreamsListHandler,
+                  name='stream_list'),
+    webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>/to/<on:[-\w]+>',
+                  handler=dictionaries_packages_handlers.ChangeStreamStateHandler, name='change_stream_state'),
+    webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>',
+                  handler=dictionaries_packages_handlers.GetPackagesListHandler, name='package_list'),
+    webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
+                  handler=dictionaries_packages_handlers.GetPackageHandler, name='get_package'),
+    (r'/udict/change/', userdictionary.Change),
+    (r'/udict/update/', userdictionary.Update),
     (r'/results/([-\w]+)', results_handlers.ResultsHandler)
 ]
 
