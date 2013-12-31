@@ -6,9 +6,9 @@ class PreGameAllHandler(webapp2.RequestHandler):
         self.device_id = kwargs.get('device_id', None)
 
 
-class PreGameNewHandler(PreGameAllHandler):
+class PreGameCreateHandler(PreGameAllHandler):
     def post(self, **kwargs):
-        super(PreGameNewHandler, self).set_device_id(**kwargs)
+        super(PreGameCreateHandler, self).set_device_id(**kwargs)
         self.response.write('I\'ll create new pregame! device_id = %s' % self.device_id)
 
 
@@ -29,7 +29,7 @@ class PreGameVersionHandler(webapp2.RequestHandler):
 
 class PreGameSinceHandler(webapp2.RequestHandler):
     def get(self, **kwargs):
-        self.response.write('I\'ll give diff of pregame since  version!')
+        self.response.write('I\'ll give diff of pregame since some version!')
 
 
 class PreGameStartHandler(webapp2.RequestHandler):
