@@ -1,5 +1,5 @@
-__author__ = 'ivan
-import unittest2, json, webapp2
+__author__ = 'ivan'
+import unittest2, webapp2
 from google.appengine.ext import testbed
 import main
 
@@ -22,3 +22,10 @@ class complain_word_test(unittest2.TestCase):
         len_after = len(ComplainedWords.all())
         self.assertEqual(response.status_int, 200)
         self.assertEqual(len_after, len_before - 1)
+
+    def tearDown(self):
+        self.testbed.deactivate()
+
+
+if __name__ == '__main__':
+    unittest2.main()
