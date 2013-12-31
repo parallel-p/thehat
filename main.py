@@ -16,6 +16,7 @@
 #
 import webapp2
 import pregame_handlers
+import results_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -37,7 +38,9 @@ routes = [
     (r'/pregame/([-\w]+)/since/([\d]+)', pregame_handlers.PreGameSinceHandler),
     (r'/pregame/([-\w]+)/start', pregame_handlers.PreGameStartHandler),
     (r'/pregame/([-\w]+)/abort', pregame_handlers.PreGameAbortHandler),
-    (r'/pregame/join', pregame_handlers.PreGameJoinHandler)
+    (r'/pregame/join', pregame_handlers.PreGameJoinHandler),
+    (r'/results/get', results_handlers.GetResultsHandler),
+    (r'/results/post', results_handlers.PostResultsHandler)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
