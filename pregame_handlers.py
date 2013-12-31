@@ -1,6 +1,7 @@
 __author__ = 'nikolay'
 import webapp2
 
+
 class PreGameNewHandler(webapp2.RequestHandler):
     def post(self):
         self.response.write('I\'ll create new pregame!')
