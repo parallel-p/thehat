@@ -2,8 +2,6 @@ import unittest
 import results_handlers
 
 class TestResults(unittest.TestCase):
-    def setUp(self):
-        pass
 
     def test_empty_get(self):
         handler = results_handlers.GetResultsHandler()
