@@ -13,6 +13,7 @@ GAME_JSON = u'''{
     "title": "A game",
     "players": [
         {
+            "id": 1,
             "name": "Vasya",
             "words": [
                 {
@@ -40,13 +41,17 @@ GAME_JSON = u'''{
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1
-    }
+    },
+    "order": [
+        1
+    ]
 }
 '''
 
 UPDATE_JSON = u'''{
     "players_add": [
         {
+            "id": 2,
             "name": "Petya",
             "words": [
                 {
@@ -60,6 +65,7 @@ UPDATE_JSON = u'''{
             ]
         },
         {
+            "id": 3,
             "name": "Ivan",
             "words": [
                 {
@@ -74,7 +80,7 @@ UPDATE_JSON = u'''{
         }
     ],
     "players_del": [
-        0
+        1
     ],
     "words_add": [
         {
@@ -87,8 +93,8 @@ UPDATE_JSON = u'''{
         }
     ],
     "order": [
-        0
-    ]
+        3, 2
+    ],
     "settings": {
         "time_per_round": 25,
         "words_per_player": 2,
@@ -101,6 +107,7 @@ GAME_JSON_AFTER_UPDATE = u'''{
     "title": "A game",
     "players": [
         {
+            "id": 2,
             "name": "Petya",
             "words": [
                 {
@@ -114,6 +121,7 @@ GAME_JSON_AFTER_UPDATE = u'''{
             ]
         },
         {
+            "id": 3,
             "name": "Ivan",
             "words": [
                 {
@@ -145,6 +153,156 @@ GAME_JSON_AFTER_UPDATE = u'''{
             "origin": "RANDOM"
         }
     ],
+    "settings": {
+        "time_per_round": 25,
+        "words_per_player": 2,
+        "skip_count": 0
+    },
+    "order": [
+        3, 2
+    ]
+}
+'''
+
+GAME_BIG_JSON = u'''{
+    "title": "big game",
+    "players": [
+        {
+            "id": 0,
+            "name": "0",
+            "words": []
+        }
+        {
+            "id": 1,
+            "name": "1",
+            "words": []
+        }
+        {
+            "id": 2,
+            "name": "2",
+            "words": []
+        }
+        {
+            "id": 3,
+            "name": "3",
+            "words": []
+        }
+        {
+            "id": 4,
+            "name": "4",
+            "words": []
+        }
+    ],
+    "words": [],
+    "order": [0, 1, 2, 3, 4],
+    "settings": {
+        "time_per_round": 25,
+        "words_per_player": 2,
+        "skip_count": 0
+    }
+}
+'''
+
+BIG_UPDATE_1 = u'''{
+    "players_add": [
+        {
+            "id": 5,
+            "name": "5",
+            "words": []
+        }
+    ],
+    "players_del": [
+        1
+    ],
+    "players_upd": [
+        {
+            "id": 2,
+            "name": "2new",
+            "words": []
+        }
+    ]
+    "words_add": [],
+    "order": none,
+    "settings": {
+        "time_per_round": 25,
+        "words_per_player": 2,
+        "skip_count": 0
+    }
+}
+'''
+
+BIG_UPDATE_2 = u'''{
+    "players_add": [],
+    "players_del": [],
+    "words_add": [],
+    "order": [4, 2, 0, 1, 3],
+    "settings": {
+        "time_per_round": 25,
+        "words_per_player": 2,
+        "skip_count": 0
+    }
+}
+'''
+
+GAME_BIG_AFTER_UPDATE = u'''{
+    "title": "big game",
+    "players": [
+        {
+            "id": 0,
+            "name": "0",
+            "words": []
+        }
+        {
+            "id": 2,
+            "name": "2new",
+            "words": []
+        }
+        {
+            "id": 3,
+            "name": "3",
+            "words": []
+        }
+        {
+            "id": 4,
+            "name": "4",
+            "words": []
+        }
+        {
+            "id": 5,
+            "name": "5",
+            "words": []
+        }
+    ],
+    "words": [],
+    "order": [4, 2, 0, 3, 5],
+    "settings": {
+        "time_per_round": 25,
+        "words_per_player": 2,
+        "skip_count": 0
+    }
+}
+'''
+
+TOTAL_UPDATE = u'''{
+    "players_add": [
+        {
+            "id": 5,
+            "name": "5",
+            "words": []
+        }
+    ],
+    "players_del": [
+        1
+    ],
+    "players_upd": [
+        {
+            "id": 2,
+            "name": "2new",
+            "words": []
+        }
+    ]
+    "words_add": [],
+    "order": [4, 2, 0, 3, 5],
     "settings": {
         "time_per_round": 25,
         "words_per_player": 2,
@@ -303,6 +461,102 @@ class PreGameHandlersTest(unittest.TestCase):
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
+
+    def test_all_1(self):
+        post_data = {
+            'game': GAME_BIG_JSON
+        }
+        request = webapp2.Request.blank('/device_id/pregame/create', None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        json_returned = json.loads(response.body)
+        game_id = json_returned['id']
+        game_pin = json_returned['pin']
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        first_version = json.loads(response.body)['version']
+        post_data = {
+            'update': BIG_UPDATE_1
+        }
+        request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        post_data = {
+            'pin': game_pin
+        }
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/join' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        post_data = {
+            'update': BIG_UPDATE_2
+        }
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        need_game = json.loads(GAME_BIG_AFTER_UPDATE)
+        now_game = json.loads(response.body)
+        for key in need_game:
+            self.assertEqual(need_game[key], now_game[key])
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/since/%d' % (game_id, first_version))
+        response = request.get_response(main.app)
+        need_diff = json.loads(TOTAL_UPDATE)
+        now_diff = json.loads(response.body)
+        for key in need_game:
+            self.assertEqual(need_diff[key], now_diff[key])
+
+
+    def test_all_2(self):
+        post_data = {
+            'game': GAME_BIG_JSON
+        }
+        request = webapp2.Request.blank('/device_id/pregame/create', None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        json_returned = json.loads(response.body)
+        game_id = json_returned['id']
+        game_pin = json_returned['pin']
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        first_version = json.loads(response.body)['version']
+        post_data = {
+            'update': BIG_UPDATE_2
+        }
+        request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        post_data = {
+            'pin': game_pin
+        }
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/join' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        post_data = {
+            'update': BIG_UPDATE_1
+        }
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id, None, None, post_data)
+        request.method = 'POST'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        need_game = json.loads(GAME_BIG_AFTER_UPDATE)
+        now_game = json.loads(response.body)
+        for key in need_game:
+            self.assertEqual(need_game[key], now_game[key])
+        request = webapp2.Request.blank('/other_device_id/pregame/%s/since/%d' % (game_id, first_version))
+        response = request.get_response(main.app)
+        need_diff = json.loads(TOTAL_UPDATE)
+        now_diff = json.loads(response.body)
+        for key in need_game:
+            self.assertEqual(need_diff[key], now_diff[key])
+
 
     def tearDown(self):
         self.testbed.deactivate()
