@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers
+import pregame_handlers, dictionaries_packages
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -37,7 +37,11 @@ routes = [
     (r'/pregame/([-\w]+)/since/([\d]+)', pregame_handlers.PreGameSinceHandler),
     (r'/pregame/([-\w]+)/start', pregame_handlers.PreGameStartHandler),
     (r'/pregame/([-\w]+)/abort', pregame_handlers.PreGameAbortHandler),
-    (r'/pregame/join', pregame_handlers.PreGameJoinHandler)
+    (r'/pregame/join', pregame_handlers.PreGameJoinHandler),
+    (r'/streams', dictionaries_packages.GetStreamsListHandler),
+    (r'/streams/([-\w]+)/to/([-\w]+)', dictionaries_packages.ChangeStreamStateHandler),
+    (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
+    (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
