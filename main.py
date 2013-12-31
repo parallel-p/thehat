@@ -15,35 +15,40 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers
+import pregame_handlers, dictionaries_packages, userdictionary, results_handlers, complain_word_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
 
-
-class SecondHandler(webapp2.RequestHandler):
-    def get(self):
-        self.response.write('Hello, second handler!')
-
 routes = [
     (r'/', MainHandler),
-    (r'/second/', SecondHandler),
-    (r'/pregame/new', pregame_handlers.PreGameNewHandler),
-    (r'/pregame/([-\w]+)', pregame_handlers.PreGameHandler),
-    (r'/pregame/([-\w]+)/update', pregame_handlers.PreGameUpdateHandler),
-    (r'/pregame/([-\w]+)/version', pregame_handlers.PreGameVersionHandler),
-    (r'/pregame/([-\w]+)/since/([\d]+)', pregame_handlers.PreGameSinceHandler),
-    (r'/pregame/([-\w]+)/start', pregame_handlers.PreGameStartHandler),
-    (r'/pregame/([-\w]+)/abort', pregame_handlers.PreGameAbortHandler),
-    (r'/pregame/join', pregame_handlers.PreGameJoinHandler),
+    webapp2.Route(r'/<device_id:[-\w]+>/complain', handler=complain_word_handlers.ComplainWordHandler,
+                  name='complain'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/create', handler=pregame_handlers.PreGameNewHandler,
+                  name='pregame_create'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
+                  name='pregame_get'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/update', handler=pregame_handlers.PreGameUpdateHandler,
+                  name='pregame_update'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/version',
+                  handler=pregame_handlers.PreGameVersionHandler, name='pregame_version'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/since/<version:[\d]+>',
+                  handler=pregame_handlers.PreGameSinceHandler, name='pregame_since'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/start', handler=pregame_handlers.PreGameStartHandler,
+                  name='pregame_start'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort', handler=pregame_handlers.PreGameAbortHandler,
+                  name='pregame_abort'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
+                  name='pregame_join'),
     (r'/streams', dictionaries_packages.GetStreamsListHandler),
     (r'/streams/([-\w]+)/to/([-\w]+)', dictionaries_packages.ChangeStreamStateHandler),
     (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
     (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
     (r'/udict/([-\w]+)/change/', userdictionary.Change),
-    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update)
+    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
+    (r'/results/([-\w]+)', results_handlers.ResultsHandler)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
