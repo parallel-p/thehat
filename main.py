@@ -52,8 +52,7 @@ routes = [
     (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
     (r'/udict/change/', userdictionary.Change),
     (r'/udict/update/', userdictionary.Update),
-    (r'/results/get/([-\w]+)', results_handlers.GetResultsHandler),
-    (r'/results/post/([-\w]+)', results_handlers.PostResultsHandler),
+    (r'/results/([-\w]+)', results_handlers.ResultsHandler)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
