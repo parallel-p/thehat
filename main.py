@@ -15,21 +15,17 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers
+import pregame_handlers, dictionaries_packages, userdictionary, results_handlers, complain_word_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
 
-
-class SecondHandler(webapp2.RequestHandler):
-    def get(self):
-        self.response.write('Hello, second handler!')
-
 routes = [
     (r'/', MainHandler),
-    (r'/second/', SecondHandler),
+    webapp2.Route(r'/<device_id:[-\w]+>/complain', handler=complain_word_handlers.ComplainWordHandler,
+                  name='complain'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create', handler=pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
@@ -50,8 +46,8 @@ routes = [
     (r'/streams/([-\w]+)/to/([-\w]+)', dictionaries_packages.ChangeStreamStateHandler),
     (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
     (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
-    (r'/udict/change/', userdictionary.Change),
-    (r'/udict/update/', userdictionary.Update),
+    (r'/udict/([-\w]+)/change/', userdictionary.Change),
+    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
     (r'/results/([-\w]+)', results_handlers.ResultsHandler)
 ]
 
