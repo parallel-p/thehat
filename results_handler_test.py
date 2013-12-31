@@ -1,12 +1,17 @@
 import unittest
-import results_handlers
+import webapp2
+import main
 
 class TestResults(unittest.TestCase):
 
+    def setUp(self):
+        self.request = webapp2.Request.blank(r'/results/1')
+
     def test_empty_get(self):
-        handler = results_handlers.GetResultsHandler()
-        handler.get(1)
+        response = self.request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
 
     def test_empty_post(self):
-        handler = results_handlers.PostResultsHandler()
-        handler.post(1)
+        self.request.method = 'POST'
+        response = self.request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
