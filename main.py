@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers
+import pregame_handlers, dictionaries_packages, userdictionary, results_handlers, complain_word_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -30,6 +30,8 @@ class SecondHandler(webapp2.RequestHandler):
 routes = [
     (r'/', MainHandler),
     (r'/second/', SecondHandler),
+    webapp2.Route(r'/<device_id:[-\w]+>/complain', handler = complain_word_handlers.ComplainWordHandler,
+                  name='complain'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create', handler=pregame_handlers.PreGameNewHandler,
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
