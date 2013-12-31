@@ -30,7 +30,7 @@ class SecondHandler(webapp2.RequestHandler):
 routes = [
     (r'/', MainHandler),
     (r'/second/', SecondHandler),
-    (r'/pregame/new', pregame_handlers.PreGameNewHandler),
+    (r'/pregame/create', pregame_handlers.PreGameNewHandler),
     (r'/pregame/([-\w]+)', pregame_handlers.PreGameHandler),
     (r'/pregame/([-\w]+)/update', pregame_handlers.PreGameUpdateHandler),
     (r'/pregame/([-\w]+)/version', pregame_handlers.PreGameVersionHandler),
