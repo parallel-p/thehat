@@ -27,6 +27,10 @@ class SecondHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, second handler!')
 
+class PostSend(webapp2.RequestHandler):
+    def get(self):
+        self.response.write("<html> <body> <form action=\"/udict/12/change/\" method=\"POST\"> <textarea name=\"diff\"></textarea> <input type=\"submit\" value=\"submit\"> </form>")
+
 routes = [
     (r'/', MainHandler),
     (r'/second/', SecondHandler),
@@ -42,8 +46,9 @@ routes = [
     (r'/streams/([-\w]+)/to/([-\w]+)', dictionaries_packages.ChangeStreamStateHandler),
     (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
     (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
-    (r'/udict/change/', userdictionary.Change),
-    (r'/udict/update/', userdictionary.Update)
+    (r'/udict/([-\w]+)/change/', userdictionary.Change),
+    (r'/udict/([-\w]+)/update/([-\w]+)/', userdictionary.Update),
+    (r'/post', PostSend)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
