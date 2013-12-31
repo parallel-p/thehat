@@ -45,7 +45,7 @@ class PreGameHandlersTest(unittest.TestCase):
         post_data = {
             'game': GAME_JSON
         }
-        request = webapp2.Request.blank('/pregame/create', None, None, post_data)
+        request = webapp2.Request.blank('/abc/pregame/create', None, None, post_data)
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
@@ -56,12 +56,12 @@ class PreGameHandlersTest(unittest.TestCase):
         post_data = {
             'game': GAME_JSON
         }
-        request = webapp2.Request.blank('/pregame/create', None, None, post_data)
+        request = webapp2.Request.blank('/abc/pregame/create', None, None, post_data)
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         game_id = json.loads(response.body)[u'id']
-        request = webapp2.Request.blank('/pregame/%s' % game_id)
+        request = webapp2.Request.blank('/abc/pregame/%s' % game_id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         was_game = json.loads(GAME_JSON)
@@ -69,6 +69,9 @@ class PreGameHandlersTest(unittest.TestCase):
         for key in was_game:
             self.assertEqual(was_game[key], now_game[key])
         self.assertEqual(now_game[u'id'], game_id)
+        request = webapp2.Request.blank('/abc2/pregame/%s' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 403)
 
     def tearDown(self):
         self.testbed.deactivate()
