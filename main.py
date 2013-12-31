@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages_handlers, userdictionary, results_handlers
+import pregame_handlers
+import dictionaries_packages_handlers
+import userdictionary, results_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -48,7 +50,7 @@ routes = [
                   name='pregame_join'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
-    webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>/to/<on:[-\w]+>',
+    webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>/to/<on:(true)|(false)>',
                   handler=dictionaries_packages_handlers.ChangeStreamStateHandler, name='change_stream_state'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>',
                   handler=dictionaries_packages_handlers.GetPackagesListHandler, name='package_list'),
