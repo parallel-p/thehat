@@ -1,0 +1,9 @@
+{% block bodycontent %}
+        <p>
+            List of news: <br>
+            {% for news in db %}
+                <a href='news/{{ news.id }}'>{{ news.title }}</a><br>
+            {% endfor %} <br>
+            <a href='addnews'>Add news</a>
+        </p>
+{% endblock %}
