@@ -1,13 +1,13 @@
 __author__ = 'nikolay'
 
 import unittest
-import webapp2
-from google.appengine.api import memcache
-from google.appengine.ext import db
-from google.appengine.ext import testbed
 import json
 
+import webapp2
+from google.appengine.ext import testbed
+
 import main
+
 
 GAME_JSON = u'''{
     "title": "A game",
@@ -75,7 +75,6 @@ class PreGameHandlersTest(unittest.TestCase):
 
     def tearDown(self):
         self.testbed.deactivate()
-
 
 
 if __name__ == '__main__':

@@ -1,6 +1,7 @@
 __author__ = 'nikolay'
 import webapp2
 
+
 class PreGameAllHandler(webapp2.RequestHandler):
     def set_device_id(self, **kwargs):
         self.device_id = kwargs.get('device_id', None)

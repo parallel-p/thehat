@@ -1,7 +1,8 @@
 import unittest
-import main
-import dictionaries_packages_handlers
+
 import webapp2
+
+import main
 
 
 class PackagesHandlersTest(unittest.TestCase):
@@ -12,7 +13,7 @@ class PackagesHandlersTest(unittest.TestCase):
 
     def test_change_stream_state_handler(self):
         request = webapp2.Request.blank(r'/a/streams/stream1/to/true')
-        request.method = 'POST';
+        request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
@@ -29,4 +30,3 @@ class PackagesHandlersTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
