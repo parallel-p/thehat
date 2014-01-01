@@ -1,14 +1,14 @@
 __author__ = 'nikolay'
 
 import unittest
-import webapp2
-from google.appengine.api import memcache
-from google.appengine.ext import db
-from google.appengine.ext import testbed
 import json
+
+import webapp2
+from google.appengine.ext import testbed
 
 import main
 from objects.pregame import *
+
 
 GAME_JSON = '''{
     "title": "A game",
