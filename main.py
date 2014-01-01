@@ -21,6 +21,7 @@ import dictionaries_packages_handlers
 import userdictionary
 import results_handlers
 import complain_word_handlers
+import newsfeed_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -72,7 +73,12 @@ routes = [
                   name='get_package'),
     (r'/udict/([-\w]+)/change/', userdictionary.Change),
     (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
-    (r'/results/([-\w]+)', results_handlers.ResultsHandler)
+    (r'/results/([-\w]+)', results_handlers.ResultsHandler),
+    (r'/login', newsfeed_handlers.LoginPageHandler),  # News Feed starts here
+    (r'/addnews', newsfeed_handlers.AddNewsHandler),
+    (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
+    (r'/listofnews', newsfeed_handlers.ListOfNewsHandler),
+    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler)  # News Feed finishes here
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
