@@ -34,7 +34,7 @@ routes = [
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
-                  handler=pregame_handlers.PreGameNewHandler,
+                  handler=pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
                   name='pregame_join'),
