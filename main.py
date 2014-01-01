@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers, complain_word_handlers
+import pregame_handlers, dictionaries_packages_handlers, userdictionary, results_handlers, complain_word_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -28,6 +28,8 @@ routes = [
                   name='complain'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create', handler=pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
+                  name='pregame_join'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
                   name='pregame_get'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/update', handler=pregame_handlers.PreGameUpdateHandler,
@@ -40,8 +42,6 @@ routes = [
                   name='pregame_start'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort', handler=pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
-    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
-                  name='pregame_join'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>/to/<on:[-\w]+>',
