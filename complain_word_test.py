@@ -1,7 +1,12 @@
 __author__ = 'ivan'
-import unittest2, webapp2
+import json
+
+import webapp2
 from google.appengine.ext import testbed
+
+import unittest2
 import main
+
 
 class complain_word_test(unittest2.TestCase):
     def setUp(self):
@@ -11,11 +16,13 @@ class complain_word_test(unittest2.TestCase):
         self.testbed.init_memcache_stub()
 
     def test_post(self):
-        post_data = '''{
-                    'word' = 'vasya',
-                    'cause' = '1'
-                }'''
+        data = []
+        word = {"device_id": "aaa", "word": "vasya", "cause": "1", "replace_word": "petya"}
+        data.append(word)
+        data.append(word)
+        post_data = {"complained_words": json.dumps(data)}
         len_before = len(ComplainedWords.all())
+        print(post_data)
         request = webapp2.Request.blank('/abc/complain', None, None, post_data)
         request.method = 'POST'
         response = request.get_response(main.app)
