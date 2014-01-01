@@ -1,0 +1,12 @@
+{% block bodycontent %}
+        <p>
+                <div>
+                    Title: {{ post.title }} <br/>
+                    Content: {{ post.text }} <br/>
+                    Timestamp: {{ post.timestamp }} <br/>
+                    Location: {{ post.location }} <br/>
+                    URL: {{ post.url }}
+                </div>
+            <a href='{{ id }}/delete'>Delete</a> | <a href='{{ id }}/edit'>Edit</a>
+        </p>
+{% endblock %}
