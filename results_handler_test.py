@@ -2,8 +2,8 @@ import unittest
 import webapp2
 import main
 
-class TestResults(unittest.TestCase):
 
+class TestResults(unittest.TestCase):
     def setUp(self):
         self.request = webapp2.Request.blank(r'/results/1')
 
