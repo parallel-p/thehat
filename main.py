@@ -22,11 +22,13 @@ import userdictionary
 import results_handlers
 import complain_word_handlers
 import newsfeed_handlers
+import assign_device_handler
 
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
+
 
 
 routes = [
@@ -78,7 +80,10 @@ routes = [
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
     (r'/listofnews', newsfeed_handlers.ListOfNewsHandler),
-    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler)  # News Feed finishes here
+    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler),  # News Feed finishes here
+    (r'/generate_pin', assign_device_handler.GeneratePinHandler),
+    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
+                  handler=assign_device_handler.AssignDeviceHandler,
+                  name='assign_device')
 ]
-
 app = webapp2.WSGIApplication(routes, debug=True)
