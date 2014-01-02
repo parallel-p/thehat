@@ -29,9 +29,10 @@ ROUNDS_JSON = '''
 }
 '''
 
+
 class TestResults(unittest.TestCase):
     def test_send_rounds(self):
-        request = webapp2.Request.blank('/send_round/1', None, None, ROUNDS_JSON)
+        request = webapp2.Request.blank('/send_round/1', None, None, {"rounds": ROUNDS_JSON})
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)

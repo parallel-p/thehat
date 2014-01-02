@@ -34,9 +34,10 @@ rounds: [
 
 class UpdateLog(webapp2.RequestHandler):
     def post(self, game_id):
-        log = Log.query(Log.game_id == game_id).fetch(1)
+        #log = Log.query(Log.game_id is not None and Log.game_id == game_id).fetch(1)
+        log = Log.get_by_id(game_id)
         if log is None:
-            log = Log(game_id, None, [])
+            log = Log(None, [], id=game_id)
         new_rounds = json.loads(self.request.get("rounds_json"))
         for _round in new_rounds.rounds:
             word = _round["word"]
