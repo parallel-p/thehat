@@ -436,6 +436,8 @@ class PreGameHandlersTest(unittest.TestCase):
         now_json = PreGame.query().fetch(1)[0].game_json
         was_game = json.loads(GAME_JSON)
         now_game = json.loads(now_json)
+        for key in was_game:
+            self.assertEqual(was_game[key], now_game[key])
 
     def test_get(self):
         game_id, game_pin = self.create_game()
@@ -632,7 +634,6 @@ class PreGameHandlersTest(unittest.TestCase):
         now_diff = json.loads(response.body)
         for key in need_diff:
             self.assertEqual(need_diff[key], now_diff[key])
-
 
     def tearDown(self):
         self.testbed.deactivate()
