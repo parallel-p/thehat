@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 import webapp2
-import pregame_handlers, dictionaries_packages, userdictionary, results_handlers
+import pregame_handlers, dictionaries_packages, userdictionary, log_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -43,7 +43,8 @@ routes = [
     (r'/streams/([-\w]+)', dictionaries_packages.GetPackagesListHandler),
     (r'/streams/packages/([-\w]+)', dictionaries_packages.GetPackageHandler),
     (r'/udict/([-\w]+)/change/', userdictionary.Change),
-    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update)
+    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
+    (r'/send_round/([-\w]+)', log_handlers.UpdateLog)
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
