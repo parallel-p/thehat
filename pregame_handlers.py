@@ -164,5 +164,6 @@ class PreGameJoinHandler(AllHandler):
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
-                response_struct = {"key": key_db.urlsafe(), "game": PreGame.delete_last_updates_from_json(game.game_json)}
+                response_struct = {"key": key_db.urlsafe(),
+                                   "game": PreGame.delete_last_updates_from_json(game.game_json)}
                 self.response.write(json.dumps(response_struct))
