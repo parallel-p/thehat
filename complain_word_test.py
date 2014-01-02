@@ -26,10 +26,17 @@ class complain_word_test(unittest2.TestCase):
             format(json.dumps([word1, word2]))
         request.method = 'POST'
         response = request.get_response(main.app)
+        response = request.get_response(main.app)
         len_after = ComplainedWord.all().count()
 
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(len_after, len_before + 2)
+        self.assertEqual(len_after, len_before + 4)
+
+    def test_get_table(self):
+        request = webapp2.Request.blank('/abc/complain')
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
 
     def tearDown(self):
         self.testbed.deactivate()
