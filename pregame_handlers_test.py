@@ -49,6 +49,49 @@ GAME_JSON = '''{
 }
 '''
 
+GAME_ON_SERVER_JSON = '''{
+    "title": "A game",
+    "players": [
+        {
+            "id": 1,
+            "name": "Vasya",
+            "words": [
+                {
+                    "text": "hat",
+                    "origin": "MANUAL_INPUT"
+                },
+                {
+                    "text": "hair",
+                    "origin": "RANDOM"
+                }
+            ],
+            "last_update": 0
+        }
+    ],
+    "words": [
+        {
+            "text": "banana",
+            "origin": "PACKAGE"
+        },
+        {
+            "text": "tea",
+            "origin": "RANDOM"
+        }
+    ],
+    "words_last_update": 0,
+    "order_last_update": 0,
+    "settings": {
+        "time_per_round": 20,
+        "words_per_player": 10,
+        "skip_count": 1,
+        "last_update": 0
+    },
+    "order": [
+        1
+    ]
+}
+'''
+
 JSON_JOIN = '''{
     "key": 0,
     "game": {
@@ -434,10 +477,10 @@ class PreGameHandlersTest(unittest.TestCase):
         self.create_game()
         self.assertEqual(len([PreGame.query()]), 1)
         now_json = PreGame.query().fetch(1)[0].game_json
-        was_game = json.loads(GAME_JSON)
+        need_game = json.loads(GAME_ON_SERVER_JSON)
         now_game = json.loads(now_json)
-        for key in was_game:
-            self.assertEqual(was_game[key], now_game[key])
+        for key in need_game:
+            self.assertEqual(need_game[key], now_game[key])
 
     def test_get(self):
         game_id, game_pin = self.create_game()
