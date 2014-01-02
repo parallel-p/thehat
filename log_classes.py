@@ -2,7 +2,9 @@ from google.appengine.ext import ndb
 
 
 class Log(ndb.Model):
-    def __init__(self, game_id, pre_game, rounds_list):
+    game_id = None
+
+    def __init__(self, pre_game, rounds_list):
         self.game_id = ndb.IntegerProperty()
         self.rounds_list = ndb.StructuredProperty(Round, repeated=True)
         self.pre_game = pre_game
