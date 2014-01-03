@@ -59,7 +59,7 @@ def json_with_news(id):
     dtb = db.GqlQuery("SELECT * FROM News WHERE id > :1 ORDER BY id", int(id))
     for news in dtb.run(limit=NEWS_AMOUNT):
         json_obj['news_items'].append(news.make_json())
-        json_obj['recent_id'] = news.id
+    json_obj['recent_id'] = get_last_id()
     return json.encode(json_obj)
 
 
@@ -115,7 +115,7 @@ class AddNewsHandler(webapp2.RequestHandler):
             text=text,
             location=location,
             url=url,
-            timestamp=int(time.time()))
+            timestamp=int(time.time())*1000)  # Unix-time in milliseconds
         news.put()
         self.redirect('/listofnews')
 
