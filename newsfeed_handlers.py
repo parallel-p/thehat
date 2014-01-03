@@ -58,8 +58,8 @@ def json_with_news(id):
     json_obj = {'news_items': [], "recent_id": 0}
     dtb = db.GqlQuery("SELECT * FROM News WHERE id > :1 ORDER BY id", int(id))
     for news in dtb.run(limit=NEWS_AMOUNT):
-        json['news_items'].append(news.make_json())
-        json['recent_id'] = news.id
+        json_obj['news_items'].append(news.make_json())
+        json_obj['recent_id'] = news.id
     return json.encode(json_obj)
 
 
