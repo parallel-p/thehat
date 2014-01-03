@@ -11,7 +11,6 @@ class ComplainWordHandler(AllHandler):
         super(ComplainWordHandler, self).set_device_id(**kwargs)
         complained_word_json_list = \
             json.loads(self.request.get(r'json'))
-        print(self.request.get(r'json'))
         for current_word_json in complained_word_json_list:
             current_word = ComplainedWord(device_id=self.device_id,
                                           word=current_word_json['word'],
