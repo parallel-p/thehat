@@ -1,13 +1,11 @@
 import unittest
-
 import webapp2
 import json
+import main
 from google.appengine.ext import testbed
 from objects.dictionaries_packages import PackageDictionary, PackagesStream
 from objects.user_streams import UserStreams
 from objects.user_devices import get_user_by_device
-
-import main
 
 
 class PackagesHandlersTest(unittest.TestCase):
@@ -90,7 +88,6 @@ class PackagesHandlersTest(unittest.TestCase):
             ]
         }
         '''
-
         right = json.loads(right_json)
         response_struct = json.loads(response.body)
         self.assertEqual(right, response_struct)
