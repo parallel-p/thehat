@@ -3,12 +3,13 @@
 # v 0.2
 
 
-from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from webapp2_extras import json
 import webapp2
 import os
 import time
+
+from environment import *
 
 
 class News(db.Model):
@@ -44,7 +45,8 @@ def doRender(handler, tname='index.html', values={}):
     new_val = dict(values)
     new_val['path'] = handler.request.path
     new_val['db'] = NEWS_DB
-    out_str = template.render(temp, new_val)
+    template = ENVIRONMENT.get_template('templates/' + tname)
+    out_str = template.render(new_val)
     handler.response.out.write(out_str)
     return True
 

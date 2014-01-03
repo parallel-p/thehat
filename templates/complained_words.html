@@ -1,0 +1,26 @@
+{% extends "templates/base.html" %}
+{% block title %}Сомнительные слова :: Шляпа{% endblock %}
+{% block contentheader %}Сомнительные слова{% endblock %}
+
+{% block content %}
+
+<table border="10">
+<tr>
+    <td>#</td>
+    <td>Устройство</td>
+    <td>Слово</td>
+    <td>Причина</td>
+    <td>Замена</td>
+</tr>
+{% for word in words %}
+<tr>
+    <td>{{word.cnt}}</td>
+    <td>{{word.device_id}}</td>
+    <td>{{word.word}}</td>
+    <td>{{word.reason}}</td>
+    <td>{{word.replacement_word}}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}
