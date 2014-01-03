@@ -1,0 +1,12 @@
+{% extends "templates/base.html" %}
+{% block title %}Привязка устройства :: Шляпа{% endblock %}
+{% block contentheader %}Привязка устройства{% endblock %}
+
+{% block content %}
+
+<div align="center">
+<h2>Введите этот код в Шляпе:<br>{{pin_code}}</h2>
+<a href={{logout_link}}>Logout</a>
+</div>
+
+{% endblock %}
