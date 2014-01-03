@@ -14,7 +14,7 @@ class ComplainWordHandler(AllHandler):
         for current_word_json in complained_word_json_list:
             current_word = ComplainedWord(device_id=self.device_id,
                                           word=current_word_json['word'],
-                                          cause=current_word_json['cause'])
+                                          reason=current_word_json['reason'])
             if 'replace_word' in current_word_json:
                 current_word.replacement_word = \
                     current_word_json['replace_word']
@@ -22,9 +22,9 @@ class ComplainWordHandler(AllHandler):
 
 
     def get(self, **kwargs):
-        res = '<table border="1">'
+        res = '<table border="10">'
         res += '''<tr><td>#</td><td>device_id</td><td>word</td>
-                  <td>cause</td><td>replace_to</td></tr>'''
+                  <td>reason</td><td>replace_to</td></tr>'''
         cnt = 0
         for word in ComplainedWord.all():
             res += '''
@@ -35,7 +35,7 @@ class ComplainWordHandler(AllHandler):
                         <td>{3}</td>
                         <td>{4}</td>
                     </tr>
-                    '''.format(cnt, word.device_id, word.word, word.cause,
+                    '''.format(cnt, word.device_id, word.word, word.reason,
                                word.replacement_word if word.replacement_word else '')
             cnt += 1
         res += "</table"
