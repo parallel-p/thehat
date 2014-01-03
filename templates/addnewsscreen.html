@@ -1,4 +1,8 @@
-{% block bodycontent %}
+{% extends "templates/base.html" %}
+{% block title %}Новости :: Шляпа{% endblock %}
+{% block contentheader %}Добавить новость{% endblock %}
+
+{% block content %}
         <p align="center">
         <form method="post" action="/addnews">
             <div>
@@ -20,10 +24,10 @@
             <input type="submit" value="Cancel"
                    onclick="window.location='/'; return false;"/>
         </form>
-        {% ifnotequal error None %}
+        {% if error is defined %}
             <p>
                 {{ error }}
             </p>
-        {% endifnotequal %}
+        {% endif %}
         </p>
 {% endblock %}
