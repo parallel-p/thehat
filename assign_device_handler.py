@@ -8,35 +8,21 @@ from google.appengine.api import users
 
 from all_handler import AllHandler
 from objects.user_devices import *
-
-HTML_BEGIN = '''\
-<html>
-<head>
-<title>Assign device</title>
-</head>
-<body>
-<center>
-Enter this pin in application:<br>
-'''
-
-HTML_END = '''\
-<a href=%s>Logout</a>
-</center>
-</body>
-</html>
-'''
+from environment import *
 
 
 class GeneratePinHandler(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
         if user is None:
-            self.redirect(users.create_login_url(r'/generate_pin'))
+            self.redirect(users.create_login_url('/generate_pin'))
         else:
             pin = random.randint(100000000, 999999999)
             UserPin(user=user, pin=pin).put()
-            self.response.write(HTML_BEGIN + ('<h1>%d</h1>' % pin) +
-                                HTML_END % users.create_logout_url(r'/generate_pin'))
+            template = ENVIRONMENT.get_template('templates/generate_pin.html')
+            self.response.write(template.render(
+                {"pin_code": pin,
+                 "logout_link": users.create_logout_url('/generate_pin')}))
 
 
 class AssignDeviceHandler(AllHandler):
