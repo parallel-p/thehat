@@ -1,4 +1,9 @@
-{% block bodycontent %}
+{% extends "templates/base.html" %}
+{% block title %}Новости :: Шляпа{% endblock %}
+{% block contentheader %}{{post.title}}{% endblock %}
+
+
+{% block content %}
         <p>
                 <div>
                     Title: {{ post.title }} <br/>

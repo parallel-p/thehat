@@ -4,41 +4,33 @@ import json
 
 from all_handler import AllHandler
 from objects.complained_word import ComplainedWord
+from environment import ENVIRONMENT
 
 
 class ComplainWordHandler(AllHandler):
     def post(self, **kwargs):
         super(ComplainWordHandler, self).set_device_id(**kwargs)
         complained_word_json_list = \
-            json.loads(self.request.get(r'complained_words'))
-
+            json.loads(self.request.get(r'json'))
         for current_word_json in complained_word_json_list:
             current_word = ComplainedWord(device_id=self.device_id,
                                           word=current_word_json['word'],
-                                          cause=current_word_json['cause]'])
+                                          reason=current_word_json['reason'])
             if 'replace_word' in current_word_json:
                 current_word.replacement_word = \
                     current_word_json['replace_word']
             current_word.put()
 
-
     def get(self, **kwargs):
-        res = '<table border="1">'
-        res += '''<tr><td>#</td><td>device_id</td><td>word</td>
-                  <td>cause</td><td>replace_to</td></tr>'''
+        template = ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
+        render_data = {"words": []}
         for word in ComplainedWord.all():
-            res += '''
-                    <tr>
-                        <td>{0}</td>
-                        <td>{1}</td>
-                        <td>{2}</td>
-                        <td>{3}</td>
-                        <td>{4}</td>
-                    </tr>
-                    '''.format(cnt, word.device_id, word.word, word.cause,
-                               word.replacement_word if word.replacement_word else '')
+            word_render = word
+            word_render.cnt = cnt
+            if word.replacement_word is None:
+                word_render.replacement_word = ''
+            render_data["words"].append(word_render)
             cnt += 1
-        res += "</table"
-        self.response.write(res)
+        self.response.write(template.render(render_data))
 
