@@ -1,4 +1,3 @@
-import webapp2
 import json
 from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
@@ -8,6 +7,7 @@ from objects.dictionaries_packages import PackagesStream, PackageDictionary
 
 class GetStreamsListHandler(AllHandler):
     def get(self, **kwargs):
+        super(GetStreamsListHandler, self).set_device_id(**kwargs)
         streams_list = PackagesStream.query()
         json_obj = {'streams': []}
         for stream in streams_list:
@@ -65,7 +65,6 @@ class GetPackageHandler(AllHandler):
             self.error(404)
         else:
             package = packages[0]
-
             json_obj = {"id": package.id, "name": package.name, "release_time": package.release_time,
                         "words": package.words}
 
