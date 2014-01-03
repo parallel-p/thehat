@@ -28,7 +28,7 @@ class GeneratePinHandler(webapp2.RequestHandler):
 class AssignDeviceHandler(AllHandler):
     def post(self, **kwargs):
         super(AssignDeviceHandler, self).set_device_id(**kwargs)
-        pin = json.loads(self.request.get('pin'))['pin']
+        pin = json.loads(self.request.get('json'))['pin']
         user = UserPin.query(UserPin.pin == pin).get()
         if user is None:
             self.error(404)
