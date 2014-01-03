@@ -23,6 +23,7 @@ import results_handlers
 import complain_word_handlers
 import newsfeed_handlers
 import assign_device_handler
+import global_dictionary_word_handlers
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -30,12 +31,14 @@ class MainHandler(webapp2.RequestHandler):
         self.response.write('Hello, first handler!')
 
 
-
 routes = [
     (r'/', MainHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
+    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words',
+                  handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
+                  name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
                   handler=pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
@@ -76,11 +79,11 @@ routes = [
     (r'/udict/([-\w]+)/change/', userdictionary.Change),
     (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
     (r'/results/([-\w]+)', results_handlers.ResultsHandler),
-    (r'/login', newsfeed_handlers.LoginPageHandler),  # News Feed starts here
+    (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
     (r'/listofnews', newsfeed_handlers.ListOfNewsHandler),
-    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler),  # News Feed finishes here
+    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
     (r'/generate_pin', assign_device_handler.GeneratePinHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=assign_device_handler.AssignDeviceHandler,
