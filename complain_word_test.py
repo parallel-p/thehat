@@ -25,8 +25,8 @@ class complain_word_test(unittest2.TestCase):
         request.body = "complained_words={0}". \
             format(json.dumps([word1, word2]))
         request.method = 'POST'
-        response = request.get_response(main.app)
-        response = request.get_response(main.app)
+        request.get_response(main.app)
+        response = request.get_response(main.app) # It is need to call it twice
         len_after = ComplainedWord.all().count()
 
         self.assertEqual(response.status_int, 200)
