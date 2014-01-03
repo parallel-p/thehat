@@ -4,6 +4,7 @@ import json
 
 from all_handler import AllHandler
 from objects.complained_word import ComplainedWord
+from environment import ENVIRONMENT
 
 
 class ComplainWordHandler(AllHandler):
@@ -20,24 +21,16 @@ class ComplainWordHandler(AllHandler):
                     current_word_json['replace_word']
             current_word.put()
 
-
     def get(self, **kwargs):
-        res = '<table border="10">'
-        res += '''<tr><td>#</td><td>device_id</td><td>word</td>
-                  <td>reason</td><td>replace_to</td></tr>'''
+        template = ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
+        render_data = {"words": []}
         for word in ComplainedWord.all():
-            res += '''
-                    <tr>
-                        <td>{0}</td>
-                        <td>{1}</td>
-                        <td>{2}</td>
-                        <td>{3}</td>
-                        <td>{4}</td>
-                    </tr>
-                    '''.format(cnt, word.device_id, word.word, word.reason,
-                               word.replacement_word if word.replacement_word else '')
+            word_render = word
+            word_render.cnt = cnt
+            if word.replacement_word is None:
+                word_render.replacement_word = ''
+            render_data["words"].append(word_render)
             cnt += 1
-        res += "</table"
-        self.response.write(res)
+        self.response.write(template.render(render_data))
 
