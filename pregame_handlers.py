@@ -10,7 +10,7 @@ from objects.pregame import PreGame
 class PreGameCreateHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameCreateHandler, self).set_device_id(**kwargs)
-        game = json.loads(self.request.get('game'))
+        game = json.loads(self.request.get('json'))
         game['pin'] = random.randint(100000000, 999999999)
         game['version'] = 0
         for player in game['players']:
@@ -44,7 +44,7 @@ class PreGameUpdateHandler(AllHandler):
         elif not game.can_update:
             self.error(403)
         else:
-            update = json.loads(self.request.get('update'))
+            update = json.loads(self.request.get('json'))
             game_struct = json.loads(game.game_json)
             game_struct['version'] += 1
             if len(update['words_add']) != 0:
@@ -153,7 +153,7 @@ class PreGameAbortHandler(AllHandler):
 class PreGameJoinHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameJoinHandler, self).set_device_id(**kwargs)
-        pin = int(self.request.get('pin'))
+        pin = int(self.request.get('json'))
         game = PreGame.query().filter(PreGame.pin == pin).get()
         if game is None:
             self.error(404)
