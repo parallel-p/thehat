@@ -22,9 +22,8 @@ class complain_word_test(unittest2.TestCase):
         word2 = {"word": "vasya", "reason": "2"}
         len_before = ComplainedWord.all().count()
         request = webapp2.Request.blank('/abc/complain')
-        request.body = "complained_words={0}". \
+        request.body = "json={0}". \
             format(json.dumps([word1, word2]))
-        print(json.dumps([word1, word2]))
         request.method = 'POST'
         request.get_response(main.app)
         response = request.get_response(main.app) # It is need to call it twice
