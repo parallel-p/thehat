@@ -63,3 +63,5 @@ class Update(webapp2.RequestHandler):
                     cur["active"] = str(int(i.active))
                     json_strings.append(cur)
             self.response.write(str(json_strings))
+
+
