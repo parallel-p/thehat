@@ -467,7 +467,7 @@ class PreGameHandlersTest(unittest.TestCase):
     def create_game(self):
         request = webapp2.Request.blank('/device_id/pregame/create')
         request.method = 'POST'
-        request.body = "game=%s" % GAME_JSON
+        request.body = "json=%s" % GAME_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
@@ -499,7 +499,7 @@ class PreGameHandlersTest(unittest.TestCase):
         game_id, game_pin = self.create_game()
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_JSON_AFTER_UPDATE)
@@ -508,7 +508,7 @@ class PreGameHandlersTest(unittest.TestCase):
             self.assertEqual(need_game[key], now_game[key])
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
 
@@ -520,7 +520,7 @@ class PreGameHandlersTest(unittest.TestCase):
         first_version = json.loads(response.body)['version']
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = 'update=%s' % UPDATE_JSON
+        request.body = 'json=%s' % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
@@ -537,7 +537,7 @@ class PreGameHandlersTest(unittest.TestCase):
         first_version = json.loads(response.body)['version']
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/device_id/pregame/%s/since/%d' % (game_id, first_version))
@@ -558,7 +558,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertFalse(PreGame.query().fetch(1)[0].can_update)
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
 
@@ -572,7 +572,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertFalse(PreGame.query().fetch(1)[0].can_update)
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
 
@@ -580,12 +580,12 @@ class PreGameHandlersTest(unittest.TestCase):
         game_id, game_pin = self.create_game()
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "pin=%s" % game_pin
+        request.body = "json=%s" % game_pin
         response = request.get_response(main.app)
         need_json = json.loads(JSON_JOIN)
         response_struct = json.loads(response.body)
@@ -596,14 +596,14 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % UPDATE_JSON
+        request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
     def test_all_1(self):
         request = webapp2.Request.blank('/device_id/pregame/create')
         request.method = 'POST'
-        request.body = "game=%s" % GAME_BIG_JSON
+        request.body = "json=%s" % GAME_BIG_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
@@ -615,17 +615,17 @@ class PreGameHandlersTest(unittest.TestCase):
         first_version = json.loads(response.body)['version']
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % BIG_UPDATE_1
+        request.body = "json=%s" % BIG_UPDATE_1
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "pin=%s" % game_pin
+        request.body = "json=%s" % game_pin
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % BIG_UPDATE_2
+        request.body = "json=%s" % BIG_UPDATE_2
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_BIG_AFTER_UPDATE)
@@ -642,7 +642,7 @@ class PreGameHandlersTest(unittest.TestCase):
     def test_all_2(self):
         request = webapp2.Request.blank('/device_id/pregame/create')
         request.method = 'POST'
-        request.body = "game=%s" % GAME_BIG_JSON
+        request.body = "json=%s" % GAME_BIG_JSON
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
@@ -654,17 +654,17 @@ class PreGameHandlersTest(unittest.TestCase):
         first_version = json.loads(response.body)['version']
         request = webapp2.Request.blank('/device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % BIG_UPDATE_2
+        request.body = "json=%s" % BIG_UPDATE_2
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "pin=%s" % game_pin
+        request.body = "json=%s" % game_pin
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
-        request.body = "update=%s" % BIG_UPDATE_1
+        request.body = "json=%s" % BIG_UPDATE_1
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_BIG_AFTER_UPDATE)

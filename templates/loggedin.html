@@ -1,4 +1,8 @@
-{% block bodycontent %}
+{% extends "templates/base.html" %}
+{% block title %}Новости :: Шляпа{% endblock %}
+{% block contentheader %}Новости{% endblock %}
+
+{% block content %}
         <p>
             List of news: <br>
             {% for news in db %}
