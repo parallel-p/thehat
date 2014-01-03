@@ -15,7 +15,7 @@ class DeviceUser(ndb.Model):
 
 def get_user_by_device(device_id):
     device_user = DeviceUser.query(DeviceUser.device_id == device_id).get()
-    if device_user in None:
+    if device_user is None:
         return 'device_%s' % device_id
     else:
         return device_user.user_id

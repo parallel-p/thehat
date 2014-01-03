@@ -19,7 +19,7 @@ import webapp2
 import pregame_handlers
 import dictionaries_packages_handlers
 import userdictionary
-import log_handlers
+import log_n_res_handlers
 import complain_word_handlers
 import newsfeed_handlers
 import assign_device_handler
@@ -73,12 +73,16 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
                   handler=dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
-    webapp2.Route(r'/<device_id:[-\w]+>/send_round', handler=log_handlers.UpdateLogNRes,
-                  name='send_results'),
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadLog,
+                  name='upload_log'),
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
+                  name='upload_results'),
+    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<game_id:[-\w]+>', handler=log_n_res_handlers.CheckAnyResults,
+                  name='check_for_results'),
+    webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
+                  name='get_results'),
     (r'/udict/([-\w]+)/change/', userdictionary.Change),
     (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
-    #(r'/send_round/([-\w]+)', log_handlers.UpdateLog),
-    #(r'/results/([-\w]+)', log_handlers.CalcResults),
     (r'/login', newsfeed_handlers.LoginPageHandler),  # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
