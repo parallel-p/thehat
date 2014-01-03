@@ -15,7 +15,7 @@ class ComplainWordHandler(AllHandler):
         for current_word_json in complained_word_json_list:
             current_word = ComplainedWord(device_id=self.device_id,
                                           word=current_word_json['word'],
-                                          cause=current_word_json['cause]'])
+                                          cause=current_word_json['cause'])
             if 'replace_word' in current_word_json:
                 current_word.replacement_word = \
                     current_word_json['replace_word']
