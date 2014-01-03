@@ -6,5 +6,11 @@ from google.appengine.ext import db
 class ComplainedWord(db.Model):
     device_id = db.StringProperty()
     word = db.StringProperty()
-    cause = db.IntegerProperty()
+    reason = db.StringProperty()
     replacement_word = db.StringProperty()
+
+
+"typo"
+"non_noun"
+"non_dict"
+"loanword"

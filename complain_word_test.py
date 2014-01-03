@@ -17,13 +17,14 @@ class complain_word_test(unittest2.TestCase):
         self.testbed.init_memcache_stub()
 
     def test_post(self):
-        word1 = {"word": "vasya", "cause": 1,
+        word1 = {"word": "vasya", "reason": "1",
                  "replace_word": "petya"}
-        word2 = {"word": "vasya", "cause": 2}
+        word2 = {"word": "vasya", "reason": "2"}
         len_before = ComplainedWord.all().count()
         request = webapp2.Request.blank('/abc/complain')
         request.body = "complained_words={0}". \
             format(json.dumps([word1, word2]))
+        print(json.dumps([word1, word2]))
         request.method = 'POST'
         response = request.get_response(main.app)
         response = request.get_response(main.app)
