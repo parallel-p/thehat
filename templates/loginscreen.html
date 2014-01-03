@@ -1,4 +1,8 @@
-{% block bodycontent %}
+{% extends "templates/base.html" %}
+{% block title %}Новости :: Шляпа{% endblock %}
+{% block contentheader %}Добавить новость{% endblock %}
+
+{% block content %}
         <form method="post" action="/login">
             Name: <input type="text" name="account"/> <br>
             Pass: <input type="password" name="password"/> <br/>
