@@ -154,11 +154,10 @@ class PreGameJoinHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameJoinHandler, self).set_device_id(**kwargs)
         pin = int(self.request.get('pin'))
-        game_list = PreGame.query().filter(PreGame.pin == pin).fetch(1)
-        if len(game_list) == 0:
+        game = PreGame.query().filter(PreGame.pin == pin).get()
+        if game is None:
             self.error(404)
         else:
-            game = game_list[0]
             if not game.can_update:
                 self.error(403)
             else:
