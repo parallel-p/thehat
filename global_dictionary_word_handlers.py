@@ -7,6 +7,7 @@ from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
 import constants.constants
 from environment import *
+from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 
 
 class GlobalDictionaryWordHandler(AllHandler):
@@ -24,11 +25,10 @@ class GlobalDictionaryWordHandler(AllHandler):
     def get(self, **kwargs):
         super(GlobalDictionaryWordHandler, self).set_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
-
         if device_version == GlobalDictionaryVersion.get_server_version():
-            self.response.write("{}")
+            self.response.write("{o}")
         else:
-            self.response.write(GlobalDictionaryWordHandler.make_json())
+            self.response.write(GlobalDictionaryJson.get_json())
 
 
 class GlobalWordEditor(webapp2.RequestHandler):
@@ -57,4 +57,12 @@ class GlobalWordEditor(webapp2.RequestHandler):
             new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D, tags="")
             new_word.put()
         if smth_changed:
+            json = GlobalDictionaryJson.get_by_key_name('json')
+            if json is None:
+                print(GlobalDictionaryWordHandler.make_json())
+                json = GlobalDictionaryJson(key_name='json',json=GlobalDictionaryWordHandler.make_json())
+            else:
+                json.json = GlobalDictionaryWordHandler.make_json()
+            json.put()
             GlobalDictionaryVersion.update_version()
+        self.redirect('/edit_words')
