@@ -46,9 +46,9 @@ class GlobalWordEditor(webapp2.RequestHandler):
                 splited = word_info.split()
             word = splited[0]
             if len(splited) >= 2:
-                E = int(splited[1])
+                E = float(splited[1])
             if len(splited) >= 3:
-                D = int(splited[2])
+                D = float(splited[2])
             new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D)
             new_word.put()
 
