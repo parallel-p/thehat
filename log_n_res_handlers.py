@@ -22,26 +22,25 @@ class Results(ndb.Model):
 
 
 class UploadLog(AllHandler):
-    def get(self, **kwargs):
+    def post(self, **kwargs):
         super(UploadLog, self).set_device_id(**kwargs)
         game_id = kwargs["game_id"]
         log_json = ndb.JsonProperty(id=game_id)
-        log_json = self.request.get("log_json")
+        log_json = self.request.get("log")
         log_json.put()
 
 
 class UploadRes(AllHandler):
-    def get(self, **kwargs):
+    def post(self, **kwargs):
         super(UploadRes, self).set_device_id(**kwargs)
         game_id = kwargs.get("game_id")
-        #results = ndb.Key(Results, game_id).get()
-        #results = ndb.Key(Results, int(game_id)).get()
-        #if results is not None:
-        #    return
-        results_json = self.request.get("results_json")
-        pregame = None#ndb.Key(urlsafe=game_id).get()
-        if pregame is not None:
-            devices = pregame.device_ids
+        results = ndb.Key(Results, game_id).get()
+        if results is not None:
+            return
+        results_json = self.request.get("results")
+        key = ndb.Key(urlsafe=game_id)
+        if key.kind() == 'PreGame':
+            devices = key.get().device_ids
         else:
             devices = [self.device_id]
         players_ids = [get_user_by_device(device) for device in devices]
@@ -52,17 +51,23 @@ class UploadRes(AllHandler):
 
 
 class CheckAnyResults(AllHandler):
-    def post(self, **kwargs):
+    def get(self, **kwargs):
         player_id = get_user_by_device(self.device_id)
         timestamp = kwargs["timestamp"]
         results = Results.query(Results.players_ids.IN([player_id]),
                                 Results.timestamp > timestamp).fetch(projection=["results_json"])
-        for result in results:
-            self.response.write(result.results_json)
+        #if len(results) == 0:
+        #    self.error(401)  # have no access
+        #    return
+        response = [{'result': result.json, 'timestamp': datetime.now().timestamp()} for result in results]
+        self.response.write(json.dumps(response))
 
 
 class GetResults(AllHandler):
-    def post(self, **kwargs):
+    def get(self, **kwargs):
         game_id = kwargs["game_id"]
-        results = ndb.Key(Results, game_id).get()
-        self.response.write(results.results_json)
+        result = ndb.Key(Results, game_id).get()
+        if result is None:
+            self.error(404)  # results not found
+            return
+        self.response.write(result.results_json)
