@@ -46,6 +46,11 @@ routes = [
         constants.constants.show_complained_url,
         handler=complain_word_handlers.ShowComplainedWords,
         name='show_complained_words'),
+    webapp2.Route(
+        constants.constants.delete_from_global_url,
+        handler=complain_word_handlers.DeleteFromGlobalDictionaryHandler,
+        name='delete_from_global'
+    ),
     webapp2.Route(r'/edit_words',
                   handler=global_dictionary_word_handlers.GlobalWordEditor,
                   name='edit_words'),
