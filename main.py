@@ -100,6 +100,8 @@ routes = [
     (r'/([-\w]+)/udict/update/', userdictionary.Change),
     (r'/([-\w]+)/udict/get/since/([-\w]+)', userdictionary.Update),
     (r'/([-\w]+)/udict/get/', userdictionary.Get),
+    (r'/html/udict/edit', userdictionary.DrawWebpage),
+    (r'/html/udict/proc', userdictionary.ProcWebpage),
     (r'/results/([-\w]+)', results_handlers.ResultsHandler),
     (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
