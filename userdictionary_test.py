@@ -11,8 +11,8 @@ class TestWordsUpload(unittest.TestCase):
         self.testbed.init_memcache_stub()
 
     def test_post(self):
-        first_game = '''[{"word": "word_1", "version": 0, "active": 1, "index": 0}, {"word": "word2", "version": "10", "active": 0, "index":1}]'''
-        second_game = '''[{"word": "word_1", "version": 0, "active": 1, "index": 0}, {"word": "word2", "version": "10", "active": 0, "index":1}]'''
+        first_game = '''{"version": 1, "words": [{"word": "word_1", "version": 0, "status": "ok", "index": 0}, {"word": "word2", "version": "10", "status": "deleted", "index":1}]}'''
+        second_game = '''{"version": 2, "words": [{"word": "word_1", "version": 0, "status": "deleted", "index": 0}, {"word": "word2", "version": "10", "status": "deleted", "index":1}]}'''
         request = webapp2.Request.blank('/123/udict/update/')
         request.body = "json=" + first_game
         request.method = "POST"
@@ -34,3 +34,8 @@ class TestWordsUpload(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+#active -> status
+#1 -> ok
+#2 -> deleted
