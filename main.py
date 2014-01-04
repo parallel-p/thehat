@@ -105,7 +105,7 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=assign_device_handler.AssignDeviceHandler,
                   name='assign_device'),
-    webapp2.Route(r'/internal/html/recalc_rating_after_game',
+    webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating')
 ]
