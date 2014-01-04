@@ -1,45 +1,41 @@
+import webapp2
+from google.appengine.ext import testbed
 import unittest
-import urllib
-import urllib2
-import json
-from random import *
-from time import *
-
-'''
-This is a program which will test creating of user's dictionary
-'''
+import main
 
 class TestWordsUpload(unittest.TestCase):
-    def test_creation(self):
-        for i in range(10):
-            first_game = '''[{"word": "word_1", "version": 0, "active": 1}, {"word": "word2", "version": VERS, "active": 0}]'''
-            cversion = randint(1, 10000)
-            first_game = first_game.replace("VERS", str(cversion))
-            data = {"json": first_game}
-            data = urllib.urlencode(data)
-            req = urllib2.Request('http://localhost:8080/udict/60/change/', data)
-            response = urllib2.urlopen(req)
-            # print(dir(response), response.read())
-            self.assertTrue(int(response.read()) >= cversion)
+    def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
 
-class TestWordDownload(unittest.TestCase):
-    def test_creation(self):
-        for i in range(10):
-            first_game = '''[{"word": "word_1", "version": 0, "active": 1}, {"word": "word2", "version": VERS, "active": 0}]'''
-            cversion = randint(1, 10000)
-            cuser = randint(1, 10000)
-            first_game = first_game.replace("VERS", str(cversion))
-            data = {"diff": first_game}
-            data = urllib.urlencode(data)
-            print('http://localhost:8080/udict/CUSER/change'.replace("CUSER", str(cuser)), data)
-            req = urllib2.Request('http://localhost:8080/udict/CUSER/change/'.replace("CUSER", str(cuser)), data)
-            urllib2.urlopen(req)
-            print('http://localhost:8080/udict/CUSER/update/0'.replace('CUSER', str(cuser)))
-            resp = urllib2.urlopen('http://localhost:8080/udict/CUSER/update/-1'.replace('CUSER', str(cuser)))
-            self.assertTrue(resp.code == 200)
-
+    def test_post(self):
+        first_game = '''{"version": 1, "words": [{"word": "word_1", "version": 0, "status": "ok", "index": 0}, {"word": "word2", "version": "10", "status": "deleted", "index":1}]}'''
+        second_game = '''{"version": 2, "words": [{"word": "word_1", "version": 0, "status": "deleted", "index": 0}, {"word": "word2", "version": "10", "status": "deleted", "index":1}]}'''
+        request = webapp2.Request.blank('/123/udict/update/')
+        request.body = "json=" + first_game
+        request.method = "POST"
+        response = request.get_response(main.app)
+        a = response.text
+        request = webapp2.Request.blank('/123/udict/update/')
+        request.body = "json=" + second_game
+        request.method = "POST"
+        response = request.get_response(main.app)
+        b = response.text
+        self.assertTrue(int(a) < int(b))
+    def test_get(self):
+        request = webapp2.Request.blank('/123/udict/get/')
+        request.method = "GET"
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+    def tearDown(self):
+        self.testbed.deactivate()
 
 if __name__ == "__main__":
     unittest.main()
 
 
+#active -> status
+#1 -> ok
+#2 -> deleted

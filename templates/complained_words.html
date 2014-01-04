@@ -3,24 +3,37 @@
 {% block contentheader %}Сомнительные слова{% endblock %}
 
 {% block content %}
-
-<table border="10">
-<tr>
-    <td>#</td>
-    <td>Устройство</td>
-    <td>Слово</td>
-    <td>Причина</td>
-    <td>Замена</td>
-</tr>
-{% for word in words %}
-<tr>
-    <td>{{word.cnt}}</td>
-    <td>{{word.device_id}}</td>
-    <td>{{word.word}}</td>
-    <td>{{word.reason}}</td>
-    <td>{{word.replacement_word}}</td>
-</tr>
-{% endfor %}
-</table>
+    <form method="post"
+          action="/cN08Yh3CNWaIVe0OAeBDflxw79hQP44CvEtGe4doGyVUgaNMgRKrazdGPcobgugxGAwV2Z2fP1vBD8sa5qO89ZVLX41x4t91XnFV">
+        Delete from complained: <br/> <input type="text" name="word"/>
+        <td><input type="submit" value="Delete"/></td>
+    </form>
+    <form method="post"
+          action="/pYDpUoXspsJTVhqBai7hrV7uKs5MN0VUhE80ksWGGuQhazGbVPUhcPSzpztdboY34yFstsL56GMHkOI3SWUtF5Cwml23NDt6Yuou">
+        Delete from global: <br/> <input type="text" name="word"/>
+        <td><input type="submit" value="Delete"/></td>
+    </form>
+    <form method="post"
+          action="/TaSsP25Hb2sEqRCuAjxcbwXNjLR3Ole3lijbIUKcao1yxh2790sJDScHnVdxIVchyDTM32r0WWyF14gqxLbjEfLCWpCGjPJwizvZ">
+        <td><input type="submit" value="Delete All"/></td>
+    </form>
+    <table border="10">
+        <tr>
+            <td>#</td>
+            <td>Устройство</td>
+            <td>Слово</td>
+            <td>Причина</td>
+            <td>Замена</td>
+        </tr>
+        {% for word in words %}
+            <tr>
+                <td>{{ word.cnt }}</td>
+                <td>{{ word.device_id }}</td>
+                <td>{{ word.word }} </td>
+                <td>{{ word.reason }}</td>
+                <td>{{ word.replacement_word }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 
 {% endblock %}
