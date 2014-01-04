@@ -53,11 +53,6 @@ class GlobalWordEditor(webapp2.RequestHandler):
             new_word.put()
 
 
-class GetDictionaryVersion(webapp2.RequestHandler):
-    def get(self):
-        version = GlobalDictionaryVersion.query().fetch()[0]
-
-
 
 
 
