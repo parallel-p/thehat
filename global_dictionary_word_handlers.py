@@ -41,7 +41,7 @@ class GlobalWordEditor(webapp2.RequestHandler):
         smth_changed = False
         for i in data:
             word_info = i.strip()
-            splited, E, D = [word_info, ], 50, 50 / 3
+            splited, E, D = [word_info, ], 50.0, 50.0 / 3
             if word_info.count(' ') != 0:
                 splited = word_info.split()
             word = splited[0]
