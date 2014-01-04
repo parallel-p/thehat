@@ -23,6 +23,8 @@ import log_n_res_handlers
 import complain_word_handlers
 import newsfeed_handlers
 import assign_device_handler
+import global_dictionary_word_handlers
+import recalc_rating_handler
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -30,12 +32,14 @@ class MainHandler(webapp2.RequestHandler):
         self.response.write('Hello, first handler!')
 
 
-
 routes = [
     (r'/', MainHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
+    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words',
+                  handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
+                  name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
                   handler=pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
@@ -81,16 +85,20 @@ routes = [
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
-    (r'/udict/([-\w]+)/change/', userdictionary.Change),
-    (r'/udict/([-\w]+)/update/([-\w]+)', userdictionary.Update),
-    (r'/login', newsfeed_handlers.LoginPageHandler),  # News Feed starts here
+    (r'/([-\w]+)/udict/update/', userdictionary.Change),
+    (r'/([-\w]+)/udict/get/since/([-\w]+)', userdictionary.Update),
+    (r'/([-\w]+)/udict/get/', userdictionary.Get),
+    (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
     (r'/listofnews', newsfeed_handlers.ListOfNewsHandler),
-    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler),  # News Feed finishes here
+    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
     (r'/generate_pin', assign_device_handler.GeneratePinHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=assign_device_handler.AssignDeviceHandler,
-                  name='assign_device')
+                  name='assign_device'),
+    webapp2.Route(r'/internal/html/recalc_rating_after_game',
+                  handler=recalc_rating_handler.RecalcRatingHandler,
+                  name='recalc_rating')
 ]
 app = webapp2.WSGIApplication(routes, debug=True)

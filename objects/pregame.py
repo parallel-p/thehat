@@ -7,7 +7,7 @@ import json
 class PreGame(ndb.Model):
     game_json = ndb.StringProperty(indexed=False)
     device_ids = ndb.StringProperty(repeated=True)
-    pin = ndb.IntegerProperty()
+    pin = ndb.StringProperty()
     can_update = ndb.BooleanProperty()
 
     @staticmethod
@@ -18,4 +18,5 @@ class PreGame(ndb.Model):
         del game['settings']['last_update']
         for player in game['players']:
             del player['last_update']
+        del game['players_deleted']
         return json.dumps(game)
