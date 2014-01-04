@@ -19,7 +19,7 @@ class GeneratePinHandler(webapp2.RequestHandler):
         else:
             pin = random.randint(100000000, 999999999)
             UserPin(user=user, pin=pin).put()
-            template = ENVIRONMENT.get_template('templates/generate_pin.html')
+            template = JINJA_ENVIRONMENT.get_template('templates/generate_pin.html')
             self.response.write(template.render(
                 {"pin_code": pin,
                  "logout_link": users.create_logout_url('/generate_pin')}))
