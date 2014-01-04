@@ -24,6 +24,7 @@ import complain_word_handlers
 import newsfeed_handlers
 import assign_device_handler
 import global_dictionary_word_handlers
+import recalc_rating_handler
 
 
 class MainHandler(webapp2.RequestHandler):
@@ -87,6 +88,9 @@ routes = [
     (r'/generate_pin', assign_device_handler.GeneratePinHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=assign_device_handler.AssignDeviceHandler,
-                  name='assign_device')
+                  name='assign_device'),
+    webapp2.Route(r'/internal/html/recalc_rating_after_game',
+                  handler=recalc_rating_handler.RecalcRatingHandler,
+                  name='recalc_rating')
 ]
 app = webapp2.WSGIApplication(routes, debug=True)
