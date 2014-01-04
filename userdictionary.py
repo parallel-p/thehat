@@ -59,9 +59,7 @@ class Update(webapp2.RequestHandler):
         wordlist = list(UserWord.query(UserWord.user == user))
         rwordlist = []
         for i in wordlist:
-            print(i.word, i.version, version_on_device)
             if i.version > int(version_on_device):
-                print('thst', i.word, i.version)
                 rwordlist.append(i)
         self.response.write(wordlist_to_json(rwordlist))
 
