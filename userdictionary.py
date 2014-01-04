@@ -2,7 +2,10 @@ from google.appengine.ext import ndb
 
 import webapp2
 import json
-import objects.user_devices
+
+from objects.user_devices import get_user_by_device
+from all_handler import AllHandler
+
 
 class UserWord(ndb.Model):
     word = ndb.StringProperty()
@@ -11,7 +14,8 @@ class UserWord(ndb.Model):
     version = ndb.IntegerProperty(indexed=False)
     index = ndb.IntegerProperty(indexed=False)
 
-def get_dictionary_version(user): # Will return resulting version of the whole user's dictionary.
+
+def get_dictionary_version(user):  # Will return resulting version of the whole user's dictionary.
     wordlist = list(UserWord.query(UserWord.user == user))
     answer = 0
     for i in wordlist:
@@ -19,9 +23,11 @@ def get_dictionary_version(user): # Will return resulting version of the whole u
             answer = i.version
     return answer
 
-class Change(webapp2.RequestHandler):
-    def post(self, user):
-        user = objects.user_devices.get_user_by_device(user)
+
+class Change(AllHandler):
+    def post(self, **kwargs):
+        super(Change, self).set_device_id(**kwargs)
+        user = get_user_by_device(self.device_id)
         json_changes = self.request.get("json")
         changes = json.loads(json_changes)
         dictionary_version = get_dictionary_version(user)
@@ -38,6 +44,7 @@ class Change(webapp2.RequestHandler):
             current_word.put()
         self.response.write(dictionary_version + 1)
 
+
 def wordlist_to_json(wordlist, vers):
     json_strings = []
     for i in wordlist:
@@ -52,10 +59,11 @@ def wordlist_to_json(wordlist, vers):
     return json_string + "]}"
 
 
-
-class Update(webapp2.RequestHandler):
-    def get(self, user, version_on_device):
-        user = objects.user_devices.get_user_by_device(user)
+class Update(AllHandler):
+    def get(self, **kwargs):
+        super(Update, self).set_device_id(**kwargs)
+        user = get_user_by_device(self.device_id)
+        version_on_device = kwargs.get("version")
         wordlist = list(UserWord.query(UserWord.user == user))
         rwordlist = []
         vers = get_dictionary_version(user)
@@ -65,16 +73,19 @@ class Update(webapp2.RequestHandler):
         self.response.write(wordlist_to_json(rwordlist, vers))
 
 
-class Get(webapp2.RequestHandler):
-    def get(self, user):
-        user = objects.user_devices.get_user_by_device(user)
+class Get(AllHandler):
+    def get(self, **kwargs):
+        super(Get, self).set_device_id(**kwargs)
+        user = get_user_by_device(self.device_id)
         vers = get_dictionary_version(user)
         wordlist = list(UserWord.query(UserWord.user == user))
         self.response.write(wordlist_to_json(wordlist, vers))
 
+
 class DrawWebpage(webapp2.RedirectHandler):
     def get(self):
         self.response.write("It works!")
+
 
 class ProcWebpage(webapp2.RequestHandler):
     def post(self):

@@ -19,7 +19,7 @@ import webapp2
 import pregame_handlers
 import dictionaries_packages_handlers
 import userdictionary
-import results_handlers
+import log_n_res_handlers
 import complain_word_handlers
 import newsfeed_handlers
 import assign_device_handler
@@ -97,12 +97,28 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
                   handler=dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadLog,
+                  name='upload_log'),
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
+                  name='upload_results'),
+    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>', handler=log_n_res_handlers.CheckAnyResults,
+                  name='check_for_results'),
+    webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
+                  name='get_results'),
     (r'/([-\w]+)/udict/update/', userdictionary.Change),
     (r'/([-\w]+)/udict/get/since/([-\w]+)', userdictionary.Update),
     (r'/([-\w]+)/udict/get/', userdictionary.Get),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/update/',
+                  handler=userdictionary.Change,
+                  name='udict_update'),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/since/<version:[-\w]+>',
+                  handler=userdictionary.Update,
+                  name='udict_since'),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/',
+                  handler=userdictionary.Get,
+                  name='udict_get'),
     (r'/html/udict/edit', userdictionary.DrawWebpage),
     (r'/html/udict/proc', userdictionary.ProcWebpage),
-    (r'/results/([-\w]+)', results_handlers.ResultsHandler),
     (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
