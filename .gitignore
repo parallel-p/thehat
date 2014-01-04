@@ -1,4 +1,7 @@
 *.py[cod]
+*~
+*.swp
+*.orig
 
 # C extensions
 *.so
@@ -36,4 +39,4 @@ nosetests.xml
 .pydevproject
 
 # PyCharm
-.idea
+.idea/
