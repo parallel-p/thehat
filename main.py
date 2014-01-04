@@ -25,7 +25,7 @@ import newsfeed_handlers
 import assign_device_handler
 import global_dictionary_word_handlers
 import recalc_rating_handler
-
+import constants.constants
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -34,10 +34,25 @@ class MainHandler(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainHandler),
+     webapp2.Route(
+        constants.constants.delete_all_url,
+        handler=complain_word_handlers.DeleteComplainedWords,
+        name='delete_complained_words'),
+    webapp2.Route(
+        constants.constants.delete_current_url,
+        handler=complain_word_handlers.DeleteComplainedWord,
+        name='delete_current_complained_word'),
+    webapp2.Route(
+        constants.constants.show_complained_url,
+        handler=complain_word_handlers.ShowComplainedWords,
+        name='show_complained_words'),
+    webapp2.Route(r'/edit_words',
+                  handler=global_dictionary_word_handlers.GlobalWordEditor,
+                  name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
-    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words',
+    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words/<version:[-\w]+>',
                   handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
                   name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
