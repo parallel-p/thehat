@@ -1,7 +1,6 @@
 __author__ = 'nikolay'
 
 import unittest
-import json
 
 import webapp2
 from google.appengine.ext import testbed
@@ -12,9 +11,10 @@ from objects.pregame import *
 
 GAME_JSON = '''{
     "title": "A game",
+    "version": 5,
     "players": [
         {
-            "id": 1,
+            "id": "1",
             "name": "Vasya",
             "words": [
                 {
@@ -44,16 +44,17 @@ GAME_JSON = '''{
         "skip_count": 1
     },
     "order": [
-        1
+        "1"
     ]
 }
 '''
 
 GAME_ON_SERVER_JSON = '''{
     "title": "A game",
+    "version": 5,
     "players": [
         {
-            "id": 1,
+            "id": "1",
             "name": "Vasya",
             "words": [
                 {
@@ -65,7 +66,7 @@ GAME_ON_SERVER_JSON = '''{
                     "origin": "RANDOM"
                 }
             ],
-            "last_update": 0
+            "last_update": 5
         }
     ],
     "words": [
@@ -78,16 +79,16 @@ GAME_ON_SERVER_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "words_last_update": 0,
-    "order_last_update": 0,
+    "words_last_update": 5,
+    "order_last_update": 5,
     "settings": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1,
-        "last_update": 0
+        "last_update": 5
     },
     "order": [
-        1
+        "1"
     ]
 }
 '''
@@ -97,9 +98,10 @@ JSON_JOIN = '''{
     "game": {
         "pin": 0,
         "title": "A game",
+        "version": 5,
         "players": [
             {
-                "id": 1,
+                "id": "1",
                 "name": "Vasya",
                 "words": [
                     {
@@ -129,16 +131,16 @@ JSON_JOIN = '''{
             "skip_count": 1
         },
         "order": [
-            1
+            "1"
         ]
     }
 }
 '''
 
 UPDATE_JSON = '''{
-    "players_add": [
+    "players_change": [
         {
-            "id": 2,
+            "id": "2",
             "name": "Petya",
             "words": [
                 {
@@ -152,7 +154,7 @@ UPDATE_JSON = '''{
             ]
         },
         {
-            "id": 3,
+            "id": "3",
             "name": "Ivan",
             "words": [
                 {
@@ -166,12 +168,10 @@ UPDATE_JSON = '''{
             ]
         }
     ],
-    "players_del": [
-        1
+    "players_delete": [
+        "1"
     ],
-    "players_upd": [
-    ],
-    "words_add": [
+    "words_change": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -181,10 +181,10 @@ UPDATE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order": [
-        3, 2
+    "order_change": [
+        "3", "2"
     ],
-    "settings": {
+    "settings_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -193,9 +193,10 @@ UPDATE_JSON = '''{
 '''
 
 SINCE_JSON = '''{
+    "version": 6,
     "players_change": [
         {
-            "id": 2,
+            "id": "2",
             "name": "Petya",
             "words": [
                 {
@@ -209,7 +210,7 @@ SINCE_JSON = '''{
             ]
         },
         {
-            "id": 3,
+            "id": "3",
             "name": "Ivan",
             "words": [
                 {
@@ -223,15 +224,10 @@ SINCE_JSON = '''{
             ]
         }
     ],
-    "words": [
-        {
-            "text": "banana",
-            "origin": "PACKAGE"
-        },
-        {
-            "text": "tea",
-            "origin": "RANDOM"
-        },
+    "players_delete": [
+        "1"
+    ],
+    "words_change": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -241,10 +237,10 @@ SINCE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order": [
-        3, 2
+    "order_change": [
+        "3", "2"
     ],
-    "settings": {
+    "settings_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -254,9 +250,10 @@ SINCE_JSON = '''{
 
 GAME_JSON_AFTER_UPDATE = '''{
     "title": "A game",
+    "version": 6,
     "players": [
         {
-            "id": 2,
+            "id": "2",
             "name": "Petya",
             "words": [
                 {
@@ -270,7 +267,7 @@ GAME_JSON_AFTER_UPDATE = '''{
             ]
         },
         {
-            "id": 3,
+            "id": "3",
             "name": "Ivan",
             "words": [
                 {
@@ -285,14 +282,6 @@ GAME_JSON_AFTER_UPDATE = '''{
         }
     ],
     "words": [
-        {
-            "text": "banana",
-            "origin": "PACKAGE"
-        },
-        {
-            "text": "tea",
-            "origin": "RANDOM"
-        },
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -308,7 +297,7 @@ GAME_JSON_AFTER_UPDATE = '''{
         "skip_count": 0
     },
     "order": [
-        3, 2
+        "3", "2"
     ]
 }
 '''
@@ -317,76 +306,60 @@ GAME_BIG_JSON = '''{
     "title": "big game",
     "players": [
         {
-            "id": 0,
+            "id": "0",
             "name": "0",
             "words": []
         },
         {
-            "id": 1,
+            "id": "1",
             "name": "1",
             "words": []
         },
         {
-            "id": 2,
+            "id": "2",
             "name": "2",
             "words": []
         },
         {
-            "id": 3,
+            "id": "3",
             "name": "3",
             "words": []
         },
         {
-            "id": 4,
+            "id": "4",
             "name": "4",
             "words": []
         }
     ],
     "words": [],
-    "order": [0, 1, 2, 3, 4],
+    "order": ["0", "1", "2", "3", "4"],
     "settings": {
-        "time_per_round": 25,
-        "words_per_player": 2,
+        "time_per_round": 20,
+        "words_per_player": 100,
         "skip_count": 0
     }
 }
 '''
 
 BIG_UPDATE_1 = '''{
-    "players_add": [
+    "players_change": [
         {
-            "id": 5,
-            "name": "5",
-            "words": []
-        }
-    ],
-    "players_del": [
-        1
-    ],
-    "players_upd": [
-        {
-            "id": 2,
+            "id": "2",
             "name": "2new",
             "words": []
+        },
+        {
+            "id": "3",
+            "name": "3new",
+            "words": []
         }
-    ],
-    "words_add": [],
-    "order": null,
-    "settings": {
-        "time_per_round": 25,
-        "words_per_player": 2,
-        "skip_count": 0
-    }
+    ]
 }
 '''
 
 BIG_UPDATE_2 = '''{
-    "players_add": [],
-    "players_del": [],
-    "players_upd": [],
-    "words_add": [],
-    "order": [4, 2, 0, 1, 3],
-    "settings": {
+    "order_change": ["4", "2", "0", "1", "3"],
+    "settings_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -396,35 +369,36 @@ BIG_UPDATE_2 = '''{
 
 GAME_BIG_AFTER_UPDATE = '''{
     "title": "big game",
+    "version": 2,
     "players": [
         {
-            "id": 0,
+            "id": "0",
             "name": "0",
             "words": []
         },
         {
-            "id": 2,
+            "id": "1",
+            "name": "1",
+            "words": []
+        },
+        {
+            "id": "2",
             "name": "2new",
             "words": []
         },
         {
-            "id": 3,
-            "name": "3",
+            "id": "3",
+            "name": "3new",
             "words": []
         },
         {
-            "id": 4,
+            "id": "4",
             "name": "4",
-            "words": []
-        },
-        {
-            "id": 5,
-            "name": "5",
             "words": []
         }
     ],
     "words": [],
-    "order": [4, 2, 0, 3, 5],
+    "order": ["4", "2", "0", "1", "3"],
     "settings": {
         "time_per_round": 25,
         "words_per_player": 2,
@@ -436,19 +410,18 @@ GAME_BIG_AFTER_UPDATE = '''{
 TOTAL_UPDATE = '''{
     "players_change": [
         {
-            "id": 2,
+            "id": "2",
             "name": "2new",
             "words": []
         },
         {
-            "id": 5,
-            "name": "5",
+            "id": "3",
+            "name": "3new",
             "words": []
         }
     ],
-    "words": null,
-    "order": [4, 2, 0, 3, 5],
-    "settings": {
+    "order_change": ["4", "2", "0", "1", "3"],
+    "settings_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -471,7 +444,7 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
-        return json_returned['id'], json_returned['pin']
+        return json_returned['id'], str(json_returned['pin'])
 
     def test_create(self):
         self.create_game()
@@ -608,7 +581,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
         game_id = json_returned['id']
-        game_pin = json_returned['pin']
+        game_pin = str(json_returned['pin'])
         request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
@@ -647,7 +620,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
         game_id = json_returned['id']
-        game_pin = json_returned['pin']
+        game_pin = str(json_returned['pin'])
         request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
