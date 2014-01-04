@@ -9,6 +9,7 @@ from all_handler import AllHandler
 from objects.complained_word import ComplainedWord
 from environment import JINJA_ENVIRONMENT
 import constants.constants
+from objects.global_dictionary_word import GlobalDictionaryWord
 
 
 class ComplainWordHandler(AllHandler):
@@ -55,6 +56,15 @@ class DeleteComplainedWord(webapp2.RequestHandler):
         for word in ComplainedWord.all():
             if word.word == deleted_word:
                 db.delete(word)
+
+class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
+
+    def post(self):
+        data = self.request.get(constants.constants.complained_word)
+        word = GlobalDictionaryWord.get_by_key_name(data)
+        if word is not None:
+            word.tags+=" deleted "
+        word.put()
 
 
 
