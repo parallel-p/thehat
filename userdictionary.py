@@ -12,11 +12,9 @@ class UserWord(ndb.Model):
     index = ndb.IntegerProperty(indexed=False)
 
 def get_dictionary_version(user): # Will return resulting version of the whole user's dictionary.
-    print(user)
     wordlist = list(UserWord.query(UserWord.user == user))
     answer = 0
     for i in wordlist:
-        print(i.version, i.word)
         if i.version > answer:
             answer = i.version
     return answer
@@ -27,7 +25,6 @@ class Change(webapp2.RequestHandler):
         json_changes = self.request.get("json")
         changes = json.loads(json_changes)
         dictionary_version = get_dictionary_version(user)
-        print(dictionary_version)
         for i in changes:
             wordlist = list(UserWord.query(UserWord.user == user and UserWord.word == i["word"]))
             for j in wordlist:
