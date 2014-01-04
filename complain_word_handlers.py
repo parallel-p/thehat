@@ -4,7 +4,7 @@ import json
 
 from all_handler import AllHandler
 from objects.complained_word import ComplainedWord
-from environment import ENVIRONMENT
+from environment import JINJA_ENVIRONMENT
 
 
 class ComplainWordHandler(AllHandler):
@@ -22,7 +22,7 @@ class ComplainWordHandler(AllHandler):
             current_word.put()
 
     def get(self, **kwargs):
-        template = ENVIRONMENT.get_template('templates/complained_words.html')
+        template = JINJA_ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
         render_data = {"words": []}
         for word in ComplainedWord.all():

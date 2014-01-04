@@ -45,7 +45,7 @@ def doRender(handler, tname='index.html', values={}):
     new_val = dict(values)
     new_val['path'] = handler.request.path
     new_val['db'] = NEWS_DB
-    template = ENVIRONMENT.get_template('templates/' + tname)
+    template = JINJA_ENVIRONMENT.get_template('templates/' + tname)
     out_str = template.render(new_val)
     handler.response.out.write(out_str)
     return True
