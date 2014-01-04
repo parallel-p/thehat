@@ -49,7 +49,7 @@ routes = [
     webapp2.Route(
         constants.constants.delete_from_global_url,
         handler=complain_word_handlers.DeleteFromGlobalDictionaryHandler,
-        name='delete from global'
+        name='delete_from_global'
     ),
     webapp2.Route(r'/edit_words',
                   handler=global_dictionary_word_handlers.GlobalWordEditor,
