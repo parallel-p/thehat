@@ -15,8 +15,8 @@ class GlobalDictionaryWordHandler(AllHandler):
         words = []
         for word in GlobalDictionaryWord.all():
             to_json = {constants.constants.global_dict_word: word.word,
-                       constants.constants.Expectation: word.E,
-                       constants.constants.Dispersion: word.D,
+                       constants.constants.Expectation: float(word.E),
+                       constants.constants.Dispersion: float(word.D),
                        constants.constants.Tags: word.tags}
             words.append(to_json)
         return json.dumps(words)
@@ -41,7 +41,7 @@ class GlobalWordEditor(webapp2.RequestHandler):
         smth_changed = False
         for i in data:
             word_info = i.strip()
-            splited, E, D = [word_info, ], 50.0, 50.0 / 3
+            splited, E, D = [word_info, ], 50.0, float(50.0 / 3)
             if word_info.count(' ') != 0:
                 splited = word_info.split()
             word = splited[0]
@@ -54,12 +54,7 @@ class GlobalWordEditor(webapp2.RequestHandler):
                 E = float(splited[1])
             if len(splited) >= 3:
                 D = float(splited[2])
-            new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D)
+            new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D, tags="")
             new_word.put()
         if smth_changed:
             GlobalDictionaryVersion.update_version()
-
-
-
-
-
