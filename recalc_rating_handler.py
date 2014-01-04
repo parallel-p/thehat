@@ -1,7 +1,6 @@
 __author__ = 'nikolay'
 
 import json
-import trueskill
 
 from all_handler import AllHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
