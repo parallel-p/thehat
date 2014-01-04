@@ -71,3 +71,11 @@ class Get(webapp2.RequestHandler):
         vers = get_dictionary_version(user)
         wordlist = list(UserWord.query(UserWord.user == user))
         self.response.write(wordlist_to_json(wordlist, vers))
+
+class DrawWebpage(webapp2.RedirectHandler):
+    def get(self):
+        self.response.write("It works!")
+
+class ProcWebpage(webapp2.RequestHandler):
+    def post(self):
+        self.response.write("It works!")
