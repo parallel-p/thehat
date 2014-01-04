@@ -63,4 +63,3 @@ class GlobalWordEditor(webapp2.RequestHandler):
 
 
 
-
