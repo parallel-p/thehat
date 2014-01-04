@@ -25,7 +25,7 @@ import newsfeed_handlers
 import assign_device_handler
 import global_dictionary_word_handlers
 import recalc_rating_handler
-
+import constants.constants
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -34,10 +34,30 @@ class MainHandler(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainHandler),
+     webapp2.Route(
+        constants.constants.delete_all_url,
+        handler=complain_word_handlers.DeleteComplainedWords,
+        name='delete_complained_words'),
+    webapp2.Route(
+        constants.constants.delete_current_url,
+        handler=complain_word_handlers.DeleteComplainedWord,
+        name='delete_current_complained_word'),
+    webapp2.Route(
+        constants.constants.show_complained_url,
+        handler=complain_word_handlers.ShowComplainedWords,
+        name='show_complained_words'),
+    webapp2.Route(
+        constants.constants.delete_from_global_url,
+        handler=complain_word_handlers.DeleteFromGlobalDictionaryHandler,
+        name='delete_from_global'
+    ),
+    webapp2.Route(r'/edit_words',
+                  handler=global_dictionary_word_handlers.GlobalWordEditor,
+                  name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
-    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words',
+    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words/<version:[-\w]+>',
                   handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
                   name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
@@ -88,6 +108,17 @@ routes = [
     (r'/([-\w]+)/udict/update/', userdictionary.Change),
     (r'/([-\w]+)/udict/get/since/([-\w]+)', userdictionary.Update),
     (r'/([-\w]+)/udict/get/', userdictionary.Get),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/update/',
+                  handler=userdictionary.Change,
+                  name='udict_update'),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/since/<version:[-\w]+>',
+                  handler=userdictionary.Update,
+                  name='udict_since'),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/',
+                  handler=userdictionary.Get,
+                  name='udict_get'),
+    (r'/html/udict/edit', userdictionary.DrawWebpage),
+    (r'/html/udict/proc', userdictionary.ProcWebpage),
     (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
     (r'/addnews', newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
@@ -97,7 +128,7 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=assign_device_handler.AssignDeviceHandler,
                   name='assign_device'),
-    webapp2.Route(r'/internal/html/recalc_rating_after_game',
+    webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating')
 ]
