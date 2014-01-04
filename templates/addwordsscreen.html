@@ -1,0 +1,21 @@
+{% extends "templates/base.html" %}
+{% block title %}Добавление слов :: Шляпа{% endblock %}
+{% block contentheader %}Добавить слова {% endblock %}
+
+{% block content %}
+    <p align="center">
+    <form method="post" action="/edit_words">
+        <div>
+            Text: <br/> <textarea name="text" rows="10" cols="80"></textarea>
+        </div>
+        <input type="submit" value="Send"/>
+        <input type="submit" value="Cancel"
+               onclick="window.location='/'; return false;"/>
+    </form>
+    {% if error is defined %}
+        <p>
+            {{ error }}
+        </p>
+    {% endif %}
+    </p>
+{% endblock %}
