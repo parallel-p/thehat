@@ -5,5 +5,5 @@ from google.appengine.ext import db
 
 class GlobalDictionaryWord(db.Expando):
     word = db.StringProperty()
-    E = db.IntegerProperty()
-    D = db.IntegerProperty()
+    E = db.FloatProperty()
+    D = db.FloatProperty()
