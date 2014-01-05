@@ -28,6 +28,7 @@ import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
 from environment import JINJA_ENVIRONMENT
+import admin_page_handler
 
 
 class MainPage(webapp2.RequestHandler):
@@ -38,6 +39,7 @@ class MainPage(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainPage),
+    (r'/admin', admin_page_handler.AdminPage),
     webapp2.Route(
         constants.constants.delete_all_url,
         handler=complain_word_handlers.DeleteComplainedWords,
