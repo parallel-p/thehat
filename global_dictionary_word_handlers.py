@@ -8,6 +8,7 @@ from objects.global_dictionary_version import GlobalDictionaryVersion
 import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+import time
 
 
 class GlobalDictionaryWordHandler(AllHandler):
@@ -26,7 +27,7 @@ class GlobalDictionaryWordHandler(AllHandler):
         super(GlobalDictionaryWordHandler, self).set_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
         if device_version == GlobalDictionaryVersion.get_server_version():
-            self.response.write("{o}")
+            self.response.write("{}")
         else:
             self.response.write(GlobalDictionaryJson.get_json())
 
@@ -37,7 +38,8 @@ class GlobalWordEditor(webapp2.RequestHandler):
         self.response.write(template.render())
 
     def post(self):
-        data = self.request.get('text').strip().split('\n')
+        str_data = self.request.get('text').strip()
+        data = str_data.split('\n') if str_data.find('\n') != -1 else [str_data, ]
         smth_changed = False
         for i in data:
             word_info = i.strip()
@@ -54,13 +56,14 @@ class GlobalWordEditor(webapp2.RequestHandler):
                 E = float(splited[1])
             if len(splited) >= 3:
                 D = float(splited[2])
-            new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D, tags="")
+            new_word = GlobalDictionaryWord(word=word, E=E, D=D, tags="")
             new_word.put()
+        time.sleep(1)         # TODO: crooked nail
+        print(GlobalDictionaryWord.all().count())
         if smth_changed:
             json = GlobalDictionaryJson.get_by_key_name('json')
             if json is None:
-                print(GlobalDictionaryWordHandler.make_json())
-                json = GlobalDictionaryJson(key_name='json',json=GlobalDictionaryWordHandler.make_json())
+                json = GlobalDictionaryJson(key_name='json', json=GlobalDictionaryWordHandler.make_json())
             else:
                 json.json = GlobalDictionaryWordHandler.make_json()
             json.put()

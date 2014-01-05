@@ -46,16 +46,16 @@ class DeleteComplainedWords(webapp2.RequestHandler):
     def post(self):
         for word in ComplainedWord.all():
             db.delete(word)
-        self.response.write(constants.constants.all_words_deleted_message)
+        self.redirect(constants.constants.show_complained_url)
 
 
 class DeleteComplainedWord(webapp2.RequestHandler):
     def post(self):
         deleted_word = self.request.get(constants.constants.deleted_word_name)
-        self.response.write("Word {0} deleted".format(deleted_word))
         for word in ComplainedWord.all():
             if word.word == deleted_word:
                 db.delete(word)
+        self.redirect(constants.constants.show_complained_url)
 
 class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
 
@@ -63,9 +63,7 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
         data = self.request.get(constants.constants.complained_word)
         word = GlobalDictionaryWord.get_by_key_name(data)
         if word is not None:
-            word.tags+=" deleted "
-        word.put()
-
-
-
-
+            if word.tags.find("-deleted") != -1:
+                word.tags+="-deleted"
+            word.put()
+        self.redirect(constants.constants.show_complained_url)
