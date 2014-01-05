@@ -71,7 +71,7 @@ class complain_word_test(unittest2.TestCase):
         len_before = ComplainedWord.all().count()
         response = request.get_response(main.app)
 
-        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.status_int, 302) # not 200, because redirrect
         len_after = ComplainedWord.all().count()
         self.assertEqual(len_before, len_after + 2)
         request = webapp2.Request.blank(
