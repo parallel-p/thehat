@@ -75,3 +75,5 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
                     word.tags += "-deleted"
                 word.put()
             self.redirect(constants.constants.show_complained_url)
+
+
