@@ -51,7 +51,7 @@ class TestResults(unittest.TestCase):
     def join(self, device_id, pin):
         request = webapp2.Request.blank('/%s/pregame/join' % device_id)
         request.method = 'POST'
-        request.body = "json=%s" % str(pin)
+        request.body = "json=%s" % json.dumps({"pin": str(pin)})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 

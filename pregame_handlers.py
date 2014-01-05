@@ -157,7 +157,7 @@ class PreGameAbortHandler(AllHandler):
 class PreGameJoinHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameJoinHandler, self).set_device_id(**kwargs)
-        pin = str(self.request.get('json'))
+        pin = str(json.loads(self.request.get('json'))['pin'])
         game = PreGame.query().filter(PreGame.pin == pin).get()
         if game is None:
             self.error(404)
@@ -167,6 +167,6 @@ class PreGameJoinHandler(AllHandler):
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
-                response_struct = {"key": key_db.urlsafe(),
+                response_struct = {"id": key_db.urlsafe(),
                                    "game": PreGame.delete_last_updates_from_json(game.game_json)}
                 self.response.write(json.dumps(response_struct))
