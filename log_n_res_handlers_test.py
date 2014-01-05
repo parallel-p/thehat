@@ -1,10 +1,11 @@
 import unittest
 import json
-
 import webapp2
+from random import randint
+
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
-from random import randint
+from objects.game_results_log import GameLog
 
 import main
 
@@ -163,13 +164,12 @@ class TestResults(unittest.TestCase):
         self.assertEqual(len(results), 0)
 
     def test_upload_log(self):
-        urlsafe = gen_some_urlsafe()
-        request = webapp2.Request.blank('/device_1/upload_log/%s' % urlsafe)
+        request = webapp2.Request.blank('/device_1/upload_log/some_id')
         request.method = 'POST'
         request.body = "json=%s" % SOME_LOG
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        log = ndb.Key('Log', urlsafe).get()
+        log = GameLog.query(GameLog.game_id == 'some_id').get()
         self.assertEqual(log.json, SOME_LOG)
 
     def test_load_non_existent_res(self):
