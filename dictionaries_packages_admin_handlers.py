@@ -1,28 +1,57 @@
-import json
 import webapp2
-from google.appengine.api import users
-from all_handler import AllHandler
-from objects.user_devices import get_user_by_device
-from objects.user_streams import UserStreams
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
-from google.appengine.ext import ndb
 from environment import *
 
 
+def get_streams():
+    streams_list = PackagesStream.query()
+    streams = 'id name<br/>'
+    for stream in streams_list:
+        streams += "<a href='/streams/" + stream.id + "/packages/add'>" + stream.id + ' ' + stream.name + '</a><br/>'
+
+    return streams
+
+
+def get_packages(stream_id):
+    packages_stream = PackagesStream.query(PackagesStream.id == stream_id).get()
+    packages_list = []
+    for package_id in packages_stream.packages_id_list:
+        packages_list.append(PackageDictionary.query(PackageDictionary.id == package_id).get())
+
+    packages = 'id name<br/>'
+    for package in packages_list:
+        packages += "<a href='/streams/packages/" + package.id + "/words'>" + \
+                    package.id + ' ' + package.name + "</a><br/>"
+
+    return packages
+
+
 class AddStreamHandler(webapp2.RequestHandler):
-    def get(self, **kwargs):
-        PackagesStream(id=kwargs.get('stream_id'), name=kwargs.get('stream_name'), packages_id_list=[]).put()
+    def get(self):
+        template = JINJA_ENVIRONMENT.get_template('templates/streamsscreen.html')
+        self.response.write(template.render({'streams': get_streams()}))
+
+    def post(self):
+        PackagesStream(id=self.request.get('stream_id'), name=self.request.get('stream_name'),
+                       packages_id_list=[]).put()
+
+        self.redirect('/streams')
 
 
 class AddPackageHandler(webapp2.RequestHandler):
     def get(self, **kwargs):
-        PackageDictionary(id=kwargs.get('package_id'), name=kwargs.get('package_name'),
-                          release_time=int(kwargs.get('release_time')), words=[]).put()
+        template = JINJA_ENVIRONMENT.get_template('templates/packagesscreen.html')
+        stream_id = kwargs.get('stream_id')
+        self.response.write(template.render({'packages': get_packages(stream_id), 'stream_id': stream_id}))
+
+    def post(self, **kwargs):
+        PackageDictionary(id=self.request.get('package_id'), name=self.request.get('package_name'),
+                          release_time=int(self.request.get('release_time')), words=[]).put()
 
         stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).get()
-        stream.packages_id_list.append(kwargs.get('package_id'))
+        stream.packages_id_list.append(self.request.get('package_id'))
         stream.put()
-        self.response.write('Package ' + kwargs.get('package_id') + ' added to stream ' + kwargs.get('stream_id'))
+        self.redirect('/streams/' + kwargs.get('stream_id') + '/packages/add')
 
 
 class ChangeWordsHandler(webapp2.RequestHandler):
@@ -36,15 +65,17 @@ class ChangeWordsHandler(webapp2.RequestHandler):
             words = ''
             for word in list_words:
                 words += '\n' + word
-            self.response.write(template.render({'package_id': kwargs.get('package_id'), 'words': words, 'error': 'error'}))
+            self.response.write(
+                template.render({'package_id': kwargs.get('package_id'), 'words': words}))
 
     def post(self, **kwargs):
-        words = self.request.get('text').strip().split('\n')
+        words = self.request.get('text')
         list_word = []
-        for word in words:
+        for word in words.strip().split('\n'):
             list_word.append(word.strip())
 
         package = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).get()
         package.words = list_word
         package.put()
-        self.response.write('Words added')
+        template = JINJA_ENVIRONMENT.get_template('templates/packagewordsscreen.html')
+        self.response.write(template.render({'package_id': kwargs.get('package_id'), 'words': words}))
