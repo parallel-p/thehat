@@ -18,7 +18,7 @@ class GeneratePinHandler(webapp2.RequestHandler):
         if user is None:
             self.redirect(users.create_login_url('/generate_pin'))
         else:
-            pin = random.randint(100000000, 999999999)
+            pin = str(random.randint(100000000, 999999999))
             UserPin(user=user, pin=pin).put()
             template = JINJA_ENVIRONMENT.get_template('templates/generate_pin.html')
             self.response.write(template.render(
