@@ -113,17 +113,18 @@ routes = [
                   name='upload_log'),
     webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
                   name='upload_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>', handler=log_n_res_handlers.CheckAnyResults,
+    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>',
+                  handler=log_n_res_handlers.CheckAnyResults,
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/udict/update/',
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/update',
                   handler=userdictionary.Change,
                   name='udict_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/get/since/<version:[-\w]+>',
                   handler=userdictionary.Update,
                   name='udict_since'),
-    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/',
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get',
                   handler=userdictionary.Get,
                   name='udict_get'),
     (r'/html/udict/edit', userdictionary.DrawWebpage),
@@ -139,6 +140,10 @@ routes = [
                   name='assign_device'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=recalc_rating_handler.RecalcRatingHandler,
-                  name='recalc_rating')
+                  name='recalc_rating'),
+    webapp2.Route(r'/json_updater',
+                  handler=global_dictionary_word_handlers.dictionary_updater,
+                  name='json_updater'
+    )
 ]
 app = webapp2.WSGIApplication(routes, debug=True)

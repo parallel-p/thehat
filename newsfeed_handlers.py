@@ -3,11 +3,12 @@
 # v 0.2
 
 
+import os
+import time
+
 from google.appengine.ext import db
 from webapp2_extras import json
 import webapp2
-import os
-import time
 
 from environment import *
 
@@ -117,7 +118,7 @@ class AddNewsHandler(webapp2.RequestHandler):
             text=text,
             location=location,
             url=url,
-            timestamp=int(time.time())*1000)  # Unix-time in milliseconds
+            timestamp=int(time.time()) * 1000)  # Unix-time in milliseconds
         news.put()
         self.redirect('/listofnews')
 
