@@ -67,6 +67,8 @@ routes = [
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
                   name='pregame_join'),
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/get_current_game', handler=pregame_handlers.PreGameCurrentHandler,
+                  name='pregame_current'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
                   name='pregame_get'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/update',
@@ -85,8 +87,6 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
                   handler=pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
-    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
-                  name='pregame_join'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>'

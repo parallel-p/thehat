@@ -4,7 +4,7 @@ import json
 from google.appengine.ext import ndb
 
 from all_handler import AllHandler
-from objects.pregame import PreGame
+from objects.pregame import PreGame, CurrentGame
 
 
 class PreGameCreateHandler(AllHandler):
@@ -22,6 +22,7 @@ class PreGameCreateHandler(AllHandler):
         game['players_deleted'] = []
         game_db = PreGame(game_json=json.dumps(game), device_ids=[self.device_id], pin=game['pin'], can_update=True)
         key = game_db.put()
+        CurrentGame.set_current_game(self.device_id, key.urlsafe(), True)
         self.response.write(json.dumps({'id': key.urlsafe(), 'pin': game['pin']}))
 
 
@@ -139,19 +140,13 @@ class PreGameSinceHandler(AllHandler):
 class PreGameStartHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameStartHandler, self).set_device_id(**kwargs)
-        key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
-        game = key_db.get()
-        game.can_update = False
-        game.put()
+        PreGame.abort_game(kwargs.get('game_id'))
 
 
 class PreGameAbortHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameAbortHandler, self).set_device_id(**kwargs)
-        key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
-        game = key_db.get()
-        game.can_update = False
-        game.put()
+        PreGame.abort_game(kwargs.get('game_id'))
 
 
 class PreGameJoinHandler(AllHandler):
@@ -167,6 +162,17 @@ class PreGameJoinHandler(AllHandler):
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
+                CurrentGame.set_current_game(self.device_id, key_db.urlsafe())
                 response_struct = {"id": key_db.urlsafe(),
                                    "game": PreGame.delete_last_updates_from_json(game.game_json)}
                 self.response.write(json.dumps(response_struct))
+
+
+class PreGameCurrentHandler(AllHandler):
+    def get(self, **kwargs):
+        super(PreGameCurrentHandler, self).set_device_id(**kwargs)
+        game_id = CurrentGame.get_current_game(self.device_id)
+        if game_id is None:
+            self.response.write(json.dumps([]))
+        else:
+            self.response.write(json.dumps([game_id]))
