@@ -42,6 +42,8 @@ class ShowComplainedWords(webapp2.RequestHandler):
                 word_render.replacement_word = ''
             render_data[constants.constants.render_data_name].append(word_render)
             cnt += 1
+
+        render_data["quantity"] = len(render_data[constants.constants.render_data_name])
         self.response.write(template.render(render_data))
 
 
