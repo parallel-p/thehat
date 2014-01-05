@@ -20,12 +20,10 @@ __all__ = ['Variable', 'PriorFactor', 'LikelihoodFactor', 'SumFactor',
 
 
 class Node(object):
-
     pass
 
 
 class Variable(Node, Gaussian):
-
     def __init__(self):
         self.messages = {}
         super(Variable, self).__init__()
@@ -65,7 +63,6 @@ class Variable(Node, Gaussian):
 
 
 class Factor(Node):
-
     def __init__(self, vars):
         self.vars = vars
         for var in vars:
@@ -89,7 +86,6 @@ class Factor(Node):
 
 
 class PriorFactor(Factor):
-
     def __init__(self, var, val, dynamic=0):
         super(PriorFactor, self).__init__([var])
         self.val = val
@@ -102,7 +98,6 @@ class PriorFactor(Factor):
 
 
 class LikelihoodFactor(Factor):
-
     def __init__(self, mean_var, value_var, variance):
         super(LikelihoodFactor, self).__init__([mean_var, value_var])
         self.mean = mean_var
@@ -126,7 +121,6 @@ class LikelihoodFactor(Factor):
 
 
 class SumFactor(Factor):
-
     def __init__(self, sum_var, term_vars, coeffs):
         super(SumFactor, self).__init__([sum_var] + term_vars)
         self.sum = sum_var
@@ -176,7 +170,6 @@ class SumFactor(Factor):
 
 
 class TruncateFactor(Factor):
-
     def __init__(self, var, v_func, w_func, draw_margin):
         super(TruncateFactor, self).__init__([var])
         self.v_func = v_func

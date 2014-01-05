@@ -1,9 +1,13 @@
 import unittest
-import webapp2
-import main
 import json
+
+import webapp2
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
+from random import randint
+
+import main
+
 
 GAME = '''{
     "title": "A game",
@@ -18,18 +22,22 @@ GAME = '''{
     "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
-        "skip_count": 1
+        "skip_count": 1,
+        "is_public": false
     },
     "order": [
         1,
-        2,
-        3
+        2
     ]
 }
 '''
-SOME_RES = '{"some_results"}'
+SOME_RES = '{"some_results": "something"}'
 SOME_LOG = '{"some_log"}'
-URLSAFE = 'agVoZWxsb3IPCxIHQWNjb3VudBiZiwIM'
+
+
+def gen_some_urlsafe():
+    key = ndb.Key('Trash', randint(1, 100000))
+    return key.urlsafe()
 
 
 class TestResults(unittest.TestCase):
@@ -56,12 +64,38 @@ class TestResults(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
 
     def test_upload_n_load_results(self):
-        request = webapp2.Request.blank('/device_1/upload_results/%s' % URLSAFE)
+        urlsafe = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_1/upload_results/%s' % urlsafe)
         request.method = 'POST'
-        request.body = 'results=%s' % SOME_RES
+        request.body = 'json={"results": %s, "is_public": true}' % SOME_RES
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        request = webapp2.Request.blank('/device_1/get_results/%s' % URLSAFE)
+        request = webapp2.Request.blank('/device_2/get_results/%s' % urlsafe)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.body, SOME_RES)
+
+    def test_upload_n_load_non_public_results(self):
+        urlsafe = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_1/upload_results/%s' % urlsafe)
+        request.method = 'POST'
+        request.body = 'json={"results": %s, "is_public": false}' % SOME_RES
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        request = webapp2.Request.blank('/device_2/get_results/%s' % urlsafe)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 403)
+
+    def test_upload_n_load_non_public_results_by_correct_user(self):
+        urlsafe = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_1/upload_results/%s' % urlsafe)
+        request.method = 'POST'
+        request.body = 'json={"results": %s, "is_public": false}' % SOME_RES
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        request = webapp2.Request.blank('/device_1/get_results/%s' % urlsafe)
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
@@ -84,7 +118,7 @@ class TestResults(unittest.TestCase):
         # upload some res from game1:
         request = webapp2.Request.blank('/device_1/upload_results/%s' % game1_id)
         request.method = 'POST'
-        request.body = "results=%s" % SOME_RES
+        request.body = 'json={"results": %s, "is_public": false}' % SOME_RES
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
@@ -101,7 +135,7 @@ class TestResults(unittest.TestCase):
         # we played second game so push res:
         request = webapp2.Request.blank('/device_1/upload_results/%s' % game2_id)
         request.method = 'POST'
-        request.body = "results=%s" % SOME_RES
+        request.body = 'json={"results": %s, "is_public": false}' % SOME_RES
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
@@ -130,15 +164,18 @@ class TestResults(unittest.TestCase):
         self.assertEqual(len(results), 0)
 
     def test_upload_log(self):
-        request = webapp2.Request.blank('/device_1/upload_log/%s' % URLSAFE)
+        urlsafe = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_1/upload_log/%s' % urlsafe)
         request.method = 'POST'
-        request.body = "log=%s" % SOME_LOG
+        request.body = "json=%s" % SOME_LOG
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        ndb.Key('Log', URLSAFE)
+        log = ndb.Key('Log', urlsafe).get()
+        self.assertEqual(log.json, SOME_LOG)
 
     def test_load_non_existent_res(self):
-        request = webapp2.Request.blank('/device_1/get_results/%s' % URLSAFE)
+        urlsafe = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_1/get_results/%s' % urlsafe)
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 404)  # not found

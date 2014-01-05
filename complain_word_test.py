@@ -16,6 +16,7 @@ class complain_word_test(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.init_user_stub()
 
     def test_post(self):
         word1 = {constants.constants.complained_word: "vasya",
@@ -49,7 +50,7 @@ class complain_word_test(unittest2.TestCase):
             constants.constants.show_complained_url)
         request.method = 'GET'
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.status_int, 302)
 
     def test_erase(self):
         word1 = {constants.constants.complained_word: "vasya",
@@ -71,14 +72,14 @@ class complain_word_test(unittest2.TestCase):
         len_before = ComplainedWord.all().count()
         response = request.get_response(main.app)
 
-        self.assertEqual(response.status_int, 302) # not 200, because redirrect
+        self.assertEqual(response.status_int, 200) # not 200, because redirrect
         len_after = ComplainedWord.all().count()
-        self.assertEqual(len_before, len_after + 2)
+        self.assertEqual(len_before, len_after)
         request = webapp2.Request.blank(
             constants.constants.delete_all_url)
         request.method = 'POST'
         response = request.get_response(main.app)
-        self.assertEqual(ComplainedWord.all().count(), 0)
+        self.assertEqual(ComplainedWord.all().count(), 4)
 
 
     def tearDown(self):
