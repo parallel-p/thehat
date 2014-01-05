@@ -27,6 +27,7 @@ import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
 
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
