@@ -27,7 +27,7 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         request.method = 'POST'
         response = request.get_response(main.app)
         version2 = GlobalDictionaryVersion.get_server_version()
-        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.status_int, 302) # not 200, because redirrect
         self.assertEqual(version, version2 - 1)
         self.assertEqual(GlobalDictionaryWord.all().count(), 3)
 
