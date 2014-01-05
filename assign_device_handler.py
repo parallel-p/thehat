@@ -1,3 +1,4 @@
+
 __author__ = 'nikolay'
 
 import random
