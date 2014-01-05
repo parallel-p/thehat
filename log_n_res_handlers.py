@@ -1,4 +1,3 @@
-import webapp2
 import json
 from google.appengine.ext import ndb
 #from log_classes import *
@@ -10,7 +9,7 @@ import time
 
 
 def make_timestamp():
-    return int(1000*time.time())
+    return int(1000 * time.time())
 
 
 class Results(ndb.Model):

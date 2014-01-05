@@ -1,9 +1,12 @@
 import unittest
-import webapp2
-import main
 import json
+
+import webapp2
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
+
+import main
+
 
 GAME = '''{
     "title": "A game",
