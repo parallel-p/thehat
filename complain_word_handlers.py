@@ -74,6 +74,9 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
                 if word.tags.find("-deleted") != -1:
                     word.tags += "-deleted"
                 word.put()
+            for word in ComplainedWord.all():
+                if word.word == data:
+                    db.delete(word)
             self.redirect(constants.constants.show_complained_url)
 
 
