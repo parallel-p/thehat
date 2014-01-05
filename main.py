@@ -18,6 +18,7 @@ import webapp2
 
 import pregame_handlers
 import dictionaries_packages_handlers
+import dictionaries_packages_admin_handlers
 import userdictionary
 import log_n_res_handlers
 import complain_word_handlers
@@ -35,7 +36,7 @@ class MainHandler(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainHandler),
-     webapp2.Route(
+    webapp2.Route(
         constants.constants.delete_all_url,
         handler=complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
@@ -98,21 +99,32 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
                   handler=dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
+    webapp2.Route(r'/streams/add/<stream_id:[-\w]+>/<stream_name:[-\w]+>',
+                  handler=dictionaries_packages_admin_handlers.AddStreamHandler,
+                  name='add_stream'),
+    webapp2.Route(
+        r'/streams/<stream_id:[-\w]+>/packages/add/<package_id:[-\w]+>/<package_name:[-\w]+>/<release_time:[\d]+>',
+        handler=dictionaries_packages_admin_handlers.AddPackageHandler,
+        name='add_package'),
+    webapp2.Route(r'/streams/packages/<package_id:[-\w]+>/words',
+                  handler=dictionaries_packages_admin_handlers.ChangeWordsHandler,
+                  name='change_words'),    
     webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadLog,
                   name='upload_log'),
     webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
                   name='upload_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>', handler=log_n_res_handlers.CheckAnyResults,
+    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>',
+                  handler=log_n_res_handlers.CheckAnyResults,
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/udict/update/',
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/update',
                   handler=userdictionary.Change,
                   name='udict_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/get/since/<version:[-\w]+>',
                   handler=userdictionary.Update,
                   name='udict_since'),
-    webapp2.Route(r'/<device_id:[-\w]+>/udict/get/',
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/get',
                   handler=userdictionary.Get,
                   name='udict_get'),
     (r'/html/udict/edit', userdictionary.DrawWebpage),
@@ -128,6 +140,10 @@ routes = [
                   name='assign_device'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=recalc_rating_handler.RecalcRatingHandler,
-                  name='recalc_rating')
+                  name='recalc_rating'),
+    webapp2.Route(r'/json_updater',
+                  handler=global_dictionary_word_handlers.dictionary_updater,
+                  name='json_updater'
+    )
 ]
 app = webapp2.WSGIApplication(routes, debug=True)

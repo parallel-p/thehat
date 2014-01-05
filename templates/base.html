@@ -1,26 +1,26 @@
 <!DOCTYPE HTML PUBLIC>
 {% autoescape true %}
-<html>
-	<head>
-		<meta charset='utf-8'>
-		<title>{% block title %}{% endblock %}</title>
-		{% block head %}{% endblock %}
-	</head>
-	<body>
-		<div id="header">
-			{% block header %}
-				<h1 class="header_header">Шляпа</h1>
-			{% endblock %}
-		</div>
+    <html>
+    <head>
+        <meta charset='utf-8'>
+        <title>{% block title %}{% endblock %}</title>
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+    <div id="header">
+        {% block header %}
+            <h1 class="header_header">Шляпа</h1>
+        {% endblock %}
+    </div>
 
-		<div id="content">
-			<h2 class="content_header">{% block contentheader %}{% endblock %}</h2>
-			{% block content %}{% endblock %}
-		</div>
+    <div id="content">
+        <h2 class="content_header">{% block contentheader %}{% endblock %}</h2>
+        {% block content %}{% endblock %}
+    </div>
 
-		<div id="footer">
-			{% block footer %}{% endblock %}
-		</div>
-	</body>
-</html>
+    <div id="footer">
+        {% block footer %}{% endblock %}
+    </div>
+    </body>
+    </html>
 {% endautoescape %}
