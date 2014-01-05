@@ -10,6 +10,7 @@ from objects.complained_word import ComplainedWord
 from environment import JINJA_ENVIRONMENT
 import constants.constants
 from objects.global_dictionary_word import GlobalDictionaryWord
+from google.appengine.api import users
 
 
 class ComplainWordHandler(AllHandler):
@@ -29,6 +30,8 @@ class ComplainWordHandler(AllHandler):
 
 class ShowComplainedWords(webapp2.RequestHandler):
     def get(self):
+        if not users.is_current_user_admin():
+            self.redirect(users.create_login_url(self.request.uri))
         template = JINJA_ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
         render_data = {constants.constants.render_data_name: []}
@@ -44,26 +47,29 @@ class ShowComplainedWords(webapp2.RequestHandler):
 
 class DeleteComplainedWords(webapp2.RequestHandler):
     def post(self):
-        for word in ComplainedWord.all():
-            db.delete(word)
-        self.redirect(constants.constants.show_complained_url)
+        if users.is_current_user_admin():
+            for word in ComplainedWord.all():
+                db.delete(word)
+            self.redirect(constants.constants.show_complained_url)
 
 
 class DeleteComplainedWord(webapp2.RequestHandler):
     def post(self):
-        deleted_word = self.request.get(constants.constants.deleted_word_name)
-        for word in ComplainedWord.all():
-            if word.word == deleted_word:
-                db.delete(word)
-        self.redirect(constants.constants.show_complained_url)
+        if users.is_current_user_admin():
+            deleted_word = self.request.get(constants.constants.deleted_word_name)
+            for word in ComplainedWord.all():
+                if word.word == deleted_word:
+                    db.delete(word)
+            self.redirect(constants.constants.show_complained_url)
+
 
 class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
-
     def post(self):
-        data = self.request.get(constants.constants.complained_word)
-        word = GlobalDictionaryWord.get_by_key_name(data)
-        if word is not None:
-            if word.tags.find("-deleted") != -1:
-                word.tags+="-deleted"
-            word.put()
-        self.redirect(constants.constants.show_complained_url)
+        if users.is_current_user_admin():
+            data = self.request.get(constants.constants.complained_word)
+            word = GlobalDictionaryWord.get_by_key_name(data)
+            if word is not None:
+                if word.tags.find("-deleted") != -1:
+                    word.tags += "-deleted"
+                word.put()
+            self.redirect(constants.constants.show_complained_url)
