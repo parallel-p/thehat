@@ -1,0 +1,22 @@
+{% extends "templates/base.html" %}
+{% block title %}Потоки :: Шляпа{% endblock %}
+{% block contentheader %}Потоки{% endblock %}
+
+{% block content %}
+<p align="center">
+<form method="post" action="/streams">
+    Редактировать потоки:<br/>
+    {{streams}}
+    <br/>Добавить поток:<br/>
+    <div>
+        ID потока: <br/> <input type="text" name="stream_id"/>
+    </div>
+    <div>
+        Название потока: <br/> <input type="text" name="stream_name"/>
+    </div>
+    <input type="submit" value="Send"/>
+    <input type="submit" value="Cancel"
+           onclick="window.location='/'; return false;"/>
+</form>
+</p>
+{% endblock %}

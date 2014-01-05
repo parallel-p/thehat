@@ -1,0 +1,25 @@
+{% extends "templates/base.html" %}
+{% block title %}Пакеты :: Шляпа{% endblock %}
+{% block contentheader %}Пакеты{% endblock %}
+
+{% block content %}
+<p align="center">
+<form method="post" action="/streams/{{stream_id}}/packages/add">
+    Редактировать пакеты:<br/>
+    {{packages}}
+    <br/>Добавить пакет:<br/>
+    <div>
+        ID пакета: <br/> <input type="text" name="package_id"/>
+    </div>
+    <div>
+        Название пакета: <br/> <input type="text" name="package_name"/>
+    </div>
+    <div>
+        Время пакета: <br/> <input type="text" name="release_time"/>
+    </div>
+    <input type="submit" value="Send"/>
+    <input type="submit" value="Cancel"
+           onclick="window.location='/'; return false;"/>
+</form>
+</p>
+{% endblock %}

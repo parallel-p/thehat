@@ -42,6 +42,8 @@ class ShowComplainedWords(webapp2.RequestHandler):
                 word_render.replacement_word = ''
             render_data[constants.constants.render_data_name].append(word_render)
             cnt += 1
+
+        render_data["quantity"] = len(render_data[constants.constants.render_data_name])
         self.response.write(template.render(render_data))
 
 
@@ -72,4 +74,10 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
                 if word.tags.find("-deleted") != -1:
                     word.tags += "-deleted"
                 word.put()
+            for word in ComplainedWord.all():
+                if word.word == data:
+                    db.delete(word)
             self.redirect(constants.constants.show_complained_url)
+
+
+
