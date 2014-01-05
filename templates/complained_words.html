@@ -78,15 +78,15 @@
     </script>
     <table border="10">
         <tr>
-            <td>#</td>
             <td>Устройство</td>
             <td>Слово</td>
             <td>Причина</td>
             <td>Замена</td>
+            <td></td>
+            <td></td>
         </tr>
         {% for word in words %}
             <tr id="{{ word.word }}_{{ word.cnt }}" >
-                <td>{{ word.cnt }}</td>
                 <td>{{ word.device_id }}</td>
                 <td>{{ word.word }} </td>
                 <td>{{ word.reason }}</td>
@@ -97,6 +97,7 @@
         {% endfor %}
     </table>
 {% endblock %}
+
 
 
 
