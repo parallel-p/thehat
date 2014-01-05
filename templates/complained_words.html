@@ -3,7 +3,7 @@
 {% block contentheader %}Сомнительные слова{% endblock %}
 
 {% block content %}
-    <form method="post"
+ <!---   <form method="post"
           action="/cN08Yh3CNWaIVe0OAeBDflxw79hQP44CvEtGe4doGyVUgaNMgRKrazdGPcobgugxGAwV2Z2fP1vBD8sa5qO89ZVLX41x4t91XnFV">
         Delete from complained: <br/> <input type="text" name="word"/>
         <td><input type="submit" value="Delete"/></td>
@@ -12,11 +12,70 @@
           action="/pYDpUoXspsJTVhqBai7hrV7uKs5MN0VUhE80ksWGGuQhazGbVPUhcPSzpztdboY34yFstsL56GMHkOI3SWUtF5Cwml23NDt6Yuou">
         Delete from global: <br/> <input type="text" name="word"/>
         <td><input type="submit" value="Delete"/></td>
-    </form>
+    </form> -->
     <form method="post"
           action="/TaSsP25Hb2sEqRCuAjxcbwXNjLR3Ole3lijbIUKcao1yxh2790sJDScHnVdxIVchyDTM32r0WWyF14gqxLbjEfLCWpCGjPJwizvZ">
         <td><input type="submit" value="Delete All"/></td>
     </form>
+    <script type="application/javascript">
+
+        function getXmlHttp() {
+            var xmlhttp;
+            try {
+              xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+            try {
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+              xmlhttp = false;
+            }
+            }
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+              xmlhttp = new XMLHttpRequest();
+            }
+            return xmlhttp;
+          }
+
+        function post(url, word)
+        {
+            // alert(xmlhttp);
+            var xmlhttp = getXmlHttp();
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+            xmlhttp.send("word=" + word); // Отправляем POST-запрос
+        }
+
+        function delete_here(word, number)
+        {
+            for (var i = 0; i < {{ quantity }}; i = i + 1)
+            {
+                try
+                {
+                    document.getElementById(word + "_" + i).style.display = "none";
+                }
+                catch(err)
+                {
+                    ;
+                }
+            }
+            post('/cN08Yh3CNWaIVe0OAeBDflxw79hQP44CvEtGe4doGyVUgaNMgRKrazdGPcobgugxGAwV2Z2fP1vBD8sa5qO89ZVLX41x4t91XnFV', word);
+        }
+        function delete_global(word, number)
+        {
+            for (var i = 0; i < {{ quantity }}; i = i + 1)
+            {
+                try
+                {
+                    document.getElementById(word + "_" + i).style.display = "none";
+                }
+                catch(err)
+                {
+                    ;
+                }
+            }
+            post('/pYDpUoXspsJTVhqBai7hrV7uKs5MN0VUhE80ksWGGuQhazGbVPUhcPSzpztdboY34yFstsL56GMHkOI3SWUtF5Cwml23NDt6Yuou', word);
+        }
+    </script>
     <table border="10">
         <tr>
             <td>#</td>
@@ -26,14 +85,15 @@
             <td>Замена</td>
         </tr>
         {% for word in words %}
-            <tr>
+            <tr id="{{ word.word }}_{{ word.cnt }}" >
                 <td>{{ word.cnt }}</td>
                 <td>{{ word.device_id }}</td>
                 <td>{{ word.word }} </td>
                 <td>{{ word.reason }}</td>
                 <td>{{ word.replacement_word }}</td>
+                <td> <button onclick="delete_here('{{ word.word }}', '{{ word.cnt }}')"> Игнорировать </button></td>
+                <td> <button onclick="delete_global('{{ word.word }}', '{{ word.cnt }}')"> Удалить из словаря </button> </td>
             </tr>
         {% endfor %}
     </table>
-
 {% endblock %}
