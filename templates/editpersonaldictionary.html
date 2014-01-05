@@ -1,0 +1,12 @@
+{% extends "templates/base.html" %}
+{% block title %}Редактирование личного словаря :: Шляпа{% endblock %}
+{% block contentheader %}Личный словарь{% endblock %}
+
+{% block content %}
+    <form method="post" action="/html/udict/proc">
+    <input type="hidden" name="user" value="{{ USER }}">
+    <textarea name="words">{%  for word in words %}{{ word.word }}
+{% endfor %}</textarea> <br>
+    <input type="submit" value="Редактировать">
+    </form>
+{% endblock %}
