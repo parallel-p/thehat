@@ -26,8 +26,7 @@ GAME = '''{
         "is_public": false
     },
     "order": [
-        1,
-        2
+        1
     ]
 }
 '''
