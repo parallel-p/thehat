@@ -47,7 +47,7 @@ class UploadRes(AllHandler):
         key = ndb.Key(urlsafe=game_id)
         if key.kind() == 'PreGame':
             pregame = key.get()
-            settings = json.loads(pregame.game_json)['settings']
+            settings = json.loads(pregame.game_json)['meta']
             is_public = is_public or settings['is_public']
             devices = pregame.device_ids
         else:
