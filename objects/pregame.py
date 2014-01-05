@@ -15,7 +15,7 @@ class PreGame(ndb.Model):
         game = json.loads(json_string)
         del game['words_last_update']
         del game['order_last_update']
-        del game['settings']['last_update']
+        del game['meta']['last_update']
         for player in game['players']:
             del player['last_update']
         del game['players_deleted']

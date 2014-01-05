@@ -15,7 +15,7 @@ GAME = '''{
         }
     ],
     "words": [],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1

@@ -38,7 +38,7 @@ GAME_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1
@@ -81,7 +81,7 @@ GAME_ON_SERVER_JSON = '''{
     ],
     "words_last_update": 5,
     "order_last_update": 5,
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1,
@@ -125,7 +125,7 @@ JSON_JOIN = '''{
                 "origin": "RANDOM"
             }
         ],
-        "settings": {
+        "meta": {
             "time_per_round": 20,
             "words_per_player": 10,
             "skip_count": 1
@@ -184,7 +184,7 @@ UPDATE_JSON = '''{
     "order_change": [
         "3", "2"
     ],
-    "settings_change": {
+    "meta_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -240,7 +240,7 @@ SINCE_JSON = '''{
     "order_change": [
         "3", "2"
     ],
-    "settings_change": {
+    "meta_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -291,7 +291,7 @@ GAME_JSON_AFTER_UPDATE = '''{
             "origin": "RANDOM"
         }
     ],
-    "settings": {
+    "meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -333,7 +333,7 @@ GAME_BIG_JSON = '''{
     ],
     "words": [],
     "order": ["0", "1", "2", "3", "4"],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 100,
         "skip_count": 0
@@ -359,7 +359,7 @@ BIG_UPDATE_1 = '''{
 
 BIG_UPDATE_2 = '''{
     "order_change": ["4", "2", "0", "1", "3"],
-    "settings_change": {
+    "meta_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -399,7 +399,7 @@ GAME_BIG_AFTER_UPDATE = '''{
     ],
     "words": [],
     "order": ["4", "2", "0", "1", "3"],
-    "settings": {
+    "meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -421,7 +421,7 @@ TOTAL_UPDATE = '''{
         }
     ],
     "order_change": ["4", "2", "0", "1", "3"],
-    "settings_change": {
+    "meta_change": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
