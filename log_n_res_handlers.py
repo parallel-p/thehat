@@ -16,6 +16,7 @@ class Results(ndb.Model):
     results_json = ndb.JsonProperty(indexed=True)
     players_ids = ndb.StringProperty(repeated=True)
     timestamp = ndb.IntegerProperty()
+    is_public = ndb.BooleanProperty()
 
 
 class Log(ndb.Model):
@@ -27,7 +28,7 @@ class UploadLog(AllHandler):
         super(UploadLog, self).set_device_id(**kwargs)
         game_id = kwargs["game_id"]
         log = Log(id=game_id)
-        log.json = self.request.get("log")
+        log.json = self.request.get("json")
         log.put()
 
 
@@ -37,11 +38,18 @@ class UploadRes(AllHandler):
         game_id = kwargs.get("game_id")
         results = ndb.Key(Results, game_id).get()
         if results is not None:
+            self.error(403)  # you have no access to rewrite results
             return
-        results_json = self.request.get("results")
+        req_json = json.loads(self.request.get("json"))
+
+        results_json = json.dumps(req_json['results'])
+        is_public = req_json['is_public']
         key = ndb.Key(urlsafe=game_id)
         if key.kind() == 'PreGame':
-            devices = key.get().device_ids
+            pregame = key.get()
+            settings = json.loads(pregame.game_json)['settings']
+            is_public = is_public or settings['is_public']
+            devices = pregame.device_ids
         else:
             devices = [self.device_id]
         players_ids = [get_user_by_device(device) for device in devices]
@@ -49,6 +57,7 @@ class UploadRes(AllHandler):
         results.results_json = results_json
         results.players_ids = players_ids
         results.timestamp = make_timestamp()
+        results.is_public = is_public
         results.put()
 
 
@@ -66,9 +75,13 @@ class CheckAnyResults(AllHandler):
 
 class GetResults(AllHandler):
     def get(self, **kwargs):
+        super(GetResults, self).set_device_id(**kwargs)
         game_id = kwargs["game_id"]
         result = ndb.Key(Results, game_id).get()
         if result is None:
             self.error(404)  # results not found
+            return
+        if not result.is_public and not get_user_by_device(self.device_id) in result.players_ids:
+            self.error(403)  # you have no access to this game
             return
         self.response.write(result.results_json)
