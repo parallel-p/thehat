@@ -558,7 +558,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 403)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         need_json = json.loads(JSON_JOIN)
         response_struct = json.loads(response.body)
@@ -593,7 +593,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
@@ -632,7 +632,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
