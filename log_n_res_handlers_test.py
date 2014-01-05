@@ -78,7 +78,7 @@ class TestResults(unittest.TestCase):
         request = webapp2.Request.blank('/device_1/check_for_results/0')
         request.method = 'GET'
         response = request.get_response(main.app)
-        results = json.loads(response.body)
+        results = json.loads(response.body)['results']
         self.assertEqual(len(results), 0)
 
         # upload some res from game1:
@@ -92,10 +92,11 @@ class TestResults(unittest.TestCase):
         request = webapp2.Request.blank('/device_1/check_for_results/0')
         request.method = 'GET'
         response = request.get_response(main.app)
-        results = json.loads(response.body)
+        loaded = json.loads(response.body)
+        results = loaded['results']
+        timestamp = loaded['timestamp']
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['result'], SOME_RES)
-        timestamp = results[0]['timestamp']
+        self.assertEqual(results[0], SOME_RES)
 
         # we played second game so push res:
         request = webapp2.Request.blank('/device_1/upload_results/%s' % game2_id)
@@ -108,24 +109,24 @@ class TestResults(unittest.TestCase):
         request = webapp2.Request.blank('/device_2/check_for_results/0')
         request.method = 'GET'
         response = request.get_response(main.app)
-        results = json.loads(response.body)
+        results = json.loads(response.body)['results']
         self.assertEqual(len(results), 2)
-        self.assertEqual(results[0]['result'], SOME_RES)
-        self.assertEqual(results[1]['result'], SOME_RES)
+        self.assertEqual(results[0], SOME_RES)
+        self.assertEqual(results[1], SOME_RES)
 
         # but player with id 1 already download res of game1:
         request = webapp2.Request.blank('/device_1/check_for_results/%s' % timestamp)
         request.method = 'GET'
         response = request.get_response(main.app)
-        results = json.loads(response.body)
+        results = json.loads(response.body)['results']
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['result'], SOME_RES)
+        self.assertEqual(results[0], SOME_RES)
 
         # and player with id 3 have no access to games:
         request = webapp2.Request.blank('/device_3/check_for_results/0')
         request.method = 'GET'
         response = request.get_response(main.app)
-        results = json.loads(response.body)
+        results = json.loads(response.body)['results']
         self.assertEqual(len(results), 0)
 
     def test_upload_log(self):

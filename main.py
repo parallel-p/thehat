@@ -18,6 +18,7 @@ import webapp2
 
 import pregame_handlers
 import dictionaries_packages_handlers
+import dictionaries_packages_admin_handlers
 import userdictionary
 import log_n_res_handlers
 import complain_word_handlers
@@ -26,6 +27,7 @@ import assign_device_handler
 import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
+
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
@@ -97,6 +99,16 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
                   handler=dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
+    webapp2.Route(r'/streams/add/<stream_id:[-\w]+>/<stream_name:[-\w]+>',
+                  handler=dictionaries_packages_admin_handlers.AddStreamHandler,
+                  name='add_stream'),
+    webapp2.Route(
+        r'/streams/<stream_id:[-\w]+>/packages/add/<package_id:[-\w]+>/<package_name:[-\w]+>/<release_time:[\d]+>',
+        handler=dictionaries_packages_admin_handlers.AddPackageHandler,
+        name='add_package'),
+    webapp2.Route(r'/streams/packages/<package_id:[-\w]+>/words',
+                  handler=dictionaries_packages_admin_handlers.ChangeWordsHandler,
+                  name='change_words'),    
     webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadLog,
                   name='upload_log'),
     webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
