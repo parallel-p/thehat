@@ -138,7 +138,7 @@ JSON_JOIN = '''{
 '''
 
 UPDATE_JSON = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "Petya",
@@ -171,7 +171,7 @@ UPDATE_JSON = '''{
     "players_delete": [
         "1"
     ],
-    "words_change": [
+    "updated_words": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -181,10 +181,10 @@ UPDATE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order_change": [
+    "updated_order": [
         "3", "2"
     ],
-    "meta_change": {
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -194,7 +194,7 @@ UPDATE_JSON = '''{
 
 SINCE_JSON = '''{
     "version": 6,
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "Petya",
@@ -227,7 +227,7 @@ SINCE_JSON = '''{
     "players_delete": [
         "1"
     ],
-    "words_change": [
+    "updated_words": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -237,10 +237,10 @@ SINCE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order_change": [
+    "updated_order": [
         "3", "2"
     ],
-    "meta_change": {
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -342,7 +342,7 @@ GAME_BIG_JSON = '''{
 '''
 
 BIG_UPDATE_1 = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "2new",
@@ -358,8 +358,8 @@ BIG_UPDATE_1 = '''{
 '''
 
 BIG_UPDATE_2 = '''{
-    "order_change": ["4", "2", "0", "1", "3"],
-    "meta_change": {
+    "updated_order": ["4", "2", "0", "1", "3"],
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -408,7 +408,7 @@ GAME_BIG_AFTER_UPDATE = '''{
 '''
 
 TOTAL_UPDATE = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "2new",
@@ -420,8 +420,8 @@ TOTAL_UPDATE = '''{
             "words": []
         }
     ],
-    "order_change": ["4", "2", "0", "1", "3"],
-    "meta_change": {
+    "updated_order": ["4", "2", "0", "1", "3"],
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0

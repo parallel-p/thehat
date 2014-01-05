@@ -49,14 +49,14 @@ class PreGameUpdateHandler(AllHandler):
             update = json.loads(self.request.get('json'))
             game_struct = json.loads(game.game_json)
             game_struct['version'] += 1
-            if 'words_change' in update:
+            if 'updated_words' in update:
                 game_struct['words_last_update'] = game_struct['version']
-                game_struct['words'] = update['words_change']
-            if 'meta_change' in update:
-                game_struct['meta'] = update['meta_change']
+                game_struct['words'] = update['updated_words']
+            if 'updated_meta' in update:
+                game_struct['meta'] = update['updated_meta']
                 game_struct['meta']['last_update'] = game_struct['version']
-            if 'players_change' in update:
-                for player in update['players_change']:
+            if 'updated_players' in update:
+                for player in update['updated_players']:
                     found = False
                     for where in xrange(len(game_struct['players'])):
                         if player['id'] == game_struct['players'][where]['id']:
@@ -74,9 +74,9 @@ class PreGameUpdateHandler(AllHandler):
                             game_struct['players_deleted'].append({'id': player,
                                                                    'last_update': game_struct['version']})
                             break
-            if 'order_change' in update:
+            if 'updated_order' in update:
                 game_struct['order_last_update'] = game_struct['version']
-                game_struct['order'] = update['order_change']
+                game_struct['order'] = update['updated_order']
             changed = False
             for player_id in game_struct['order']:
                 found = False
@@ -118,17 +118,17 @@ class PreGameSinceHandler(AllHandler):
         last_version = int(kwargs.get('version'))
         diff = {'version': game_struct['version']}
         if game_struct['meta']['last_update'] > last_version:
-            diff['meta_change'] = game_struct['meta']
-            del diff['meta_change']['last_update']
+            diff['updated_meta'] = game_struct['meta']
+            del diff['updated_meta']['last_update']
         if game_struct['order_last_update'] > last_version:
-            diff['order_change'] = game_struct['order']
+            diff['updated_order'] = game_struct['order']
         if game_struct['words_last_update'] > last_version:
-            diff['words_change'] = game_struct['words']
-        diff['players_change'] = []
+            diff['updated_words'] = game_struct['words']
+        diff['updated_players'] = []
         for player in game_struct['players']:
             if player['last_update'] > last_version:
-                diff['players_change'].append(player)
-                del diff['players_change'][-1]['last_update']
+                diff['updated_players'].append(player)
+                del diff['updated_players'][-1]['last_update']
         diff['players_delete'] = []
         for player_del in game_struct['players_deleted']:
             if player_del['last_update'] > last_version:
