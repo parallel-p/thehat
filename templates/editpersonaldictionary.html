@@ -1,0 +1,11 @@
+{% extends "templates/base.html" %}
+{% block title %}Редактирование личного словаря :: Шляпа{% endblock %}
+{% block contentheader %}Личный словарь{% endblock %}
+
+{% block content %}
+    <form method="post" action="/html/udict/proc">
+    {%  for word in wordlist %}
+
+    {% endfor %}
+    </form>
+{% endblock %}
