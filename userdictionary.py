@@ -103,9 +103,9 @@ class Update(AllHandler):
         try:
             wordlist = list(UserDictionary.query(UserDictionary.user == user))[0]\
                 .to_userword_array()
-            rwordlist = []
         except:
-            rwordlist = []
+            wordlist = []
+        rwordlist = []
         vers = get_dictionary_version(user)
         for i in wordlist:
             if i.version > int(version_on_device):
