@@ -60,7 +60,8 @@ class CheckAnyResults(AllHandler):
         timestamp = kwargs["timestamp"]
         results = Results.query(Results.players_ids.IN([player_id]),
                                 Results.timestamp > int(timestamp)).fetch(projection=["results_json"])
-        response = [{'result': result.results_json, 'timestamp': make_timestamp()} for result in results]
+        response = {'results':[result.results_json for result in results],
+                    'timestamp':make_timestamp()}
         self.response.write(json.dumps(response))
 
 
