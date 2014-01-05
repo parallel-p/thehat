@@ -1,17 +1,16 @@
+{% extends "templates/base.html" %}
+{% block title %}Слова :: Шляпа{% endblock %}
+{% block contentheader %}Слова пакетов{% endblock %}
+
 {% block content %}
 <p align="center">
 <form method="post" action="/streams/packages/{{package_id}}/words">
     <div>
-        Слова пакета: <br/> <textarea name="text" rows="10" cols="80">{{words}}</textarea>
+        Редактировать пакет: <br/> <textarea name="text" rows="10" cols="80">{{words}}</textarea>
     </div>
     <input type="submit" value="Send"/>
     <input type="submit" value="Cancel"
            onclick="window.location='/'; return false;"/>
 </form>
-{% if error is defined %}
-<p>
-    {{ error }}
-</p>
-{% endif %}
 </p>
 {% endblock %}
