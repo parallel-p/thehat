@@ -1,35 +1,28 @@
 import json
-from google.appengine.ext import ndb
-#from log_classes import *
-from all_handler import AllHandler
-from objects.user_devices import get_user_by_device
 import time
 
-# word states: GUESSED, NOT_GUESSED, FAILED = range(3)
+from google.appengine.ext import ndb
+
+from all_handler import AllHandler
+from objects.user_devices import get_user_by_device
+from objects.game_results_log import GameLog, Results
 
 
 def make_timestamp():
     return int(1000 * time.time())
 
 
-class Results(ndb.Model):
-    results_json = ndb.JsonProperty(indexed=True)
-    players_ids = ndb.StringProperty(repeated=True)
-    timestamp = ndb.IntegerProperty()
-    is_public = ndb.BooleanProperty()
-
-
-class Log(ndb.Model):
-    json = ndb.JsonProperty()
-
-
 class UploadLog(AllHandler):
     def post(self, **kwargs):
         super(UploadLog, self).set_device_id(**kwargs)
         game_id = kwargs["game_id"]
-        log = Log(id=game_id)
-        log.json = self.request.get("json")
-        log.put()
+        game_on_server = GameLog.query(GameLog.game_id == game_id).get()
+        if game_on_server is not None:
+            self.response.write("OK, already exist")
+        else:
+            log = GameLog(game_id=game_id, json=self.request.get("json"))
+            log.put()
+            self.response.write("OK, added")
 
 
 class UploadRes(AllHandler):
