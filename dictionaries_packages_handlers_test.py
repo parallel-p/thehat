@@ -1,8 +1,10 @@
 import unittest
-import webapp2
 import json
-import main
+
+import webapp2
 from google.appengine.ext import testbed
+
+import main
 from objects.dictionaries_packages import PackageDictionary, PackagesStream
 from objects.user_streams import UserStreams
 from objects.user_devices import get_user_by_device

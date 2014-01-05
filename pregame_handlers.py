@@ -18,7 +18,7 @@ class PreGameCreateHandler(AllHandler):
             player['last_update'] = game['version']
         game['words_last_update'] = game['version']
         game['order_last_update'] = game['version']
-        game['settings']['last_update'] = game['version']
+        game['meta']['last_update'] = game['version']
         game['players_deleted'] = []
         game_db = PreGame(game_json=json.dumps(game), device_ids=[self.device_id], pin=game['pin'], can_update=True)
         key = game_db.put()
@@ -49,14 +49,14 @@ class PreGameUpdateHandler(AllHandler):
             update = json.loads(self.request.get('json'))
             game_struct = json.loads(game.game_json)
             game_struct['version'] += 1
-            if 'words_change' in update:
+            if 'updated_words' in update:
                 game_struct['words_last_update'] = game_struct['version']
-                game_struct['words'] = update['words_change']
-            if 'settings_change' in update:
-                game_struct['settings'] = update['settings_change']
-                game_struct['settings']['last_update'] = game_struct['version']
-            if 'players_change' in update:
-                for player in update['players_change']:
+                game_struct['words'] = update['updated_words']
+            if 'updated_meta' in update:
+                game_struct['meta'] = update['updated_meta']
+                game_struct['meta']['last_update'] = game_struct['version']
+            if 'updated_players' in update:
+                for player in update['updated_players']:
                     found = False
                     for where in xrange(len(game_struct['players'])):
                         if player['id'] == game_struct['players'][where]['id']:
@@ -74,9 +74,9 @@ class PreGameUpdateHandler(AllHandler):
                             game_struct['players_deleted'].append({'id': player,
                                                                    'last_update': game_struct['version']})
                             break
-            if 'order_change' in update:
+            if 'updated_order' in update:
                 game_struct['order_last_update'] = game_struct['version']
-                game_struct['order'] = update['order_change']
+                game_struct['order'] = update['updated_order']
             changed = False
             for player_id in game_struct['order']:
                 found = False
@@ -117,18 +117,18 @@ class PreGameSinceHandler(AllHandler):
         game_struct = json.loads(game.game_json)
         last_version = int(kwargs.get('version'))
         diff = {'version': game_struct['version']}
-        if game_struct['settings']['last_update'] > last_version:
-            diff['settings_change'] = game_struct['settings']
-            del diff['settings_change']['last_update']
+        if game_struct['meta']['last_update'] > last_version:
+            diff['updated_meta'] = game_struct['meta']
+            del diff['updated_meta']['last_update']
         if game_struct['order_last_update'] > last_version:
-            diff['order_change'] = game_struct['order']
+            diff['updated_order'] = game_struct['order']
         if game_struct['words_last_update'] > last_version:
-            diff['words_change'] = game_struct['words']
-        diff['players_change'] = []
+            diff['updated_words'] = game_struct['words']
+        diff['updated_players'] = []
         for player in game_struct['players']:
             if player['last_update'] > last_version:
-                diff['players_change'].append(player)
-                del diff['players_change'][-1]['last_update']
+                diff['updated_players'].append(player)
+                del diff['updated_players'][-1]['last_update']
         diff['players_delete'] = []
         for player_del in game_struct['players_deleted']:
             if player_del['last_update'] > last_version:
@@ -157,7 +157,7 @@ class PreGameAbortHandler(AllHandler):
 class PreGameJoinHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameJoinHandler, self).set_device_id(**kwargs)
-        pin = str(self.request.get('json'))
+        pin = str(json.loads(self.request.get('json'))['pin'])
         game = PreGame.query().filter(PreGame.pin == pin).get()
         if game is None:
             self.error(404)
@@ -167,6 +167,6 @@ class PreGameJoinHandler(AllHandler):
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
-                response_struct = {"key": key_db.urlsafe(),
+                response_struct = {"id": key_db.urlsafe(),
                                    "game": PreGame.delete_last_updates_from_json(game.game_json)}
                 self.response.write(json.dumps(response_struct))

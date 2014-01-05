@@ -38,7 +38,7 @@ GAME_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1
@@ -81,7 +81,7 @@ GAME_ON_SERVER_JSON = '''{
     ],
     "words_last_update": 5,
     "order_last_update": 5,
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1,
@@ -125,7 +125,7 @@ JSON_JOIN = '''{
                 "origin": "RANDOM"
             }
         ],
-        "settings": {
+        "meta": {
             "time_per_round": 20,
             "words_per_player": 10,
             "skip_count": 1
@@ -138,7 +138,7 @@ JSON_JOIN = '''{
 '''
 
 UPDATE_JSON = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "Petya",
@@ -171,7 +171,7 @@ UPDATE_JSON = '''{
     "players_delete": [
         "1"
     ],
-    "words_change": [
+    "updated_words": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -181,10 +181,10 @@ UPDATE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order_change": [
+    "updated_order": [
         "3", "2"
     ],
-    "settings_change": {
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -194,7 +194,7 @@ UPDATE_JSON = '''{
 
 SINCE_JSON = '''{
     "version": 6,
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "Petya",
@@ -227,7 +227,7 @@ SINCE_JSON = '''{
     "players_delete": [
         "1"
     ],
-    "words_change": [
+    "updated_words": [
         {
             "text": "apple",
             "origin": "PACKAGE"
@@ -237,10 +237,10 @@ SINCE_JSON = '''{
             "origin": "RANDOM"
         }
     ],
-    "order_change": [
+    "updated_order": [
         "3", "2"
     ],
-    "settings_change": {
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -291,7 +291,7 @@ GAME_JSON_AFTER_UPDATE = '''{
             "origin": "RANDOM"
         }
     ],
-    "settings": {
+    "meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -333,7 +333,7 @@ GAME_BIG_JSON = '''{
     ],
     "words": [],
     "order": ["0", "1", "2", "3", "4"],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 100,
         "skip_count": 0
@@ -342,7 +342,7 @@ GAME_BIG_JSON = '''{
 '''
 
 BIG_UPDATE_1 = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "2new",
@@ -358,8 +358,8 @@ BIG_UPDATE_1 = '''{
 '''
 
 BIG_UPDATE_2 = '''{
-    "order_change": ["4", "2", "0", "1", "3"],
-    "settings_change": {
+    "updated_order": ["4", "2", "0", "1", "3"],
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -399,7 +399,7 @@ GAME_BIG_AFTER_UPDATE = '''{
     ],
     "words": [],
     "order": ["4", "2", "0", "1", "3"],
-    "settings": {
+    "meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -408,7 +408,7 @@ GAME_BIG_AFTER_UPDATE = '''{
 '''
 
 TOTAL_UPDATE = '''{
-    "players_change": [
+    "updated_players": [
         {
             "id": "2",
             "name": "2new",
@@ -420,8 +420,8 @@ TOTAL_UPDATE = '''{
             "words": []
         }
     ],
-    "order_change": ["4", "2", "0", "1", "3"],
-    "settings_change": {
+    "updated_order": ["4", "2", "0", "1", "3"],
+    "updated_meta": {
         "time_per_round": 25,
         "words_per_player": 2,
         "skip_count": 0
@@ -558,7 +558,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 403)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         need_json = json.loads(JSON_JOIN)
         response_struct = json.loads(response.body)
@@ -593,7 +593,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
@@ -632,7 +632,7 @@ class PreGameHandlersTest(unittest.TestCase):
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/join')
         request.method = 'POST'
-        request.body = "json=%s" % game_pin
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
