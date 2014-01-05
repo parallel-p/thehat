@@ -15,6 +15,7 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.init_taskqueue_stub()
 
     '''def test_add(self):
         version = GlobalDictionaryVersion.get_server_version()
