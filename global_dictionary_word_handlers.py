@@ -13,6 +13,7 @@ import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 from google.appengine.api import taskqueue
+from google.appengine.api import users
 
 
 class dictionary_updater(webapp2.RequestHandler):
@@ -76,10 +77,13 @@ class GlobalDictionaryWordHandler(AllHandler):
 
 class GlobalWordEditor(webapp2.RequestHandler):
     def get(self):
+        if not users.is_current_user_admin():
+            self.redirect(users.create_login_url(self.request.uri))
         template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
         self.response.write(template.render())
 
     def post(self):
-        str_data = self.request.get('text').strip()
-        dictionary_updater.run_update(str_data)
-        self.redirect('/edit_words')
+        if users.is_current_user_admin():
+            str_data = self.request.get('text').strip()
+            dictionary_updater.run_update(str_data)
+            self.redirect('/edit_words')
