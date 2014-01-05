@@ -1,7 +1,10 @@
+import unittest
+
 import webapp2
 from google.appengine.ext import testbed
-import unittest
+
 import main
+
 
 class TestWordsUpload(unittest.TestCase):
     def setUp(self):
@@ -24,18 +27,21 @@ class TestWordsUpload(unittest.TestCase):
         response = request.get_response(main.app)
         b = response.text
         self.assertTrue(int(a) < int(b))
+
     def test_get(self):
         request = webapp2.Request.blank('/123/udict/get/')
         request.method = "GET"
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
+
     def tearDown(self):
         self.testbed.deactivate()
+
 
 if __name__ == "__main__":
     unittest.main()
 
 
-#active -> status
-#1 -> ok
-#2 -> deleted
+    #active -> status
+    #1 -> ok
+    #2 -> deleted

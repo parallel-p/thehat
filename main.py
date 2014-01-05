@@ -27,6 +27,7 @@ import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
 
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello, first handler!')
@@ -34,7 +35,7 @@ class MainHandler(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainHandler),
-     webapp2.Route(
+    webapp2.Route(
         constants.constants.delete_all_url,
         handler=complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
@@ -101,7 +102,8 @@ routes = [
                   name='upload_log'),
     webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
                   name='upload_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>', handler=log_n_res_handlers.CheckAnyResults,
+    webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>',
+                  handler=log_n_res_handlers.CheckAnyResults,
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
@@ -130,6 +132,10 @@ routes = [
                   name='assign_device'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=recalc_rating_handler.RecalcRatingHandler,
-                  name='recalc_rating')
+                  name='recalc_rating'),
+    webapp2.Route(r'/json_updater',
+                  handler=global_dictionary_word_handlers.dictionary_updater,
+                  name='json_updater'
+    )
 ]
 app = webapp2.WSGIApplication(routes, debug=True)

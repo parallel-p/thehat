@@ -35,6 +35,7 @@ def dynamic_draw_probability(rating1, rating2, env=None):
        Use :func:`quality_1vs1` instead.
     """
     from warnings import warn
+
     warn('Use quality_1vs1 instead', DeprecationWarning)
     return quality_1vs1(rating1, rating2, env=env)
 
@@ -64,6 +65,7 @@ def TrueSkill_Rating(self, mu=None, sigma=None):
        Override :meth:`create_rating` instead.
     """
     from warnings import warn
+
     warn('TrueSkill.Rating is now called TrueSkill.create_rating',
          DeprecationWarning)
     return self.create_rating(mu, sigma)
@@ -77,6 +79,7 @@ def TrueSkill_transform_ratings(self, rating_groups, ranks=None,
        Override :meth:`rate` instead.
     """
     from warnings import warn
+
     warn('TrueSkill.transform_ratings is now called TrueSkill.rate',
          DeprecationWarning)
     rating_groups = [(r,) if isinstance(r, Rating) else r
@@ -91,6 +94,7 @@ def TrueSkill_match_quality(self, rating_groups):
        Override :meth:`quality` instead.
     """
     from warnings import warn
+
     warn('TrueSkill.match_quality is now called TrueSkill.quality',
          DeprecationWarning)
     rating_groups = [(r,) if isinstance(r, Rating) else r
@@ -105,6 +109,7 @@ def TrueSkill_rate_1vs1(self, rating1, rating2, drawn=False, min_delta=DELTA):
        Use :func:`rate_1vs1` instead.
     """
     from warnings import warn
+
     warn('Use rate_1vs1, a normal function instead', DeprecationWarning)
     return rate_1vs1(rating1, rating2, drawn, min_delta, self)
 
@@ -116,6 +121,7 @@ def TrueSkill_quality_1vs1(self, rating1, rating2):
        Use :func:`quality_1vs1` instead.
     """
     from warnings import warn
+
     warn('Use quality_1vs1, a normal function instead', DeprecationWarning)
     return quality_1vs1(rating1, rating2, self)
 
@@ -128,5 +134,6 @@ def Rating_exposure(self):
        Use :meth:`TrueSkill.expose` instead.
     """
     from warnings import warn
+
     warn('Use TrueSkill.expose instead', DeprecationWarning)
     return expose(self)

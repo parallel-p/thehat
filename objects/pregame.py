@@ -1,7 +1,8 @@
 __author__ = 'nikolay'
 
-from google.appengine.ext import ndb
 import json
+
+from google.appengine.ext import ndb
 
 
 class PreGame(ndb.Model):

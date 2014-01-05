@@ -57,13 +57,13 @@ class DeleteComplainedWord(webapp2.RequestHandler):
                 db.delete(word)
         self.redirect(constants.constants.show_complained_url)
 
-class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
 
+class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
     def post(self):
         data = self.request.get(constants.constants.complained_word)
         word = GlobalDictionaryWord.get_by_key_name(data)
         if word is not None:
             if word.tags.find("-deleted") != -1:
-                word.tags+="-deleted"
+                word.tags += "-deleted"
             word.put()
         self.redirect(constants.constants.show_complained_url)
