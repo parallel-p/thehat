@@ -5,7 +5,7 @@ from google.appengine.ext import ndb
 
 class UserPin(ndb.Model):
     user = ndb.UserProperty()
-    pin = ndb.IntegerProperty()
+    pin = ndb.StringProperty()
 
 
 class DeviceUser(ndb.Model):
