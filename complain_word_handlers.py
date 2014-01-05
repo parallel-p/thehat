@@ -77,3 +77,4 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
             self.redirect(constants.constants.show_complained_url)
 
 
+
