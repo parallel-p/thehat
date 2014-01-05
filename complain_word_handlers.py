@@ -63,10 +63,7 @@ class DeleteFromGlobalDictionaryHandler(webapp2.RequestHandler):
         data = self.request.get(constants.constants.complained_word)
         word = GlobalDictionaryWord.get_by_key_name(data)
         if word is not None:
-            word.tags+=" deleted "
+            if word.tags.find("-deleted") != -1:
+                word.tags+="-deleted"
             word.put()
         self.redirect(constants.constants.show_complained_url)
-
-
-
-
