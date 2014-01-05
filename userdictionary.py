@@ -9,6 +9,26 @@ from objects.user_devices import get_user_by_device
 from all_handler import AllHandler
 from google.appengine.api import users
 
+class UserDictionary(ndb.Model):
+    user = ndb.StringProperty()
+    json = ndb.StringProperty(indexed=False)
+
+    def from_userword_array(self, a):
+        for i in a:
+            self.json = wordlist_to_json(a, -1)
+
+    def to_userword_array(self):
+        a = json.loads(self.json)
+        result = []
+        for i in a["words"]:
+            current_word = UserWord()
+            current_word.active = i["status"]
+            current_word.user = self.user
+            current_word.word = i["word"]
+            current_word.version = int(i["version"])
+            current_word.index = int(i["index"])
+            result.append(current_word)
+        return result
 
 class UserWord(ndb.Model):
     word = ndb.StringProperty()
@@ -19,7 +39,11 @@ class UserWord(ndb.Model):
 
 
 def get_dictionary_version(user):  # Will return resulting version of the whole user's dictionary.
-    wordlist = list(UserWord.query(UserWord.user == user))
+    try:
+        diction = list(UserDictionary.query(UserDictionary.user == user))[0]
+        wordlist = diction.to_userword_array()
+    except:
+        wordlist = []
     answer = 0
     for i in wordlist:
         if i.version > answer:
@@ -34,17 +58,26 @@ class Change(AllHandler):
         json_changes = self.request.get("json")
         changes = json.loads(json_changes)
         dictionary_version = get_dictionary_version(user)
+        print(dictionary_version)
+        try:
+            diction = list(UserDictionary.query(UserDictionary.user == user))[0]
+            diction.key.delete()
+            wordlist = diction.to_userword_array()
+        except:
+            diction = UserDictionary()
+            diction.user = user
+            wordlist = []
         for i in changes["words"]:
-            wordlist = list(UserWord.query(UserWord.user == user and UserWord.word == i["word"]))
-            for j in wordlist:
-                j.key.delete()
+            wordlist = [j for j in wordlist if j.word != i["word"]]
             current_word = UserWord()
             current_word.active = i["status"]
             current_word.user = user
             current_word.word = i["word"]
             current_word.version = dictionary_version + 1
             current_word.index = int(i["index"])
-            current_word.put()
+            wordlist.append(current_word)
+        diction.from_userword_array(wordlist)
+        diction.put()
         self.response.write(dictionary_version + 1)
 
 
@@ -67,8 +100,12 @@ class Update(AllHandler):
         super(Update, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         version_on_device = kwargs.get("version")
-        wordlist = list(UserWord.query(UserWord.user == user))
-        rwordlist = []
+        try:
+            wordlist = list(UserDictionary.query(UserDictionary.user == user))[0]\
+                .to_userword_array()
+            rwordlist = []
+        except:
+            rwordlist = []
         vers = get_dictionary_version(user)
         for i in wordlist:
             if i.version > int(version_on_device):
@@ -81,7 +118,11 @@ class Get(AllHandler):
         super(Get, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         vers = get_dictionary_version(user)
-        wordlist = list(UserWord.query(UserWord.user == user))
+        try:
+            wordlist = list(UserDictionary.query(UserWord.user == user))[0]\
+                .to_userword_array()
+        except:
+            wordlist = []
         self.response.write(wordlist_to_json(wordlist, vers))
 
 
@@ -92,7 +133,10 @@ class DrawWebpage(webapp2.RedirectHandler):
             self.redirect(users.create_login_url('/generate_pin'))
         else:
             template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
-            wordlist = list(UserWord.query(UserWord.user == str(user.user_id())))
+            try:
+                wordlist = list(UserDictionary.query(UserDictionary.user == str(user.user_id())))[0].to_userword_array()
+            except:
+                wordlist = []
             rwordlist = []
             for i in wordlist:
                 if i.active == "ok":
@@ -110,9 +154,9 @@ class ProcWebpage(webapp2.RequestHandler):
         used = []
         version = get_dictionary_version(user)
         print(version)
-        curwords = list(UserWord.query(UserWord.user == user))
-        for i in curwords:
-            i.key.delete()
+        dict = list(UserDictionary.query(UserDictionary.user == user))[0]
+        dict.key.delete()
+        curwords = dict.to_userword_array()
         index = 0
         print(words)
         for i in range(len(curwords)):
@@ -131,6 +175,8 @@ class ProcWebpage(webapp2.RequestHandler):
                 curwords.append(UserWord(word=i, user=user, active="ok", version=version + 1, index=index))
                 index += 1
                 used.append(i)
-        for i in curwords:
-            i.put()
+        a = UserDictionary(user=user)
+        a.from_userword_array(curwords)
+        a.put()
         self.response.write("Edit OK")
+
