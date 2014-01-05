@@ -573,6 +573,27 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
+    def test_current_game(self):
+        game_id, game_pin = self.create_game()
+        request = webapp2.Request.blank('/device_id/pregame/get_current_game')
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(json.loads(response.body), [game_id])
+        request = webapp2.Request.blank('/other_device_id/pregame/join')
+        request.method = 'POST'
+        request.body = "json=%s" % json.dumps({"pin": game_pin})
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        request = webapp2.Request.blank('/other_device_id/pregame/get_current_game')
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(json.loads(response.body), [game_id])
+        game_id, game_pin = self.create_game()
+        request = webapp2.Request.blank('/device_id/pregame/get_current_game')
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(json.loads(response.body), [game_id])
+
     def test_all_1(self):
         request = webapp2.Request.blank('/device_id/pregame/create')
         request.method = 'POST'

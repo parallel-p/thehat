@@ -20,3 +20,38 @@ class PreGame(ndb.Model):
             del player['last_update']
         del game['players_deleted']
         return json.dumps(game)
+
+    @staticmethod
+    def abort_game(game_id):
+        key_db = ndb.Key(urlsafe=game_id)
+        game = key_db.get()
+        if not game.can_update:
+            return
+        game.can_update = False
+        game.put()
+
+
+class CurrentGame(ndb.Model):
+    device_id = ndb.StringProperty()
+    game_id = ndb.StringProperty()
+    is_owner = ndb.BooleanProperty()
+
+    @staticmethod
+    def set_current_game(device_id, game_id, is_owner=False):
+        cur_game = CurrentGame.query(CurrentGame.device_id == device_id).get()
+        if cur_game is None:
+            cur_game = CurrentGame(device_id=device_id, game_id=game_id, is_owner=is_owner)
+        else:
+            if cur_game.is_owner:
+                PreGame.abort_game(cur_game.game_id)
+            cur_game.game_id = game_id
+            cur_game.is_owner = is_owner
+        cur_game.put()
+
+    @staticmethod
+    def get_current_game(device_id):
+        cur_game = CurrentGame.query(CurrentGame.device_id == device_id).get()
+        if cur_game is None:
+            return None
+        else:
+            return cur_game.game_id
