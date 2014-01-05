@@ -27,15 +27,17 @@ import assign_device_handler
 import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
+from environment import JINJA_ENVIRONMENT
 
 
-class MainHandler(webapp2.RequestHandler):
+class MainPage(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello, first handler!')
+        template = JINJA_ENVIRONMENT.get_template('templates/index.html')
+        self.response.write(template.render())
 
 
 routes = [
-    (r'/', MainHandler),
+    (r'/', MainPage),
     webapp2.Route(
         constants.constants.delete_all_url,
         handler=complain_word_handlers.DeleteComplainedWords,

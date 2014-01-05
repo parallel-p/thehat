@@ -13,10 +13,9 @@
         Delete from global: <br/> <input type="text" name="word"/>
         <td><input type="submit" value="Delete"/></td>
     </form> -->
-    <form method="post"
-          action="/delete_all_words">
-        <td><input type="submit" value="Delete All"/></td>
-    </form>
+
+
+
     <script type="application/javascript">
 
         function getXmlHttp() {
@@ -76,14 +75,15 @@
             post('/delete_glob', word);
         }
     </script>
-    <table border="10">
-        <tr>
-            <td>Устройство</td>
-            <td>Слово</td>
-            <td>Причина</td>
-            <td>Замена</td>
-            <td></td>
-            <td></td>
+    <p align="right"> <a href="/admin"> Взад к админскому интерфейсу </a> </p>
+    <table border="10" width="100%">
+        <tr align="center">
+            <td align="center"><strong>Устройство</strong></td>
+            <td align="center"><strong>Слово</strong></td>
+            <td align="center"><strong>Причина</strong></td>
+            <td align="center"><strong>Замена</strong></td>
+            <td align="center"  valign="center">     <br> <form method="post" action="/delete_all_words"> <input type="submit" value="Игнорировать все"/> </form> </td>
+            <td>  </td>
         </tr>
         {% for word in words %}
             <tr id="{{ word.word }}_{{ word.cnt }}" >
@@ -91,8 +91,8 @@
                 <td>{{ word.word }} </td>
                 <td>{{ word.reason }}</td>
                 <td>{{ word.replacement_word }}</td>
-                <td> <button onclick="delete_here('{{ word.word }}', '{{ word.cnt }}')"> Игнорировать </button></td>
-                <td> <button onclick="delete_global('{{ word.word }}', '{{ word.cnt }}')"> Удалить из словаря </button> </td>
+                <td align="center"> <button onclick="delete_here('{{ word.word }}', '{{ word.cnt }}')"> Игнорировать </button></td>
+                <td align="center"> <button onclick="delete_global('{{ word.word }}', '{{ word.cnt }}')"> Удалить из словаря </button> </td>
             </tr>
         {% endfor %}
     </table>
