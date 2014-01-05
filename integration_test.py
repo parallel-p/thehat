@@ -25,5 +25,3 @@ class IntegrationTest(unittest2.TestCase):
         request = IntegrationTest.create_request('/aaa/get_all_words/0', "GET")
         response = request.get_response(main.app)
         self.assertEqual(response.body, "{}")
-
-        # def test_
