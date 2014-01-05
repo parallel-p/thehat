@@ -1,10 +1,13 @@
-from google.appengine.ext import ndb
-
-import webapp2
 import json
+
+from google.appengine.ext import ndb
+import webapp2
+
+from environment import JINJA_ENVIRONMENT
 
 from objects.user_devices import get_user_by_device
 from all_handler import AllHandler
+from google.appengine.api import users
 
 
 class UserWord(ndb.Model):
@@ -48,7 +51,7 @@ class Change(AllHandler):
 def wordlist_to_json(wordlist, vers):
     json_strings = []
     for i in wordlist:
-        cur = '{"word": "' + i.word + '", "version": "' + str(i.version) + '", "status": "' + i.active +\
+        cur = '{"word": "' + i.word + '", "version": "' + str(i.version) + '", "status": "' + i.active + \
               '", "index": "' + str(i.index) + '"}'
         json_strings.append(cur)
     json_string = "{\"version\": " + str(vers) + ", \"words\": ["
@@ -84,9 +87,50 @@ class Get(AllHandler):
 
 class DrawWebpage(webapp2.RedirectHandler):
     def get(self):
-        self.response.write("It works!")
+        user = users.get_current_user()
+        if user is None:
+            self.redirect(users.create_login_url('/generate_pin'))
+        else:
+            template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
+            wordlist = list(UserWord.query(UserWord.user == str(user.user_id())))
+            rwordlist = []
+            for i in wordlist:
+                if i.active == "ok":
+                    rwordlist.append(i)
+            render_data = {"words": rwordlist, "USER": user.user_id()}
+            self.response.write(template.render(render_data))
+
 
 
 class ProcWebpage(webapp2.RequestHandler):
     def post(self):
-        self.response.write("It works!")
+        words = self.request.get("words")
+        user = self.request.get("user")
+        words = [word.rstrip() for word in words.split('\n')]
+        used = []
+        version = get_dictionary_version(user)
+        print(version)
+        curwords = list(UserWord.query(UserWord.user == user))
+        for i in curwords:
+            i.key.delete()
+        index = 0
+        print(words)
+        for i in range(len(curwords)):
+            if curwords[i].word in words:
+                curwords[i].active = "ok"
+                curwords[i].version = version + 1
+                curwords[i].index = index
+                index += 1
+                used.append(curwords[i].word)
+            else:
+                curwords[i].active = "deleted"
+                curwords[i].version = version + 1
+                used.append(curwords[i].word)
+        for i in words:
+            if not (i in used) and (i != ""):
+                curwords.append(UserWord(word=i, user=user, active="ok", version=version + 1, index=index))
+                index += 1
+                used.append(i)
+        for i in curwords:
+            i.put()
+        self.response.write("Edit OK")

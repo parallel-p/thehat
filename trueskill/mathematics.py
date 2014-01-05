@@ -12,14 +12,13 @@
 from __future__ import absolute_import
 import copy
 import math
+
 try:
     from numbers import Number
 except ImportError:
     Number = (int, long, float, complex)
 
-
 __all__ = ['Gaussian', 'Matrix', 'inf']
-
 
 inf = float('inf')
 
@@ -96,10 +95,12 @@ class Matrix(list):
             if not height:
                 def set_height(height):
                     size[0] = height
+
                 size[0] = set_height
             if not width:
                 def set_width(width):
                     size[1] = width
+
                 size[1] = set_width
             try:
                 for (r, c), val in f(*size):

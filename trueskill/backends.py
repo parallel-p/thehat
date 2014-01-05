@@ -19,6 +19,7 @@ def _gen_erfcinv(erfc, math=math):
     """Generates the inverse function of erfc by the given erfc function and
     math module.
     """
+
     def erfcinv(y):
         """The inverse function of erfc."""
         if y >= 2:
@@ -35,6 +36,7 @@ def _gen_erfcinv(erfc, math=math):
             err = erfc(x) - y
             x += err / (1.12837916709551257 * math.exp(-(x ** 2)) - x * err)
         return x if zero_point else -x
+
     return erfcinv
 
 
@@ -43,9 +45,11 @@ def _gen_ppf(erfc, math=math):
     given erfc and math module.
     """
     erfcinv = _gen_erfcinv(erfc, math)
+
     def ppf(x, mu=0, sigma=1):
         """The inverse function of cdf."""
         return mu - sigma * math.sqrt(2) * erfcinv(2 * x)
+
     return ppf
 
 
@@ -54,10 +58,10 @@ def erfc(x):
     z = abs(x)
     t = 1. / (1. + z / 2.)
     r = t * math.exp(-z * z - 1.26551223 + t * (1.00002368 + t * (
-                     0.37409196 + t * (0.09678418 + t * (
-                     -0.18628806 + t * (0.27886807 + t * (
-                     -1.13520398 + t * (1.48851587 + t * (
-                     -0.82215223 + t * 0.17087277)))))))))
+        0.37409196 + t * (0.09678418 + t * (
+            -0.18628806 + t * (0.27886807 + t * (
+                -1.13520398 + t * (1.48851587 + t * (
+                    -0.82215223 + t * 0.17087277)))))))))
     return 2. - r if x < 0 else r
 
 

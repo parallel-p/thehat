@@ -1,10 +1,13 @@
 import unittest
-import webapp2
-import main
 import json
+
+import webapp2
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
 from random import randint
+
+import main
+
 
 GAME = '''{
     "title": "A game",
@@ -16,7 +19,7 @@ GAME = '''{
         }
     ],
     "words": [],
-    "settings": {
+    "meta": {
         "time_per_round": 20,
         "words_per_player": 10,
         "skip_count": 1,
@@ -56,7 +59,7 @@ class TestResults(unittest.TestCase):
     def join(self, device_id, pin):
         request = webapp2.Request.blank('/%s/pregame/join' % device_id)
         request.method = 'POST'
-        request.body = "json=%s" % str(pin)
+        request.body = "json=%s" % json.dumps({"pin": str(pin)})
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
