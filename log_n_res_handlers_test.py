@@ -103,8 +103,8 @@ class TestResults(unittest.TestCase):
     def test_pregame_upload_n_check_res(self):
         # create 2 games:
         game1_id, game1_pin = self.create_game()
-        game2_id, game2_pin = self.create_game()
         self.join('device_2', game1_pin)
+        game2_id, game2_pin = self.create_game()
         self.join('device_2', game2_pin)
 
         # check for res, return empty str:
