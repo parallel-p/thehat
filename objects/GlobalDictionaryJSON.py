@@ -2,6 +2,7 @@ __author__ = 'ivan'
 
 from google.appengine.ext import db
 
+
 class GlobalDictionaryJson(db.Model):
     json = db.TextProperty()
 

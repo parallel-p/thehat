@@ -255,13 +255,13 @@ class TrueSkill(object):
             raise ValueError('Need multiple rating groups')
         elif not all(rating_groups):
             raise ValueError('Each group must contain multiple ratings')
-        # check group types
+            # check group types
         group_types = set(imap(type, rating_groups))
         if len(group_types) != 1:
             raise TypeError('All groups should be same type')
         elif group_types.pop() is Rating:
             raise TypeError('Rating cannot be a rating group')
-        # normalize rating_groups
+            # normalize rating_groups
         if isinstance(rating_groups[0], dict):
             keys = map(dict.keys, rating_groups)
             rating_groups = (tuple(g.itervalues()) for g in rating_groups)
@@ -314,9 +314,11 @@ class TrueSkill(object):
         def build_rating_layer():
             for rating_var, rating in izip(rating_vars, flatten_ratings):
                 yield PriorFactor(rating_var, rating, self.tau)
+
         def build_perf_layer():
             for rating_var, perf_var in izip(rating_vars, perf_vars):
                 yield LikelihoodFactor(rating_var, perf_var, self.beta ** 2)
+
         def build_team_perf_layer():
             for team, team_perf_var in enumerate(team_perf_vars):
                 if team > 0:
@@ -327,10 +329,12 @@ class TrueSkill(object):
                 child_perf_vars = perf_vars[start:end]
                 coeffs = flatten_weights[start:end]
                 yield SumFactor(team_perf_var, child_perf_vars, coeffs)
+
         def build_team_diff_layer():
             for team, team_diff_var in enumerate(team_diff_vars):
                 yield SumFactor(team_diff_var,
                                 team_perf_vars[team:team + 2], [+1, -1])
+
         def build_trunc_layer():
             for x, team_diff_var in enumerate(team_diff_vars):
                 if callable(self.draw_probability):
@@ -349,7 +353,8 @@ class TrueSkill(object):
                     v_func, w_func = self.v_win, self.w_win
                 yield TruncateFactor(team_diff_var,
                                      v_func, w_func, draw_margin)
-        # build layers
+
+            # build layers
         return (build_rating_layer, build_perf_layer, build_team_perf_layer,
                 build_team_diff_layer, build_trunc_layer)
 
@@ -362,18 +367,20 @@ class TrueSkill(object):
         if min_delta <= 0:
             raise ValueError('min_delta must be greater than 0')
         layers = []
+
         def build(builders):
             layers_built = [list(build()) for build in builders]
             layers.extend(layers_built)
             return layers_built
-        # gray arrows
+
+            # gray arrows
         layers_built = build([build_rating_layer,
                               build_perf_layer,
                               build_team_perf_layer])
         rating_layer, perf_layer, team_perf_layer = layers_built
         for f in chain(*layers_built):
             f.down()
-        # arrow #1, #2, #3
+            # arrow #1, #2, #3
         team_diff_layer, trunc_layer = build([build_team_diff_layer,
                                               build_trunc_layer])
         team_diff_len = len(team_diff_layer)
@@ -393,10 +400,10 @@ class TrueSkill(object):
                     team_diff_layer[x].down()
                     delta = max(delta, trunc_layer[x].up())
                     team_diff_layer[x].up(0)  # up to left variable
-            # repeat until to small update
+                # repeat until to small update
             if delta <= min_delta:
                 break
-        # up both ends
+            # up both ends
         team_diff_layer[0].up(0)
         team_diff_layer[team_diff_len - 1].up(1)
         # up the remainder of the black arrows
@@ -457,7 +464,7 @@ class TrueSkill(object):
             ranks = range(group_size)
         elif len(ranks) != group_size:
             raise ValueError('Wrong ranks')
-        # sort rating groups by rank
+            # sort rating groups by rank
         by_rank = lambda x: x[1][1]
         sorting = sorted(enumerate(izip(rating_groups, ranks, weights)),
                          key=by_rank)
@@ -467,7 +474,7 @@ class TrueSkill(object):
             sorted_ranks.append(r)
             # make weights to be greater than 0
             sorted_weights.append(max(min_delta, w_) for w_ in w)
-        # build factor graph
+            # build factor graph
         args = (sorted_rating_groups, sorted_ranks, sorted_weights)
         builders = self.factor_graph_builders(*args)
         args = builders + (min_delta,)
@@ -485,7 +492,7 @@ class TrueSkill(object):
                            key=by_hint)
         if keys is None:
             return [g for x, g in unsorting]
-        # restore the structure with input dictionary keys
+            # restore the structure with input dictionary keys
         return [dict(izip(keys[x], g)) for x, g in unsorting]
 
     def quality(self, rating_groups, weights=None):
@@ -515,6 +522,7 @@ class TrueSkill(object):
             variances = (r.sigma ** 2 for r in flatten_ratings)
             for x, variance in enumerate(variances):
                 yield (x, x), variance
+
         variance_matrix = Matrix(variance_matrix, length, length)
         # the player-team assignment and comparison matrix
         def rotated_a_matrix(set_height, set_width):
@@ -529,6 +537,7 @@ class TrueSkill(object):
                     yield (r, x), -flatten_weights[x]
             set_height(r + 1)
             set_width(x + 1)
+
         rotated_a_matrix = Matrix(rotated_a_matrix)
         a_matrix = rotated_a_matrix.transpose()
         # match quality further derivation
@@ -690,4 +699,5 @@ def expose(rating):
 from . import deprecated
 from .deprecated import (transform_ratings, match_quality,
                          dynamic_draw_probability)
+
 deprecated.ensure_backward_compatibility(TrueSkill, Rating)

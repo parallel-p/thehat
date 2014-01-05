@@ -1,7 +1,7 @@
-from google.appengine.ext import ndb
-
-import webapp2
 import json
+
+from google.appengine.ext import ndb
+import webapp2
 
 from objects.user_devices import get_user_by_device
 from all_handler import AllHandler
@@ -48,7 +48,7 @@ class Change(AllHandler):
 def wordlist_to_json(wordlist, vers):
     json_strings = []
     for i in wordlist:
-        cur = '{"word": "' + i.word + '", "version": "' + str(i.version) + '", "status": "' + i.active +\
+        cur = '{"word": "' + i.word + '", "version": "' + str(i.version) + '", "status": "' + i.active + \
               '", "index": "' + str(i.index) + '"}'
         json_strings.append(cur)
     json_string = "{\"version\": " + str(vers) + ", \"words\": ["
