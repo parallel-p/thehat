@@ -44,8 +44,11 @@ class ShowComplainedWords(webapp2.RequestHandler):
             cnt += 1
 
         render_data["quantity"] = len(render_data[constants.constants.render_data_name])
-        self.response.write(template.render(
-            {"logout_link": users.create_logout_url('/')}))
+        if users.get_current_user():
+            self.response.write(template.render(
+                {"logout_link": users.create_logout_url('/')}))
+        else:
+            self.response.write(template.render({}))
 
 
 class DeleteComplainedWords(webapp2.RequestHandler):
