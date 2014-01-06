@@ -3,6 +3,7 @@ __author__ = 'nikolay'
 import json
 
 from google.appengine.api import taskqueue
+from google.appengine.ext import ndb
 
 from all_handler import AllHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
@@ -36,7 +37,7 @@ MIN_TIME = 3 * 1000 # 3 seconds
 class AddGameHandler(AllHandler):
     def post(self):
         game_id = self.request.get('game_id')
-        log = GameLog.query(GameLog.game_id == game_id).get()
+        log = ndb.Key(GameLog, game_id).get()
         if log is None:
             print "oooops, no log found"
             return
