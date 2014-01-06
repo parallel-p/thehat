@@ -29,12 +29,13 @@ import recalc_rating_handler
 import constants.constants
 from environment import JINJA_ENVIRONMENT
 import admin_page_handler
-
+from google.appengine.api import users
 
 class MainPage(webapp2.RequestHandler):
     def get(self):
         template = JINJA_ENVIRONMENT.get_template('templates/index.html')
-        self.response.write(template.render())
+        self.response.write(template.render(
+            {"logout_link": users.create_logout_url('/')}))
 
 
 routes = [
