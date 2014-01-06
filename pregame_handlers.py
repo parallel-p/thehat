@@ -23,7 +23,7 @@ class PreGameCreateHandler(AllHandler):
         game_db = PreGame(game_json=json.dumps(game), device_ids=[self.device_id], pin=game['pin'], can_update=True)
         key = game_db.put()
         CurrentGame.set_current_game(self.device_id, key.urlsafe(), True)
-        self.response.write(json.dumps({'id': key.urlsafe(), 'pin': game['pin']}))
+        self.response.write(json.dumps({'id': key.urlsafe(), 'pin': game['pin'], 'version': game['version']}))
 
 
 class PreGameHandler(AllHandler):
