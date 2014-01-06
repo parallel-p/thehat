@@ -22,6 +22,9 @@ class PreGameCreateHandler(AllHandler):
         game['players_deleted'] = []
         game_db = PreGame(game_json=json.dumps(game), device_ids=[self.device_id], pin=game['pin'], can_update=True)
         key = game_db.put()
+        game['id'] = key.urlsafe()
+        game_db.game_json = json.dumps(game)
+        game_db.put()
         CurrentGame.set_current_game(self.device_id, key.urlsafe(), True)
         self.response.write(json.dumps({'id': key.urlsafe(), 'pin': game['pin'], 'version': game['version']}))
 
@@ -31,9 +34,11 @@ class PreGameHandler(AllHandler):
         super(PreGameHandler, self).set_device_id(**kwargs)
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
+        game_struct = json.loads(game.game_json)
         if self.device_id in game.device_ids:
             self.response.write(json.dumps({
                 'id': key_db.urlsafe(),
+                'version': game_struct['version'],
                 'game': json.loads(PreGame.delete_last_updates_from_json(game.game_json))
             }))
         else:
@@ -100,6 +105,7 @@ class PreGameUpdateHandler(AllHandler):
             game.put()
             self.response.write(json.dumps({
                 'id': key_db.urlsafe(),
+                'version': game_struct['version'],
                 'game': json.loads(PreGame.delete_last_updates_from_json(game.game_json))
             }))
 
@@ -140,7 +146,11 @@ class PreGameSinceHandler(AllHandler):
         for player_del in game_struct['players_deleted']:
             if player_del['last_update'] > last_version:
                 diff['players_delete'].append(player_del['id'])
-        self.response.write(json.dumps({'id': key_db.urlsafe(), 'game': diff}))
+        self.response.write(json.dumps({
+            'id': key_db.urlsafe(),
+            'version': diff['version'],
+            'game': diff
+        }))
 
 
 class PreGameStartHandler(AllHandler):
@@ -168,8 +178,10 @@ class PreGameJoinHandler(AllHandler):
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
+                game_struct = json.loads(game.game_json)
                 CurrentGame.set_current_game(self.device_id, key_db.urlsafe())
                 response_struct = {"id": key_db.urlsafe(),
+                                   "version": game_struct['version'],
                                    "game": json.loads(PreGame.delete_last_updates_from_json(game.game_json))}
                 self.response.write(json.dumps(response_struct))
 
