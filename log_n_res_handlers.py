@@ -23,7 +23,7 @@ class UploadLog(AllHandler):
         else:
             log = GameLog(game_id=game_id, json=self.request.get("json"))
             log.put()
-            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id})
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id}, countdown=5)
             self.response.write("OK, added")
 
 

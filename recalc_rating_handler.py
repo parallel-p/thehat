@@ -12,7 +12,7 @@ from objects.game_results_log import GameLog
 
 class RecalcRatingHandler(AllHandler):
     def post(self):
-        words = json.loads(self.request.get("json"))['words']
+        words = json.loads(self.request.get("json"))
         ratings = []
         words_db = []
         for word in words:
@@ -37,11 +37,10 @@ class AddGameHandler(AllHandler):
     def post(self):
         game_id = self.request.get('game_id')
         log = GameLog.query(GameLog.game_id == game_id).get()
-        print game_id
         if log is None:
             print "oooops, no log found"
             return
-        events = json.loads(log)['events']
+        events = json.loads(log.json)['events']
         words_seen = []
         words_current = {}
         time_word = {}
@@ -78,9 +77,8 @@ class AddGameHandler(AllHandler):
         # -----------------
         for players_pair in words_by_players_pair.keys():
             words = words_by_players_pair[players_pair]
-            print words
             if len(words) > 1:
-                words = sorted(words, key=lambda w: w['time'])
+                words = sorted(words, key=lambda w: -w['time'])
                 to_recalc = [w['word'] for w in words]
-                taskqueue.add(url='/internal/recalc_statistic_after_game',
+                taskqueue.add(url='/internal/recalc_rating_after_game',
                               params={'json': json.dumps(to_recalc)})
