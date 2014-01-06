@@ -461,9 +461,10 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         was_game = json.loads(GAME_JSON)
-        now_game = json.loads(response.body)
+        now_game = json.loads(response.body)['game']
         for key in was_game:
             self.assertEqual(was_game[key], now_game[key])
+        self.assertEqual(game_id, json.loads(response.body)['id'])
         request = webapp2.Request.blank('/other_device_id/pregame/%s' % game_id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
@@ -476,9 +477,10 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_JSON_AFTER_UPDATE)
-        now_game = json.loads(response.body)
+        now_game = json.loads(response.body)['game']
         for key in need_game:
             self.assertEqual(need_game[key], now_game[key])
+        self.assertEqual(game_id, json.loads(response.body)['id'])
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
@@ -517,9 +519,10 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_diff = json.loads(SINCE_JSON)
-        now_diff = json.loads(response.body)
+        now_diff = json.loads(response.body)['game']
         for key in need_diff:
             self.assertEqual(need_diff[key], now_diff[key])
+        self.assertEqual(game_id, json.loads(response.body)['id'])
 
     def test_start(self):
         game_id, game_pin = self.create_game()
@@ -562,7 +565,7 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         need_json = json.loads(JSON_JOIN)
         response_struct = json.loads(response.body)
-        now_json = json.loads(response_struct['game'])
+        now_json = response_struct['game']
         for key in need_json['game']:
             if key != "pin":
                 self.assertEqual(need_json['game'][key], now_json[key])
@@ -623,13 +626,13 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_BIG_AFTER_UPDATE)
-        now_game = json.loads(response.body)
+        now_game = json.loads(response.body)['game']
         for key in need_game:
             self.assertEqual(need_game[key], now_game[key])
         request = webapp2.Request.blank('/other_device_id/pregame/%s/since/%d' % (game_id, first_version))
         response = request.get_response(main.app)
         need_diff = json.loads(TOTAL_UPDATE)
-        now_diff = json.loads(response.body)
+        now_diff = json.loads(response.body)['game']
         for key in need_diff:
             self.assertEqual(need_diff[key], now_diff[key])
 
@@ -662,13 +665,13 @@ class PreGameHandlersTest(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         need_game = json.loads(GAME_BIG_AFTER_UPDATE)
-        now_game = json.loads(response.body)
+        now_game = json.loads(response.body)['game']
         for key in need_game:
             self.assertEqual(need_game[key], now_game[key])
         request = webapp2.Request.blank('/other_device_id/pregame/%s/since/%d' % (game_id, first_version))
         response = request.get_response(main.app)
         need_diff = json.loads(TOTAL_UPDATE)
-        now_diff = json.loads(response.body)
+        now_diff = json.loads(response.body)['game']
         for key in need_diff:
             self.assertEqual(need_diff[key], now_diff[key])
 

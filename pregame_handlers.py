@@ -32,7 +32,10 @@ class PreGameHandler(AllHandler):
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
         if self.device_id in game.device_ids:
-            self.response.write(PreGame.delete_last_updates_from_json(game.game_json))
+            self.response.write(json.dumps({
+                'id': key_db.urlsafe(),
+                'game': json.loads(PreGame.delete_last_updates_from_json(game.game_json))
+            }))
         else:
             self.error(403)
 
@@ -95,7 +98,10 @@ class PreGameUpdateHandler(AllHandler):
                 game_struct['order_last_update'] = game_struct['version']
             game.game_json = json.dumps(game_struct)
             game.put()
-            self.response.write(PreGame.delete_last_updates_from_json(game.game_json))
+            self.response.write(json.dumps({
+                'id': key_db.urlsafe(),
+                'game': json.loads(PreGame.delete_last_updates_from_json(game.game_json))
+            }))
 
 
 class PreGameVersionHandler(AllHandler):
@@ -105,7 +111,7 @@ class PreGameVersionHandler(AllHandler):
         game = key_db.get()
         if self.device_id in game.device_ids:
             game_struct = json.loads(game.game_json)
-            self.response.write(json.dumps({'version': game_struct['version']}))
+            self.response.write(json.dumps({'id': key_db.urlsafe(), 'version': game_struct['version']}))
         else:
             self.error(403)
 
@@ -134,7 +140,7 @@ class PreGameSinceHandler(AllHandler):
         for player_del in game_struct['players_deleted']:
             if player_del['last_update'] > last_version:
                 diff['players_delete'].append(player_del['id'])
-        self.response.write(json.dumps(diff))
+        self.response.write(json.dumps({'id': key_db.urlsafe(), 'game': diff}))
 
 
 class PreGameStartHandler(AllHandler):
@@ -164,7 +170,7 @@ class PreGameJoinHandler(AllHandler):
                 key_db = game.put()
                 CurrentGame.set_current_game(self.device_id, key_db.urlsafe())
                 response_struct = {"id": key_db.urlsafe(),
-                                   "game": PreGame.delete_last_updates_from_json(game.game_json)}
+                                   "game": json.loads(PreGame.delete_last_updates_from_json(game.game_json))}
                 self.response.write(json.dumps(response_struct))
 
 
