@@ -178,5 +178,5 @@ class ProcWebpage(webapp2.RequestHandler):
         a = UserDictionary(user=user)
         a.from_userword_array(curwords)
         a.put()
-        self.response.write("Edit OK")
-
+        template = JINJA_ENVIRONMENT.get_template('templates/personaldictionaryedit_ok.html');
+        self.response.write(template.render())
