@@ -122,6 +122,12 @@ routes = [
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
+    webapp2.Route(
+        r'/<device_id:[-\w]+>/save_game/<game_id:[-\w]+>',
+        handler=log_n_res_handlers.SaveGame, name='save_game'),
+    webapp2.Route(
+        r'/<device_id:[-\w]+>/load_game/<game_id:[-\w]+>',
+        handler=log_n_res_handlers.LoadGame, name='load_game'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/update',
                   handler=userdictionary.Change,
                   name='udict_update'),
