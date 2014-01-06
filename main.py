@@ -34,8 +34,12 @@ from google.appengine.api import users
 class MainPage(webapp2.RequestHandler):
     def get(self):
         template = JINJA_ENVIRONMENT.get_template('templates/index.html')
-        self.response.write(template.render(
-            {"logout_link": users.create_logout_url('/')}))
+        if users.get_current_user():
+            self.response.write(template.render(
+                {"logout_link": users.create_logout_url('/')}))
+        else:
+            self.response.write(template.render({"login_link": users.create_login_url('/')}))
+
 
 
 routes = [
