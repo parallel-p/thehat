@@ -3,6 +3,7 @@ import json
 import time
 
 from google.appengine.ext import ndb
+from google.appengine.api import taskqueue
 
 from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
@@ -21,8 +22,9 @@ class UploadLog(AllHandler):
         if game_on_server is not None:
             self.response.write("OK, already exist")
         else:
-            log = GameLog(json=self.request.get("json"), id = game_id)
+            log = GameLog(json=self.request.get("json"), id=game_id)
             log.put()
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id}, countdown=5)
             self.response.write("OK, added")
 
 

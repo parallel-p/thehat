@@ -24,7 +24,7 @@ class RecalcRatingTest(unittest.TestCase):
             GlobalDictionaryWord(key_name=str(i), word=str(i), E=50.0, D=50.0 / 3).put()
         request = webapp2.Request.blank('/internal/recalc_rating_after_game')
         request.method = 'POST'
-        request.body = "json=%s" % json.dumps({"words": game_words})
+        request.body = "json=%s" % json.dumps(game_words)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body, "OK, 5 words rated")

@@ -18,6 +18,8 @@ class NonFinishedGame(ndb.Model):
     log = ndb.StringProperty()
     players_ids = ndb.StringProperty(repeated=True)
 
+
 class GameLog(ndb.Model):
-    json = ndb.JsonProperty()
+    json = ndb.StringProperty(indexed=False)
+    game_id = ndb.StringProperty()
     last_statistic = ndb.IntegerProperty()
