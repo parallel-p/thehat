@@ -1,14 +1,50 @@
 {% extends "templates/base.html" %}
 {% block title %}Добавление слов :: Шляпа{% endblock %}
-{% block contentheader %}Добавить слова (max ~ 100kb. ~2000 words){% endblock %}
+{% block contentheader %}Добавить слова{% endblock %}
 
 {% block content %}
-    <p align="center">
+
+    <script type="application/javascript">
+    function validate()
+    {
+        words = document.getElementById("words").value;
+        if (words.length > 33000)
+            document.getElementById("alertion").innerHTML = "<strong> Внимание! Текст слишком большой!";
+        else
+            document.getElementById("alertion").innerHTML = "";
+        var separated_words = words.split("\n");
+        var check_ok = 1;
+        for (var i = 0; i < separated_words.length; i = i + 1)
+        {
+            // alert((separated_words[i].split(" ").length - 1));
+            if ((separated_words[i].split(" ").length - 1) > 0)
+            {
+                check_ok = 0;
+            }
+        }
+        if (check_ok == 0)
+        {
+            document.getElementById("words").style.color = "red";
+            document.getElementById("sendbutton").style.display = "none";
+        }
+        else
+        {
+            document.getElementById("words").style.color = "green";
+            document.getElementById("sendbutton").style.display = "block";
+        }
+    }
+</script>
+
+    <table width="100%"> <tr> <td width="33%" align="center"> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
+        нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td> <td width="33%" align="center">
     <form method="post" action="/edit_words">
         <div>
-            Text: <br/> <textarea name="text" rows="10" cols="80"></textarea>
+            <br/> <textarea name="text" rows="30" cols="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
         </div>
+        <div id="sendbutton">
+        <div id="alertion"></div>
         <input type="submit" value="Send"/>
+        </div>
         <input type="submit" value="Cancel"
                onclick="window.location='/'; return false;"/>
     </form>
@@ -17,5 +53,7 @@
             {{ error }}
         </p>
     {% endif %}
-    </p>
+    </td> <td width="34%" align="center">Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>
+<img src="/img/editing_dict_ok.png" height="249" width="147"> <img src="/img/editing_dict_bad.png" height="249" width="147"><br>
+Если формочка подсвечена зеленым, все правильно, если красным - значит, формат нарушен. </td> </tr> </table>
 {% endblock %}
