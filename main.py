@@ -27,15 +27,24 @@ import assign_device_handler
 import global_dictionary_word_handlers
 import recalc_rating_handler
 import constants.constants
+from environment import JINJA_ENVIRONMENT
+import admin_page_handler
+from google.appengine.api import users
 
-
-class MainHandler(webapp2.RequestHandler):
+class MainPage(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello, first handler!')
+        template = JINJA_ENVIRONMENT.get_template('templates/index.html')
+        if users.get_current_user():
+            self.response.write(template.render(
+                {"logout_link": users.create_logout_url('/')}))
+        else:
+            self.response.write(template.render({"login_link": users.create_login_url('/')}))
+
 
 
 routes = [
-    (r'/', MainHandler),
+    (r'/', MainPage),
+    (r'/admin', admin_page_handler.AdminPage),
     webapp2.Route(
         constants.constants.delete_all_url,
         handler=complain_word_handlers.DeleteComplainedWords,
@@ -118,6 +127,12 @@ routes = [
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
                   name='get_results'),
+    webapp2.Route(
+        r'/<device_id:[-\w]+>/save_game/<game_id:[-\w]+>',
+        handler=log_n_res_handlers.SaveGame, name='save_game'),
+    webapp2.Route(
+        r'/<device_id:[-\w]+>/load_game/<game_id:[-\w]+>',
+        handler=log_n_res_handlers.LoadGame, name='load_game'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/update',
                   handler=userdictionary.Change,
                   name='udict_update'),

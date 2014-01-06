@@ -1,3 +1,4 @@
+__author__ = 'konstantin'
 import json
 import time
 
@@ -6,7 +7,7 @@ from google.appengine.api import taskqueue
 
 from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
-from objects.game_results_log import GameLog, Results
+from objects.game_results_log import GameLog, Results, NonFinishedGame
 
 
 def make_timestamp():
@@ -17,11 +18,11 @@ class UploadLog(AllHandler):
     def post(self, **kwargs):
         super(UploadLog, self).set_device_id(**kwargs)
         game_id = kwargs["game_id"]
-        game_on_server = GameLog.query(GameLog.game_id == game_id).get()
+        game_on_server = ndb.Key(GameLog, game_id).get()
         if game_on_server is not None:
             self.response.write("OK, already exist")
         else:
-            log = GameLog(game_id=game_id, json=self.request.get("json"))
+            log = GameLog(json=self.request.get("json"), id = game_id)
             log.put()
             taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id}, countdown=5)
             self.response.write("OK, added")
@@ -80,3 +81,33 @@ class GetResults(AllHandler):
             self.error(403)  # you have no access to this game
             return
         self.response.write(result.results_json)
+
+
+class SaveGame(AllHandler):
+    def post(self, **kwargs):
+        super(SaveGame, self).set_device_id(**kwargs)
+        game_id = kwargs["game_id"]
+        key = ndb.Key(urlsafe=game_id)
+        if key.kind() == 'PreGame':
+            devices = key.get().device_ids
+        else:
+            devices = [self.device_id]
+        players = [get_user_by_device(device) for device in devices]
+        log = self.request.get("json")
+        game = NonFinishedGame(log=log, players_ids=players, id=game_id)
+        game.put()
+        self.response.write("OK, game saved")
+
+
+class LoadGame(AllHandler):
+    def get(self, **kwargs):
+        super(LoadGame, self).set_device_id(**kwargs)
+        game_id = kwargs["game_id"]
+        game = ndb.Key(NonFinishedGame, game_id).get()
+        if game is None:
+            self.error(404)
+            return
+        if not get_user_by_device(self.device_id) in game.players_ids:
+            self.error(403)
+            return
+        self.response.write(game.log)
