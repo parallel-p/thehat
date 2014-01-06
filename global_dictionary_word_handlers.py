@@ -36,7 +36,7 @@ class dictionary_updater(webapp2.RequestHandler):
                 E = float(splited[1])
             if len(splited) >= 3:
                 D = float(splited[2])
-            new_word = GlobalDictionaryWord(word=word, E=E, D=D, tags="")
+            new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D, tags="")
             new_word.put()
         if changed:
             server_json = GlobalDictionaryJson.get_by_key_name('json')
