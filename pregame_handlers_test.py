@@ -539,7 +539,12 @@ class PreGameHandlersTest(unittest.TestCase):
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 403)
+        self.assertEqual(response.status_int, 410)
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        next_version = json.loads(response.body)['version']
+        self.assertEqual(next_version, 6)
 
     def test_abort(self):
         game_id, game_pin = self.create_game()
@@ -553,7 +558,12 @@ class PreGameHandlersTest(unittest.TestCase):
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 403)
+        self.assertEqual(response.status_int, 410)
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        next_version = json.loads(response.body)['version']
+        self.assertEqual(next_version, 6)
 
     def test_join(self):
         game_id, game_pin = self.create_game()
