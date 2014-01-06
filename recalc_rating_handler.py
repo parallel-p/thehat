@@ -56,9 +56,15 @@ class AddGameHandler(AllHandler):
                         if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
                             words_current[word] = 'removed'
                         if words_current[word] == 'guessed':
-                            words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': time_word[word]})
+                            words_by_players_pair[current_pair].append({
+                                'word': words_orig[word]['word'],
+                                'time': time_word[word]
+                            })
                         if words_current[word] == 'failed':
-                            words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': MAX_TIME})
+                            words_by_players_pair[current_pair].append({
+                                'word': words_orig[word]['word'],
+                                'time': MAX_TIME
+                            })
                         words_seen.append(word)
                 current_pair = (event['from'], event['to'])
                 if current_pair not in words_by_players_pair.keys():
@@ -74,9 +80,15 @@ class AddGameHandler(AllHandler):
                 if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
                     words_current[word] = 'removed'
                 if words_current[word] == 'guessed':
-                    words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': time_word[word]})
+                    words_by_players_pair[current_pair].append({
+                        'word': words_orig[word]['word'],
+                        'time': time_word[word]
+                    })
                 if words_current[word] == 'failed':
-                    words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': MAX_TIME})
+                    words_by_players_pair[current_pair].append({
+                        'word': words_orig[word]['word'],
+                        'time': MAX_TIME
+                    })
                 words_seen.append(word)
         # -----------------
         for players_pair in words_by_players_pair.keys():
