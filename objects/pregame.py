@@ -29,6 +29,9 @@ class PreGame(ndb.Model):
         if not game.can_update:
             return
         game.can_update = False
+        game_struct = json.loads(game.game_json)
+        game_struct['version'] += 1
+        game.game_json = json.dumps(game_struct)
         game.put()
 
 
