@@ -37,12 +37,14 @@ MIN_TIME = 3 * 1000 # 3 seconds
 class AddGameHandler(AllHandler):
     def post(self):
         game_id = self.request.get('game_id')
-        log = ndb.Key(GameLog, game_id).get()
-        if log is None:
+        log_db = ndb.Key(GameLog, game_id).get()
+        if log_db is None:
             self.response.write('Ooops, no log found')
             self.error(404)
             return
-        events = json.loads(log.json)['events']
+        log = json.loads(log_db.json)
+        events = log['events']
+        words_orig = log['setup']['words']
         words_seen = []
         words_current = {}
         time_word = {}
@@ -54,9 +56,9 @@ class AddGameHandler(AllHandler):
                         if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
                             words_current[word] = 'removed'
                         if words_current[word] == 'guessed':
-                            words_by_players_pair[current_pair].append({'word': word, 'time': time_word[word]})
+                            words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': time_word[word]})
                         if words_current[word] == 'failed':
-                            words_by_players_pair[current_pair].append({'word': word, 'time': MAX_TIME})
+                            words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': MAX_TIME})
                         words_seen.append(word)
                 current_pair = (event['from'], event['to'])
                 if current_pair not in words_by_players_pair.keys():
@@ -72,9 +74,9 @@ class AddGameHandler(AllHandler):
                 if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
                     words_current[word] = 'removed'
                 if words_current[word] == 'guessed':
-                    words_by_players_pair[current_pair].append({'word': word, 'time': time_word[word]})
+                    words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': time_word[word]})
                 if words_current[word] == 'failed':
-                    words_by_players_pair[current_pair].append({'word': word, 'time': MAX_TIME})
+                    words_by_players_pair[current_pair].append({'word': words_orig[word]['word'], 'time': MAX_TIME})
                 words_seen.append(word)
         # -----------------
         for players_pair in words_by_players_pair.keys():
