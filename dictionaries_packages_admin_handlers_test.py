@@ -1,10 +1,8 @@
 import unittest
 import webapp2
-import json
 import main
 from google.appengine.ext import testbed
 from objects.dictionaries_packages import PackageDictionary, PackagesStream
-from objects.user_devices import get_user_by_device
 
 
 class PackagesHandlersTest(unittest.TestCase):
@@ -13,6 +11,8 @@ class PackagesHandlersTest(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.init_user_stub()
+        self.testbed.setup_env(USER_EMAIL='test@example.com', USER_ID='123', USER_IS_ADMIN='1', overwrite=True)
 
     def test_add_stream_handler(self):
         request = webapp2.Request.blank('/streams')
