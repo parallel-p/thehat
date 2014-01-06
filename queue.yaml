@@ -1,5 +1,5 @@
 total_storage_limit: 1G
 queue:
 - name: default
-  rate: 5/m
+  rate: 5/s
   max_concurrent_requests: 1
