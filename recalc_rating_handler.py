@@ -39,7 +39,8 @@ class AddGameHandler(AllHandler):
         game_id = self.request.get('game_id')
         log = ndb.Key(GameLog, game_id).get()
         if log is None:
-            print "oooops, no log found"
+            self.response.write('Ooops, no log found')
+            self.error(404)
             return
         events = json.loads(log.json)['events']
         words_seen = []
