@@ -1,6 +1,7 @@
 import webapp2
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
 from environment import *
+from google.appengine.api import users
 
 
 def get_streams():
@@ -29,7 +30,7 @@ def get_packages(stream_id):
 class AddStreamHandler(webapp2.RequestHandler):
     def get(self):
         template = JINJA_ENVIRONMENT.get_template('templates/streamsscreen.html')
-        self.response.write(template.render({'streams': get_streams()}))
+        self.response.write(template.render({'streams': get_streams(), "logout_link": users.create_logout_url('/')}))
 
     def post(self):
         PackagesStream(id=self.request.get('stream_id'), name=self.request.get('stream_name'),
