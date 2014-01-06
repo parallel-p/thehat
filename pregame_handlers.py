@@ -53,7 +53,12 @@ class PreGameUpdateHandler(AllHandler):
         if self.device_id not in game.device_ids:
             self.error(403)
         elif not game.can_update:
-            self.error(403)
+            self.response.write(json.dumps({
+                'game_id': key_db.urlsafe(),
+                'status': 'started',
+                'version': json.loads(game.game_json)['version']
+            }))
+            self.error(410)
         else:
             update = json.loads(self.request.get('json'))
             game_struct = json.loads(game.game_json)
@@ -174,7 +179,12 @@ class PreGameJoinHandler(AllHandler):
             self.error(404)
         else:
             if not game.can_update:
-                self.error(403)
+                self.response.write(json.dumps({
+                    'game_id': game.key.urlsafe(),
+                    'status': 'started',
+                    'version': json.loads(game.game_json)['version']
+                }))
+                self.error(410)
             else:
                 game.device_ids.append(self.device_id)
                 key_db = game.put()
