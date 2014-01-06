@@ -39,7 +39,7 @@ class UploadRes(AllHandler):
         req_json = json.loads(self.request.get("json"))
 
         results_json = json.dumps(req_json['results'])
-        if req_json.has_key('is_public'):
+        if 'is_public' in req_json:
             is_public = req_json['is_public']
         else:
             is_public = False
@@ -47,7 +47,8 @@ class UploadRes(AllHandler):
         if key.kind() == 'PreGame':
             pregame = key.get()
             settings = json.loads(pregame.game_json)['meta']
-            is_public = is_public or settings['is_public']
+            if 'is_public' in settings:
+                is_public = is_public or settings['is_public']
             devices = pregame.device_ids
         else:
             devices = [self.device_id]
