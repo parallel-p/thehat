@@ -2,6 +2,7 @@ import json
 import time
 
 from google.appengine.ext import ndb
+from google.appengine.api import taskqueue
 
 from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
@@ -22,6 +23,7 @@ class UploadLog(AllHandler):
         else:
             log = GameLog(game_id=game_id, json=self.request.get("json"))
             log.put()
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id})
             self.response.write("OK, added")
 
 
