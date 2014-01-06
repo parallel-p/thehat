@@ -37,7 +37,10 @@ class UploadRes(AllHandler):
         req_json = json.loads(self.request.get("json"))
 
         results_json = json.dumps(req_json['results'])
-        is_public = req_json['is_public']
+        if req_json.has_key('is_public'):
+            is_public = req_json['is_public']
+        else:
+            is_public = False
         key = ndb.Key(urlsafe=game_id)
         if key.kind() == 'PreGame':
             pregame = key.get()
