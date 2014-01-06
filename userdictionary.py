@@ -154,9 +154,12 @@ class ProcWebpage(webapp2.RequestHandler):
         used = []
         version = get_dictionary_version(user)
         print(version)
-        dict = list(UserDictionary.query(UserDictionary.user == user))[0]
-        dict.key.delete()
-        curwords = dict.to_userword_array()
+        try:
+            dict = list(UserDictionary.query(UserDictionary.user == user))[0]
+            dict.key.delete()
+            curwords = dict.to_userword_array()
+        except:
+            curwords = []
         index = 0
         print(words)
         for i in range(len(curwords)):
@@ -178,5 +181,5 @@ class ProcWebpage(webapp2.RequestHandler):
         a = UserDictionary(user=user)
         a.from_userword_array(curwords)
         a.put()
-        self.response.write("Edit OK")
-
+        template = JINJA_ENVIRONMENT.get_template('templates/personaldictionaryedit_ok.html');
+        self.response.write(template.render())

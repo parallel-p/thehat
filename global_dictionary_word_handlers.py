@@ -80,7 +80,11 @@ class GlobalWordEditor(webapp2.RequestHandler):
         if not users.is_current_user_admin():
             self.redirect(users.create_login_url(self.request.uri))
         template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
-        self.response.write(template.render())
+        if users.get_current_user():
+            self.response.write(template.render(
+                {"logout_link": users.create_logout_url('/')}))
+        else:
+            self.response.write(template.render({"login_link": users.create_login_url('/')}))
 
     def post(self):
         if users.is_current_user_admin():

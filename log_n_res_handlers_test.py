@@ -170,7 +170,7 @@ class TestResults(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         log = GameLog.query(GameLog.game_id == 'some_id').get()
-        self.assertEqual(log.json, SOME_LOG) '''
+        self.assertEqual(log.json, SOME_LOG)'''
 
     def test_load_non_existent_res(self):
         urlsafe = gen_some_urlsafe()
@@ -178,6 +178,32 @@ class TestResults(unittest.TestCase):
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 404)  # not found
+
+    def test_save_n_load_game(self):
+        game_id, pin = self.create_game()
+        self.join('device_2', pin)
+        request = webapp2.Request.blank('/device_1/save_game/%s' % game_id)
+        request.method = 'POST'
+        request.body = "json=%s" % SOME_LOG
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+
+        request = webapp2.Request.blank('/device_2/load_game/%s' % game_id)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(response.body, SOME_LOG)
+
+        request = webapp2.Request.blank('/device_3/load_game/%s' % game_id)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 403)
+
+        game_id = gen_some_urlsafe()
+        request = webapp2.Request.blank('/device_2/load_game/%s' % game_id)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 404)
 
     def TearDown(self):
         self.testbed.deactivate()

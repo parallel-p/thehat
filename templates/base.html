@@ -1,6 +1,7 @@
 <!DOCTYPE HTML PUBLIC>
 {% autoescape true %}
     <html>
+    <p align="right"><a href = {{ logout_link }}> Logout </a> </p>
     <head>
         <meta charset='utf-8'>
         <title>{% block title %}{% endblock %}</title>
@@ -9,12 +10,11 @@
     <body>
     <div id="header">
         {% block header %}
-            <h1 class="header_header">Шляпа</h1>
+            <h1 class="header_header" align="center">Шляпа</h1>
         {% endblock %}
     </div>
-
     <div id="content">
-        <h2 class="content_header">{% block contentheader %}{% endblock %}</h2>
+        <h2 class="content_header" align="center">{% block contentheader %}{% endblock %}</h2>
         {% block content %}{% endblock %}
     </div>
 

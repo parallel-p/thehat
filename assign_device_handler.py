@@ -23,7 +23,7 @@ class GeneratePinHandler(webapp2.RequestHandler):
             template = JINJA_ENVIRONMENT.get_template('templates/generate_pin.html')
             self.response.write(template.render(
                 {"pin_code": pin,
-                 "logout_link": users.create_logout_url('/generate_pin')}))
+                 "logout_link": users.create_logout_url('/')}))
 
 
 class AssignDeviceHandler(AllHandler):
