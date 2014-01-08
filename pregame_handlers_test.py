@@ -465,6 +465,7 @@ class PreGameHandlersTest(unittest.TestCase):
         for key in was_game:
             self.assertEqual(was_game[key], now_game[key])
         self.assertEqual(game_id, json.loads(response.body)['id'])
+        self.assertEqual(now_game['version'], json.loads(response.body)['version'])
         request = webapp2.Request.blank('/other_device_id/pregame/%s' % game_id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 403)
@@ -481,6 +482,7 @@ class PreGameHandlersTest(unittest.TestCase):
         for key in need_game:
             self.assertEqual(need_game[key], now_game[key])
         self.assertEqual(game_id, json.loads(response.body)['id'])
+        self.assertEqual(now_game['version'], json.loads(response.body)['version'])
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
@@ -523,6 +525,7 @@ class PreGameHandlersTest(unittest.TestCase):
         for key in need_diff:
             self.assertEqual(need_diff[key], now_diff[key])
         self.assertEqual(game_id, json.loads(response.body)['id'])
+        self.assertEqual(now_diff['version'], json.loads(response.body)['version'])
 
     def test_start(self):
         game_id, game_pin = self.create_game()
@@ -536,7 +539,12 @@ class PreGameHandlersTest(unittest.TestCase):
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 403)
+        self.assertEqual(response.status_int, 410)
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        next_version = json.loads(response.body)['version']
+        self.assertEqual(next_version, 6)
 
     def test_abort(self):
         game_id, game_pin = self.create_game()
@@ -550,7 +558,12 @@ class PreGameHandlersTest(unittest.TestCase):
         request.method = 'POST'
         request.body = "json=%s" % UPDATE_JSON
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 403)
+        self.assertEqual(response.status_int, 410)
+        request = webapp2.Request.blank('/device_id/pregame/%s/version' % game_id)
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        next_version = json.loads(response.body)['version']
+        self.assertEqual(next_version, 6)
 
     def test_join(self):
         game_id, game_pin = self.create_game()
@@ -569,6 +582,8 @@ class PreGameHandlersTest(unittest.TestCase):
         for key in need_json['game']:
             if key != "pin":
                 self.assertEqual(need_json['game'][key], now_json[key])
+        self.assertEqual(response_struct['version'], now_json['version'])
+        self.assertEqual(response_struct['id'], game_id)
         self.assertEqual(response.status_int, 200)
         request = webapp2.Request.blank('/other_device_id/pregame/%s/update' % game_id)
         request.method = 'POST'
