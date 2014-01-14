@@ -44,10 +44,27 @@ class PregameHandlersTest(unittest2.TestCase):
         self.assertNotEqual(first_id, second_id)
         self.assertNotEqual(first_pin, second_pin)
 
-    def test_get_game(self):
+    def test_get_game_no_id_in_db(self):
         request = PregameHandlersTest.make_request('/device_id/pregame/agx0ZXN',
-                                                   'GET')
-        response = request.get_response(main.app)
+                                               'GET')
+        request.get_response(main.app)
+
+    def test_get_game_from_db(self):
+        post_request = PregameHandlersTest.\
+            make_request('/device_id/pregame/create',
+                         'POST',
+                         "json={0}".format(CREATE_GAME_JSON))
+        post_request.get_response(main.app)
+        response_json = json.loads(post_request.get_response(main.app).body)
+        game_id = response_json['id']
+
+        get_request = PregameHandlersTest.make_request('/device_id/pregame/{0}'.format(game_id),
+                                                       'GET')
+        get_request.get_response(main.app)
+        response_json = json.loads(get_request.get_response(main.app).body)
+        self.assertEqual(response_json['game']['title'], "A game")
+        self.assertEqual(response_json['game']['version'], 5)
+
 
 
     def tearDown(self):
