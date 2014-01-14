@@ -9,6 +9,15 @@ from tests.pregame_tests.pregame_jsons import CREATE_GAME_JSON
 
 
 class PregameHandlersTest(unittest2.TestCase):
+
+    @staticmethod
+    def make_request(url, method, body=None):
+        request = webapp2.Request.blank(url)
+        request.method = method
+        if body is not None:
+            request.body = body
+        return request
+
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -16,10 +25,10 @@ class PregameHandlersTest(unittest2.TestCase):
         self.testbed.init_memcache_stub()
 
     def test_create_game(self):
-        request = webapp2.Request.blank('/device_id/pregame/create')
-        request.method = 'POST'
-        request.body = "json={0}".format(CREATE_GAME_JSON)
-        s
+        request = PregameHandlersTest.make_request('/device_id/pregame/create',
+                                                   'POST',
+                                                   "json={0}".format(CREATE_GAME_JSON))
+
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
@@ -34,6 +43,12 @@ class PregameHandlersTest(unittest2.TestCase):
 
         self.assertNotEqual(first_id, second_id)
         self.assertNotEqual(first_pin, second_pin)
+
+    def test_get_game(self):
+        request = PregameHandlersTest.make_request('/device_id/pregame/agx0ZXN',
+                                                   'GET')
+        response = request.get_response(main.app)
+
 
     def tearDown(self):
         self.testbed.deactivate()
