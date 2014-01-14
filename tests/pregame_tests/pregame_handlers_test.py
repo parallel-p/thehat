@@ -19,16 +19,21 @@ class PregameHandlersTest(unittest2.TestCase):
         request = webapp2.Request.blank('/device_id/pregame/create')
         request.method = 'POST'
         request.body = "json={0}".format(CREATE_GAME_JSON)
+        s
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         json_returned = json.loads(response.body)
-        first_id = json_returned['id']
+        first_id, first_pin = json_returned['id'], json_returned['pin']
         self.assertEqual(int(json_returned['version']), 5)
+
         response = request.get_response(main.app)
-        son_returned = json.loads(response.body)
+
+        json_returned = json.loads(response.body)
         self.assertEqual(int(json_returned['version']), 5)
-        second_id = json_returned['id']
+        second_id, second_pin = json_returned['id'], json_returned['pin']
+
         self.assertNotEqual(first_id, second_id)
+        self.assertNotEqual(first_pin, second_pin)
 
     def tearDown(self):
         self.testbed.deactivate()
