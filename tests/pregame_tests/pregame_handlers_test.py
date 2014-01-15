@@ -44,6 +44,7 @@ class PregameHandlersTest(unittest2.TestCase):
         self.assertNotEqual(first_id, second_id)
         self.assertNotEqual(first_pin, second_pin)
 
+    @unittest2.expectedFailure
     def test_get_game_no_id_in_db(self):
         request = PregameHandlersTest.make_request('/device_id/pregame/agx0ZXN',
                                                'GET')
