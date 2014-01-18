@@ -18,14 +18,14 @@ class UserDictionary(ndb.Model):
 class UserWord(ndb.Model):
     word = ndb.StringProperty()
     status = ndb.StringProperty(indexed=False, default="")
-    version = ndb.IntegerProperty(indexed=False, default=0)
+    version = ndb.IntegerProperty(default=0)
 
 
 class List(AllHandler):
     def get(self, **kwargs):
         super(List, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
-        dicts = UsersDictionary.query(UsersDictionary.user == user)
+        dicts = UserDictionary.query(UserDictionary.user == user)
         self.response.write(json.dumps([el.to_dict() for el in dicts]))
 
 
@@ -52,16 +52,16 @@ class GetDiff(AllHandler):
         super(GetDiff, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         dict_id = int(kwargs.get("id"))
-        version_on_device = kwargs.get("version", 0)
+        version_on_device = int(kwargs.get("version", 0))
         dictionary = UserDictionary.query(UserDictionary.user == user, UserDictionary.id == dict_id).get()
         if dictionary is None:
             self.error(404)
             return
         if dictionary.version <= version_on_device:
-            self.response.write("{}")
+            diff = []
         else:
-            diff = UserWord.query(UserWord.version > version_on_device, parent=dictionary.key)
-            self.response.write(json.dumps([el.to_dict() for el in diff]))
+            diff = UserWord.query(UserWord.version > version_on_device, ancestor=dictionary.key)
+        self.response.write(json.dumps({"version": dictionary.version, "words": [el.to_dict() for el in diff]}))
 
 
 class DrawWebpage(webapp2.RedirectHandler):
@@ -91,7 +91,6 @@ class ProcWebpage(webapp2.RequestHandler):
         words = [word.rstrip() for word in words.split('\n')]
         used = []
         version = get_dictionary_version(user)
-        print(version)
         try:
             dict = list(UserDictionary.query(UserDictionary.user == user))[0]
             dict.key.delete()
@@ -99,7 +98,6 @@ class ProcWebpage(webapp2.RequestHandler):
         except:
             curwords = []
         index = 0
-        print(words)
         for i in range(len(curwords)):
             if curwords[i].word in words:
                 curwords[i].active = "ok"

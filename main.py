@@ -133,7 +133,7 @@ routes = [
     webapp2.Route(
         r'/<device_id:[-\w]+>/load_game/<game_id:[-\w]+>',
         handler=log_n_res_handlers.LoadGame, name='load_game'),
-    webapp2.Route(r'/<device_id[-\w]+>/udict/list', handler = userdictionary.List),
+    webapp2.Route(r'/<device_id:[-\w]+>/udict/list', handler = userdictionary.List, name='udict_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/<id:[-\w]+>/update',
                   handler=userdictionary.Change,
                   name='udict_update'),
