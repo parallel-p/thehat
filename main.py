@@ -16,19 +16,19 @@
 #
 import webapp2
 
-import pregame_handlers
-import dictionaries_packages_handlers
-import dictionaries_packages_admin_handlers
-import userdictionary
-import log_n_res_handlers
-import complain_word_handlers
-import newsfeed_handlers
-import assign_device_handler
-import global_dictionary_word_handlers
-import recalc_rating_handler
+import handlers.pregame_handlers
+import handlers.dictionaries_packages_handlers
+import handlers.dictionaries_packages_admin_handlers
+import handlers.userdictionary
+import handlers.log_n_res_handlers
+import handlers.complain_word_handlers
+import handlers.newsfeed_handlers
+import handlers.assign_device_handler
+import handlers.global_dictionary_word_handlers
+import handlers.recalc_rating_handler
 import constants.constants
 from environment import JINJA_ENVIRONMENT
-import admin_page_handler
+import handlers.admin_page_handler
 from google.appengine.api import users
 
 class MainPage(webapp2.RequestHandler):
@@ -44,123 +44,123 @@ class MainPage(webapp2.RequestHandler):
 
 routes = [
     (r'/', MainPage),
-    (r'/admin', admin_page_handler.AdminPage),
+    (r'/admin', handlers.admin_page_handler.AdminPage),
     webapp2.Route(
         constants.constants.delete_all_url,
-        handler=complain_word_handlers.DeleteComplainedWords,
+        handler=handlers.complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
     webapp2.Route(
         constants.constants.delete_current_url,
-        handler=complain_word_handlers.DeleteComplainedWord,
+        handler=handlers.complain_word_handlers.DeleteComplainedWord,
         name='delete_current_complained_word'),
     webapp2.Route(
         constants.constants.show_complained_url,
-        handler=complain_word_handlers.ShowComplainedWords,
+        handler=handlers.complain_word_handlers.ShowComplainedWords,
         name='show_complained_words'),
     webapp2.Route(
         constants.constants.delete_from_global_url,
-        handler=complain_word_handlers.DeleteFromGlobalDictionaryHandler,
+        handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
         name='delete_from_global'
     ),
     webapp2.Route(r'/edit_words',
-                  handler=global_dictionary_word_handlers.GlobalWordEditor,
+                  handler=handlers.global_dictionary_word_handlers.GlobalWordEditor,
                   name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
-                  handler=complain_word_handlers.ComplainWordHandler,
+                  handler=handlers.complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_all_words/<version:[-\w]+>',
-                  handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
+                  handler=handlers.global_dictionary_word_handlers.GlobalDictionaryWordHandler,
                   name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
-                  handler=pregame_handlers.PreGameCreateHandler,
+                  handler=handlers.pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
-    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=pregame_handlers.PreGameJoinHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/join', handler=handlers.pregame_handlers.PreGameJoinHandler,
                   name='pregame_join'),
-    webapp2.Route(r'/<device_id:[-\w]+>/pregame/get_current_game', handler=pregame_handlers.PreGameCurrentHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/get_current_game', handler=handlers.pregame_handlers.PreGameCurrentHandler,
                   name='pregame_current'),
-    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=pregame_handlers.PreGameHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>', handler=handlers.pregame_handlers.PreGameHandler,
                   name='pregame_get'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/update',
-                  handler=pregame_handlers.PreGameUpdateHandler,
+                  handler=handlers.pregame_handlers.PreGameUpdateHandler,
                   name='pregame_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/version',
-                  handler=pregame_handlers.PreGameVersionHandler,
+                  handler=handlers.pregame_handlers.PreGameVersionHandler,
                   name='pregame_version'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>'
                   r'/since/<version:[\d]+>',
-                  handler=pregame_handlers.PreGameSinceHandler,
+                  handler=handlers.pregame_handlers.PreGameSinceHandler,
                   name='pregame_since'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/start',
-                  handler=pregame_handlers.PreGameStartHandler,
+                  handler=handlers.pregame_handlers.PreGameStartHandler,
                   name='pregame_start'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
-                  handler=pregame_handlers.PreGameAbortHandler,
+                  handler=handlers.pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
-    webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=dictionaries_packages_handlers.GetStreamsListHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=handlers.dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>'
                   r'/to/<on:(true)|(false)>',
-                  handler=dictionaries_packages_handlers.ChangeStreamStateHandler,
+                  handler=handlers.dictionaries_packages_handlers.ChangeStreamStateHandler,
                   name='change_stream_state'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>',
-                  handler=dictionaries_packages_handlers.GetPackagesListHandler,
+                  handler=handlers.dictionaries_packages_handlers.GetPackagesListHandler,
                   name='package_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
-                  handler=dictionaries_packages_handlers.GetPackageHandler,
+                  handler=handlers.dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
     webapp2.Route(r'/streams',
-                  handler=dictionaries_packages_admin_handlers.AddStreamHandler,
+                  handler=handlers.dictionaries_packages_admin_handlers.AddStreamHandler,
                   name='add_stream'),
     webapp2.Route(
         r'/streams/<stream_id:[-\w]+>/packages/add',
-        handler=dictionaries_packages_admin_handlers.AddPackageHandler,
+        handler=handlers.dictionaries_packages_admin_handlers.AddPackageHandler,
         name='add_package'),
     webapp2.Route(r'/streams/packages/<package_id:[-\w]+>/words',
-                  handler=dictionaries_packages_admin_handlers.ChangeWordsHandler,
+                  handler=handlers.dictionaries_packages_admin_handlers.ChangeWordsHandler,
                   name='change_words'),
-    webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadLog,
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_log/<game_id:[-\w]+>', handler=handlers.log_n_res_handlers.UploadLog,
                   name='upload_log'),
-    webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=log_n_res_handlers.UploadRes,
+    webapp2.Route(r'/<device_id:[-\w]+>/upload_results/<game_id:[-\w]+>', handler=handlers.log_n_res_handlers.UploadRes,
                   name='upload_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/check_for_results/<timestamp:[-\w]+>',
-                  handler=log_n_res_handlers.CheckAnyResults,
+                  handler=handlers.log_n_res_handlers.CheckAnyResults,
                   name='check_for_results'),
-    webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=log_n_res_handlers.GetResults,
+    webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>', handler=handlers.log_n_res_handlers.GetResults,
                   name='get_results'),
     webapp2.Route(
         r'/<device_id:[-\w]+>/save_game/<game_id:[-\w]+>',
-        handler=log_n_res_handlers.SaveGame, name='save_game'),
+        handler=handlers.log_n_res_handlers.SaveGame, name='save_game'),
     webapp2.Route(
         r'/<device_id:[-\w]+>/load_game/<game_id:[-\w]+>',
-        handler=log_n_res_handlers.LoadGame, name='load_game'),
+        handler=handlers.log_n_res_handlers.LoadGame, name='load_game'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/update',
-                  handler=userdictionary.Change,
+                  handler=handlers.userdictionary.Change,
                   name='udict_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/get/since/<version:[-\w]+>',
-                  handler=userdictionary.Update,
+                  handler=handlers.userdictionary.Update,
                   name='udict_since'),
     webapp2.Route(r'/<device_id:[-\w]+>/udict/get',
-                  handler=userdictionary.Get,
+                  handler=handlers.userdictionary.Get,
                   name='udict_get'),
-    (r'/html/udict/edit', userdictionary.DrawWebpage),
-    (r'/html/udict/proc', userdictionary.ProcWebpage),
-    (r'/login', newsfeed_handlers.LoginPageHandler), # News Feed starts here
-    (r'/addnews', newsfeed_handlers.AddNewsHandler),
-    (r'/news/(\d+)', newsfeed_handlers.ShowNewsHandler),
-    (r'/listofnews', newsfeed_handlers.ListOfNewsHandler),
-    (r'/loadnews/(\d+)', newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
-    (r'/generate_pin', assign_device_handler.GeneratePinHandler),
+    (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
+    (r'/html/udict/proc', handlers.userdictionary.ProcWebpage),
+    (r'/login', handlers.newsfeed_handlers.LoginPageHandler), # News Feed starts here
+    (r'/addnews', handlers.newsfeed_handlers.AddNewsHandler),
+    (r'/news/(\d+)', handlers.newsfeed_handlers.ShowNewsHandler),
+    (r'/listofnews', handlers.newsfeed_handlers.ListOfNewsHandler),
+    (r'/loadnews/(\d+)', handlers.newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
+    (r'/generate_pin', handlers.assign_device_handler.GeneratePinHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
-                  handler=assign_device_handler.AssignDeviceHandler,
+                  handler=handlers.assign_device_handler.AssignDeviceHandler,
                   name='assign_device'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
-                  handler=recalc_rating_handler.RecalcRatingHandler,
+                  handler=handlers.recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating'),
     webapp2.Route(r'/internal/add_game_to_statistic',
-                  handler=recalc_rating_handler.AddGameHandler,
+                  handler=handlers.recalc_rating_handler.AddGameHandler,
                   name='add_game_Statistic'),
     webapp2.Route(r'/json_updater',
-                  handler=global_dictionary_word_handlers.dictionary_updater,
+                  handler=handlers.global_dictionary_word_handlers.dictionary_updater,
                   name='json_updater'
     )
 ]
