@@ -31,6 +31,7 @@ from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
 from google.appengine.api import users
 
+
 class MainPage(webapp2.RequestHandler):
     def get(self):
         template = JINJA_ENVIRONMENT.get_template('templates/index.html')
