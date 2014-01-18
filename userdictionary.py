@@ -11,119 +11,57 @@ from google.appengine.api import users
 
 class UserDictionary(ndb.Model):
     user = ndb.StringProperty()
-    json = ndb.StringProperty(indexed=False)
+    id = ndb.IntegerProperty()
+    version = ndb.IntegerProperty(indexed=False, default=0)
 
-    def from_userword_array(self, a):
-        for i in a:
-            self.json = wordlist_to_json(a, -1)
-
-    def to_userword_array(self):
-        a = json.loads(self.json)
-        result = []
-        for i in a["words"]:
-            current_word = UserWord()
-            current_word.active = i["status"]
-            current_word.user = self.user
-            current_word.word = i["word"]
-            current_word.version = int(i["version"])
-            current_word.index = int(i["index"])
-            result.append(current_word)
-        return result
 
 class UserWord(ndb.Model):
     word = ndb.StringProperty()
-    user = ndb.StringProperty()
-    active = ndb.StringProperty(indexed=False)
-    version = ndb.IntegerProperty(indexed=False)
-    index = ndb.IntegerProperty(indexed=False)
+    status = ndb.StringProperty(indexed=False, default="")
+    version = ndb.IntegerProperty(indexed=False, default=0)
 
 
-def get_dictionary_version(user):  # Will return resulting version of the whole user's dictionary.
-    try:
-        diction = list(UserDictionary.query(UserDictionary.user == user))[0]
-        wordlist = diction.to_userword_array()
-    except:
-        wordlist = []
-    answer = 0
-    for i in wordlist:
-        if i.version > answer:
-            answer = i.version
-    return answer
+class List(AllHandler):
+    def get(self, **kwargs):
+        super(List, self).set_device_id(**kwargs)
+        user = get_user_by_device(self.device_id)
+        dicts = UsersDictionary.query(UsersDictionary.user == user)
+        self.response.write(json.dumps([el.to_dict() for el in dicts]))
 
 
 class Change(AllHandler):
     def post(self, **kwargs):
         super(Change, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
-        json_changes = self.request.get("json")
-        changes = json.loads(json_changes)
-        dictionary_version = get_dictionary_version(user)
-        print(dictionary_version)
-        try:
-            diction = list(UserDictionary.query(UserDictionary.user == user))[0]
-            diction.key.delete()
-            wordlist = diction.to_userword_array()
-        except:
-            diction = UserDictionary()
-            diction.user = user
-            wordlist = []
-        for i in changes["words"]:
-            wordlist = [j for j in wordlist if j.word != i["word"]]
-            current_word = UserWord()
-            current_word.active = i["status"]
-            current_word.user = user
-            current_word.word = i["word"]
-            current_word.version = dictionary_version + 1
-            current_word.index = int(i["index"])
-            wordlist.append(current_word)
-        diction.from_userword_array(wordlist)
-        diction.put()
-        self.response.write(dictionary_version + 1)
+        dict_id = int(kwargs.get("id"))
+        changes = json.loads(self.request.get("json"))
+        dictionary = (UserDictionary.query(UserDictionary.user == user, UserDictionary.id == dict_id).get() or UserDictionary(user=user,id=dict_id)).put().get()
+        dictionary.version += 1
+        for el in changes["words"]:
+            current_word = UserWord.query(UserWord.word == el["word"], ancestor=dictionary.key).get() or UserWord(parent=dictionary.key)
+            current_word.status = el["status"]
+            current_word.word = el["word"]
+            current_word.version = dictionary.version
+            current_word.put()
+        dictionary.put()
+        self.response.write(dictionary.version)
 
 
-def wordlist_to_json(wordlist, vers):
-    json_strings = []
-    for i in wordlist:
-        cur = '{"word": "' + i.word + '", "version": "' + str(i.version) + '", "status": "' + i.active + \
-              '", "index": "' + str(i.index) + '"}'
-        json_strings.append(cur)
-    json_string = "{\"version\": " + str(vers) + ", \"words\": ["
-    for i in json_strings:
-        json_string += i
-        if i != json_strings[-1]:
-            json_string += ', '
-    return json_string + "]}"
-
-
-class Update(AllHandler):
+class GetDiff(AllHandler):
     def get(self, **kwargs):
-        super(Update, self).set_device_id(**kwargs)
+        super(GetDiff, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
-        version_on_device = kwargs.get("version")
-        try:
-            wordlist = list(UserDictionary.query(UserDictionary.user == user))[0]\
-                .to_userword_array()
-        except:
-            wordlist = []
-        rwordlist = []
-        vers = get_dictionary_version(user)
-        for i in wordlist:
-            if i.version > int(version_on_device):
-                rwordlist.append(i)
-        self.response.write(wordlist_to_json(rwordlist, vers))
-
-
-class Get(AllHandler):
-    def get(self, **kwargs):
-        super(Get, self).set_device_id(**kwargs)
-        user = get_user_by_device(self.device_id)
-        vers = get_dictionary_version(user)
-        try:
-            wordlist = list(UserDictionary.query(UserWord.user == user))[0]\
-                .to_userword_array()
-        except:
-            wordlist = []
-        self.response.write(wordlist_to_json(wordlist, vers))
+        dict_id = int(kwargs.get("id"))
+        version_on_device = kwargs.get("version", 0)
+        dictionary = UserDictionary.query(UserDictionary.user == user, UserDictionary.id == dict_id).get()
+        if dictionary is None:
+            self.error(404)
+            return
+        if dictionary.version <= version_on_device:
+            self.response.write("{}")
+        else:
+            diff = UserWord.query(UserWord.version > version_on_device, parent=dictionary.key)
+            self.response.write(json.dumps([el.to_dict() for el in diff]))
 
 
 class DrawWebpage(webapp2.RedirectHandler):
