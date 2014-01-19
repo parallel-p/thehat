@@ -147,11 +147,29 @@ UPDATE_META_JSON = '''
         }
     }
 '''
+BROKEN_UPDATE_META_JSON = '''
+    {
+        "updated_meta":
+        {
+            "timerrr_per_round": "25",
+            "words_per_player": 2,
+            "skip_count": 0
+        }
+    }
+'''
 
 DELETE_PLAYERS_JSON = '''
     {
         "players_delete": [
             "1"
+        ]
+    }
+'''
+
+BROKEN_DELETE_PLAYERS_JSON = '''
+    {
+        "players_delete": [
+            "10"
         ]
     }
 '''
