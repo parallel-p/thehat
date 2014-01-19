@@ -76,6 +76,16 @@ class PregameHandlersTest(unittest2.TestCase):
         self.assertEqual(response_json['game']['title'], "A game")
         self.assertEqual(response_json['game']['version'], 5)
 
+    @unittest2.expectedFailure
+    def test_connect_to_game_broken_pin(self):
+        post_request = PregameHandlersTest.make_game(CREATE_GAME_JSON)
+        post_request.get_response(main.app)
+        body = 'json={0}'.format(json.dumps({"pong" : "123"}))
+        post_request = PregameHandlersTest.make_request('/new_device_id/pregame/join', 'POST', body)
+        response = post_request.get_response(main.app)
+        self.assertEqual(response.status_int, 404)
+
+
     def test_connect_to_game_wrong_pin(self):
         body = 'json={0}'.format(json.dumps({"pin" : "123"}))
         post_request = PregameHandlersTest.make_request('/device_id/pregame/join', 'POST', body)
