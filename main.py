@@ -68,7 +68,7 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
-    webapp2.Route(r'/<device_id:[-\w]+>/get_all_words/<version:[-\w]+>',
+    webapp2.Route(r'/get_all_words/<version:[-\w]+>',
                   handler=global_dictionary_word_handlers.GlobalDictionaryWordHandler,
                   name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
