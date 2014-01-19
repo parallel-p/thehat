@@ -6,7 +6,7 @@ from google.appengine.ext import testbed
 import main
 from objects.pregame import *
 from tests.pregame_tests.pregame_jsons import CREATE_GAME_JSON,\
-    UPDATE_META_JSON, GAME_JSON, DELETE_PLAYERS_JSON
+    UPDATE_META_JSON, GAME_JSON, DELETE_PLAYERS_JSON, BROKEN_CREATE_GAME_JSON
 
 
 class PregameHandlersTest(unittest2.TestCase):
@@ -48,6 +48,13 @@ class PregameHandlersTest(unittest2.TestCase):
 
         self.assertNotEqual(first_id, second_id)
         self.assertNotEqual(first_pin, second_pin)
+
+    @unittest2.expectedFailure
+    def test_create_game_broken_json(self):
+        request = PregameHandlersTest.make_game(BROKEN_CREATE_GAME_JSON)
+        response = request.get_response(main.app)
+        self.assertEqual(len(PreGame.query().fetch(1)), 0)
+        self.assertEqual(response.status_int, 404)
 
     @unittest2.expectedFailure
     def test_get_game_no_id_in_db(self):
