@@ -43,7 +43,7 @@ CREATE_GAME_JSON = '''{
 }
 '''
 
-GAME_JSON = '''
+GAME_JSON = u'''{
     "title": "A game",
     "version": 5,
     "players": [

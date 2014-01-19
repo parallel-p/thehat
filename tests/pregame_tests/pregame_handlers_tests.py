@@ -79,7 +79,7 @@ class PregameHandlersTest(unittest2.TestCase):
         post_request = PregameHandlersTest.make_game(CREATE_GAME_JSON)
         pin = json.loads(post_request.get_response(main.app).body)['pin']
         body = 'json={0}'.format(json.dumps({"pin" : pin}))
-        post_request = PregameHandlersTest.make_request('/device_id/pregame/join', 'POST', body)
+        post_request = PregameHandlersTest.make_request('/new_device_id/pregame/join', 'POST', body)
         response = post_request.get_response(main.app)
         post_request.get_response(main.app)
         create_game = json.loads(CREATE_GAME_JSON)
@@ -103,7 +103,6 @@ class PregameHandlersTest(unittest2.TestCase):
         delete_player_request = PregameHandlersTest.make_request('/device_id/pregame/{0}/update'.format(id),
                                                                  'POST', 'json={0}'.format(DELETE_PLAYERS_JSON))
         delete_player_request.get_response(main.app)
-
 
     def tearDown(self):
         self.testbed.deactivate()
