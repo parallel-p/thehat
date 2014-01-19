@@ -5,7 +5,7 @@ import webapp2
 from google.appengine.ext import testbed
 
 import main
-import userdictionary
+import handlers.userdictionary
 
 
 class TestWordsUpload(unittest.TestCase):
@@ -14,7 +14,7 @@ class TestWordsUpload(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-        self.dictionary_key = userdictionary.UserDictionary(user="device_123", id=0).put()
+        self.dictionary_key = handlers.userdictionary.UserDictionary(user="device_123", id=0).put()
 
     def test_post(self):
         request_data= ['''{"version": 1, "words": [{"word": "word_1", "version": 0, "status": "ok"}, {"word": "word2", "version": "10", "status": "deleted"}]}''',
@@ -35,10 +35,10 @@ class TestWordsUpload(unittest.TestCase):
         dictionary.put()
         new_words = ["hat", "cat", "rat"]
         for word in new_words:
-            userdictionary.UserWord(word=word, parent=self.dictionary_key, version=57).put()
+            handlers.userdictionary.UserWord(word=word, parent=self.dictionary_key, version=57).put()
         old_words = ["son", "run"]
         for word in old_words:
-            userdictionary.UserWord(word=word, parent=self.dictionary_key, version=56).put()
+            handlers.userdictionary.UserWord(word=word, parent=self.dictionary_key, version=56).put()
         request = webapp2.Request.blank('/123/udict/0/get/since/56')
         request.method = "GET"
         response = request.get_response(main.app)
