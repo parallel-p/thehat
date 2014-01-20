@@ -9,59 +9,40 @@ from objects.user_devices import get_user_by_device
 from all_handler import AllHandler
 from google.appengine.api import users
 
-class UserDictionary(ndb.Model):
-    user = ndb.StringProperty()
-    id = ndb.IntegerProperty()
-    version = ndb.IntegerProperty(indexed=False, default=0)
-
-
 class UserWord(ndb.Model):
+    user = ndb.StringProperty()
     word = ndb.StringProperty()
     status = ndb.StringProperty(indexed=False, default="")
+    dictionary = ndb.IntegerProperty(indexed=False, default=0)
     version = ndb.IntegerProperty(default=0)
 
 
-class List(AllHandler):
-    def get(self, **kwargs):
-        super(List, self).set_device_id(**kwargs)
-        user = get_user_by_device(self.device_id)
-        dicts = UserDictionary.query(UserDictionary.user == user)
-        self.response.write(json.dumps([el.to_dict() for el in dicts]))
+class UserDictionaryHandler(AllHandler):
+    def _get_max_version(self, user):
+        word = UserWord.query(UserWord.user == user).order(-UserWord.version).get()
+        return word.version if word else 0
 
-
-class Change(AllHandler):
     def post(self, **kwargs):
-        super(Change, self).set_device_id(**kwargs)
+        super( UserDictionaryHandler, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
-        dict_id = int(kwargs.get("id"))
         changes = json.loads(self.request.get("json"))
-        dictionary = (UserDictionary.query(UserDictionary.user == user, UserDictionary.id == dict_id).get() or UserDictionary(user=user,id=dict_id)).put().get()
-        dictionary.version += 1
+        version = self._get_max_version(user) + 1
         for el in changes["words"]:
-            current_word = UserWord.query(UserWord.word == el["word"], ancestor=dictionary.key).get() or UserWord(parent=dictionary.key)
+            current_word = UserWord.query(UserWord.word == el["word"]).get() or UserWord()
+            current_word.user = user
             current_word.status = el["status"]
             current_word.word = el["word"]
-            current_word.version = dictionary.version
+            current_word.version += version
             current_word.put()
-        dictionary.put()
-        self.response.write(dictionary.version)
+        self.response.write(version)
 
-
-class GetDiff(AllHandler):
     def get(self, **kwargs):
-        super(GetDiff, self).set_device_id(**kwargs)
+        super(UserDictionaryHandler, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
-        dict_id = int(kwargs.get("id"))
         version_on_device = int(kwargs.get("version", 0))
-        dictionary = UserDictionary.query(UserDictionary.user == user, UserDictionary.id == dict_id).get()
-        if dictionary is None:
-            self.error(404)
-            return
-        if dictionary.version <= version_on_device:
-            diff = []
-        else:
-            diff = UserWord.query(UserWord.version > version_on_device, ancestor=dictionary.key)
-        self.response.write(json.dumps({"version": dictionary.version, "words": [el.to_dict() for el in diff]}))
+        version = self._get_max_version(user)
+        diff = UserWord.query(UserWord.version > version_on_device)
+        self.response.write(json.dumps({"version": version, "words": [el.to_dict() for el in diff]}))
 
 
 class DrawWebpage(webapp2.RedirectHandler):
