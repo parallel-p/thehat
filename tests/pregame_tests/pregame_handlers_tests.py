@@ -22,8 +22,8 @@ class PregameHandlersTest(unittest2.TestCase):
     @staticmethod
     def make_game(body_json):
         return PregameHandlersTest.make_request('/device_id/pregame/create',
-                                                   'POST',
-                                                   "json={0}".format(body_json))
+                                                'POST',
+                                                "json={0}".format(body_json))
 
     def setUp(self):
         self.testbed = testbed.Testbed()
@@ -54,7 +54,7 @@ class PregameHandlersTest(unittest2.TestCase):
         request = PregameHandlersTest.make_game(BROKEN_CREATE_GAME_JSON)
         response = request.get_response(main.app)
         self.assertEqual(len(PreGame.query().fetch(1)), 0)
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 400)
 
     @unittest2.expectedFailure
     def test_get_game_no_id_in_db(self):
@@ -89,7 +89,7 @@ class PregameHandlersTest(unittest2.TestCase):
         body = 'json={0}'.format(json.dumps({"pin" : "123"}))
         post_request = PregameHandlersTest.make_request('/device_id/pregame/join', 'POST', body)
         response = post_request.get_response(main.app)
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 403)
 
     def test_connect_to_game(self):
         post_request = PregameHandlersTest.make_game(CREATE_GAME_JSON)
@@ -120,12 +120,12 @@ class PregameHandlersTest(unittest2.TestCase):
         delete_player_request = PregameHandlersTest.make_request('/device_id/pregame/{0}/update'.format(id),
                                                                  'POST', 'json={0}'.format(BROKEN_DELETE_PLAYERS_JSON))
         response = delete_player_request.get_response(main.app)
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 400)
         request = PregameHandlersTest.make_request('/device_id/pregame/{0}/update'.format(id),
                                                    'POST', 'json={0}'.format(BROKEN_UPDATE_META_JSON))
         response = request.get_response(main.app)
         self.assertEqual(len(json.loads(PreGame.query().fetch(1)[0].game_json)["meta"], 3))
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 400)
 
     def test_update_game(self):
         create_game_request = PregameHandlersTest.make_game(GAME_JSON)
