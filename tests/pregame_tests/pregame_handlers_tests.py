@@ -6,8 +6,8 @@ from google.appengine.ext import testbed
 import main
 from objects.pregame import *
 from tests.pregame_tests.pregame_jsons import CREATE_GAME_JSON,\
-    UPDATE_META_JSON, GAME_JSON, DELETE_PLAYERS_JSON
-
+    UPDATE_META_JSON, GAME_JSON, DELETE_PLAYERS_JSON, BROKEN_CREATE_GAME_JSON,\
+    BROKEN_DELETE_PLAYERS_JSON, BROKEN_UPDATE_META_JSON
 
 class PregameHandlersTest(unittest2.TestCase):
 
@@ -22,8 +22,8 @@ class PregameHandlersTest(unittest2.TestCase):
     @staticmethod
     def make_game(body_json):
         return PregameHandlersTest.make_request('/device_id/pregame/create',
-                                                   'POST',
-                                                   "json={0}".format(body_json))
+                                                'POST',
+                                                "json={0}".format(body_json))
 
     def setUp(self):
         self.testbed = testbed.Testbed()
@@ -50,6 +50,13 @@ class PregameHandlersTest(unittest2.TestCase):
         self.assertNotEqual(first_pin, second_pin)
 
     @unittest2.expectedFailure
+    def test_create_game_broken_json(self):
+        request = PregameHandlersTest.make_game(BROKEN_CREATE_GAME_JSON)
+        response = request.get_response(main.app)
+        self.assertEqual(len(PreGame.query().fetch(1)), 0)
+        self.assertEqual(response.status_int, 400)
+
+    @unittest2.expectedFailure
     def test_get_game_no_id_in_db(self):
         request = PregameHandlersTest.make_request('/device_id/pregame/agx0ZXN',
                                                    'GET')
@@ -69,11 +76,21 @@ class PregameHandlersTest(unittest2.TestCase):
         self.assertEqual(response_json['game']['title'], "A game")
         self.assertEqual(response_json['game']['version'], 5)
 
+    @unittest2.expectedFailure
+    def test_connect_to_game_broken_pin(self):
+        post_request = PregameHandlersTest.make_game(CREATE_GAME_JSON)
+        post_request.get_response(main.app)
+        body = 'json={0}'.format(json.dumps({"pong" : "123"}))
+        post_request = PregameHandlersTest.make_request('/new_device_id/pregame/join', 'POST', body)
+        response = post_request.get_response(main.app)
+        self.assertEqual(response.status_int, 404)
+
+    @unittest2.expectedFailure
     def test_connect_to_game_wrong_pin(self):
         body = 'json={0}'.format(json.dumps({"pin" : "123"}))
         post_request = PregameHandlersTest.make_request('/device_id/pregame/join', 'POST', body)
         response = post_request.get_response(main.app)
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 403)
 
     def test_connect_to_game(self):
         post_request = PregameHandlersTest.make_game(CREATE_GAME_JSON)
@@ -95,6 +112,21 @@ class PregameHandlersTest(unittest2.TestCase):
                                                         body="json={0}".format(UPDATE_META_JSON))
         response = post_request.get_response(main.app)
         self.assertEqual(response.status_int, 404)
+
+    @unittest2.expectedFailure
+    def test_update_game_wrong_json(self):
+        create_game_request = PregameHandlersTest.make_game(GAME_JSON)
+        response = json.loads(create_game_request.get_response(main.app).body)
+        pin, id = response['pin'], response['id']
+        delete_player_request = PregameHandlersTest.make_request('/device_id/pregame/{0}/update'.format(id),
+                                                                 'POST', 'json={0}'.format(BROKEN_DELETE_PLAYERS_JSON))
+        response = delete_player_request.get_response(main.app)
+        self.assertEqual(response.status_int, 400)
+        request = PregameHandlersTest.make_request('/device_id/pregame/{0}/update'.format(id),
+                                                   'POST', 'json={0}'.format(BROKEN_UPDATE_META_JSON))
+        response = request.get_response(main.app)
+        self.assertEqual(len(json.loads(PreGame.query().fetch(1)[0].game_json)["meta"], 3))
+        self.assertEqual(response.status_int, 400)
 
     def test_update_game(self):
         create_game_request = PregameHandlersTest.make_game(GAME_JSON)
