@@ -75,6 +75,10 @@ class PregameHandlersTest(unittest2.TestCase):
         response_json = json.loads(get_request.get_response(main.app).body)
         self.assertEqual(response_json['game']['title'], "A game")
         self.assertEqual(response_json['game']['version'], 5)
+        get_request = PregameHandlersTest.make_request('/other_device_id/pregame/{0}'.format(game_id),
+                                                       'GET')
+        response = get_request.get_response(main.app)
+        self.assertEqual(response.status_int, 403)
 
     @unittest2.expectedFailure
     def test_connect_to_game_broken_pin(self):
