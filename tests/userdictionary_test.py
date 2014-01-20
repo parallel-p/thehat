@@ -6,9 +6,10 @@ from google.appengine.ext import testbed
 
 import main
 import handlers.userdictionary
+from objects.user_dictionary_word import UserDictionaryWord
 
 
-class TestWordsUpload(unittest.TestCase):
+class UserDictionaryTestCase(unittest.TestCase):
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -31,10 +32,10 @@ class TestWordsUpload(unittest.TestCase):
     def test_get(self):
         new_words = ["hat", "cat", "rat"]
         for word in new_words:
-            handlers.userdictionary.UserWord(word=word, version=57, user="device_123").put()
+            UserDictionaryWord(word=word, version=57, user="device_123").put()
         old_words = ["son", "run"]
         for word in old_words:
-            handlers.userdictionary.UserWord(word=word, version=56, user="device_123").put()
+            UserDictionaryWord(word=word, version=56, user="device_123").put()
         request = webapp2.Request.blank('/123/api/udict/since/56')
         request.method = "GET"
         response = request.get_response(main.app)

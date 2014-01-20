@@ -8,18 +8,12 @@ from environment import JINJA_ENVIRONMENT
 from objects.user_devices import get_user_by_device
 from all_handler import AllHandler
 from google.appengine.api import users
-
-class UserWord(ndb.Model):
-    user = ndb.StringProperty()
-    word = ndb.StringProperty()
-    status = ndb.StringProperty(indexed=False, default="")
-    dictionary = ndb.IntegerProperty(indexed=False, default=0)
-    version = ndb.IntegerProperty(default=0)
+from objects.user_dictionary_word import UserDictionaryWord
 
 
 class UserDictionaryHandler(AllHandler):
     def _get_max_version(self, user):
-        word = UserWord.query(UserWord.user == user).order(-UserWord.version).get()
+        word = UserDictionaryWord.query(UserDictionaryWord.user == user).order(-UserDictionaryWord.version).get()
         return word.version if word else 0
 
     def post(self, **kwargs):
@@ -28,7 +22,7 @@ class UserDictionaryHandler(AllHandler):
         changes = json.loads(self.request.get("json"))
         version = self._get_max_version(user) + 1
         for el in changes["words"]:
-            current_word = UserWord.query(UserWord.word == el["word"]).get() or UserWord()
+            current_word = UserDictionaryWord.query(UserDictionaryWord.word == el["word"]).get() or UserDictionaryWord()
             current_word.user = user
             current_word.status = el["status"]
             current_word.word = el["word"]
@@ -41,7 +35,7 @@ class UserDictionaryHandler(AllHandler):
         user = get_user_by_device(self.device_id)
         version_on_device = int(kwargs.get("version", 0))
         version = self._get_max_version(user)
-        diff = UserWord.query(UserWord.version > version_on_device)
+        diff = UserDictionaryWord.query(UserDictionaryWord.version > version_on_device)
         self.response.write(json.dumps({"version": version, "words": [el.to_dict() for el in diff]}))
 
 
@@ -92,7 +86,7 @@ class ProcWebpage(webapp2.RequestHandler):
                 used.append(curwords[i].word)
         for i in words:
             if not (i in used) and (i != ""):
-                curwords.append(UserWord(word=i, user=user, active="ok", version=version + 1, index=index))
+                curwords.append(UserDictionaryWord(word=i, user=user, active="ok", version=version + 1, index=index))
                 index += 1
                 used.append(i)
         a = UserDictionary(user=user)
