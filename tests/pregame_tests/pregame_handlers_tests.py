@@ -83,7 +83,7 @@ class PregameHandlersTest(unittest2.TestCase):
         body = 'json={0}'.format(json.dumps({"pong" : "123"}))
         post_request = PregameHandlersTest.make_request('/new_device_id/pregame/join', 'POST', body)
         response = post_request.get_response(main.app)
-        self.assertEqual(response.status_int, 404)
+        self.assertEqual(response.status_int, 400)
 
     @unittest2.expectedFailure
     def test_connect_to_game_wrong_pin(self):
