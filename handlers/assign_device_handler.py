@@ -47,3 +47,14 @@ class DeleteOldPinsHandler(webapp2.RequestHandler):
         pins = UserPin.query()
         for pin in pins:
             pin.key.delete()
+
+
+assign_device_routes = [
+    (r'/generate_pin', GeneratePinHandler),
+    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
+                  handler=AssignDeviceHandler,
+                  name='assign_device'),
+    webapp2.Route(r'/clean_up/assign_pins',
+                  handler=DeleteOldPinsHandler,
+                  name='clean_assign_pins')
+]

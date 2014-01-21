@@ -150,10 +150,6 @@ routes = [
     (r'/news/(\d+)', handlers.newsfeed_handlers.ShowNewsHandler),
     (r'/listofnews', handlers.newsfeed_handlers.ListOfNewsHandler),
     (r'/loadnews/(\d+)', handlers.newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
-    (r'/generate_pin', handlers.assign_device_handler.GeneratePinHandler),
-    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
-                  handler=handlers.assign_device_handler.AssignDeviceHandler,
-                  name='assign_device'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=handlers.recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating'),
@@ -162,9 +158,6 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/json_updater',
                   handler=handlers.global_dictionary_word_handlers.dictionary_updater,
-                  name='json_updater'),
-    webapp2.Route(r'/clean_up/assign_pins',
-                  handler=handlers.assign_device_handler.DeleteOldPinsHandler,
-                  name='clean_assign_pins')
-]
+                  name='json_updater')
+] + handlers.assign_device_handler.assign_device_routes
 app = webapp2.WSGIApplication(routes, debug=True)
