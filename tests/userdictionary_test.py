@@ -5,7 +5,6 @@ import webapp2
 from google.appengine.ext import testbed
 
 import main
-import handlers.userdictionary
 from objects.user_dictionary_word import UserDictionaryWord
 
 
@@ -17,10 +16,13 @@ class UserDictionaryTestCase(unittest.TestCase):
         self.testbed.init_memcache_stub()
 
     def test_post(self):
-        request_data= ['''{"version": 1, "words": [{"word": "word_1", "version": 0, "status": "ok"}, {"word": "word2", "version": "10", "status": "deleted"}]}''',
-            '''{"version": 2, "words": [{"word": "word_1", "version": 0, "status": "deleted"}, {"word": "word2", "version": "10", "status": "deleted"}]}''']
+        REQUEST_DATA = ['''[{"word": "hat", "status": "ok"},
+                        {"word": "rat", "status": "deleted"}]''',
+                        '''[{"word": "rat", "status": "deleted"},
+                        {"word": "drop", "status": "deleted"}]''']
+        VERSION_BY_WORD = {"hat": 1, "rat": 2, "drop": 2}
         version = 0
-        for el in request_data:
+        for el in REQUEST_DATA:
             request = webapp2.Request.blank('/123/api/udict')
             request.body = "json={}".format(el)
             request.method = "POST"
@@ -28,6 +30,11 @@ class UserDictionaryTestCase(unittest.TestCase):
             version += 1
             a = response.text
             self.assertEqual(int(a), version)
+        words = UserDictionaryWord.query(UserDictionaryWord.user ==
+                                         "device_123").fetch(4)
+        self.assertEqual(len(words), 3)
+        for el in words:
+            self.assertEqual(VERSION_BY_WORD[el.word], el.version)
 
     def test_get(self):
         new_words = ["hat", "cat", "rat"]
@@ -51,8 +58,3 @@ class UserDictionaryTestCase(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-    #active -> status
-    #1 -> ok
-    #2 -> deleted

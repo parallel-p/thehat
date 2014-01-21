@@ -1,6 +1,5 @@
 import json
 
-from google.appengine.ext import ndb
 import webapp2
 
 from environment import JINJA_ENVIRONMENT
@@ -13,20 +12,23 @@ from objects.user_dictionary_word import UserDictionaryWord
 
 class UserDictionaryHandler(AllHandler):
     def _get_max_version(self, user):
-        word = UserDictionaryWord.query(UserDictionaryWord.user == user).order(-UserDictionaryWord.version).get()
+        word = UserDictionaryWord.query(UserDictionaryWord.user == user).\
+            order(-UserDictionaryWord.version).get()
         return word.version if word else 0
 
     def post(self, **kwargs):
-        super( UserDictionaryHandler, self).set_device_id(**kwargs)
+        super(UserDictionaryHandler, self).set_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         changes = json.loads(self.request.get("json"))
         version = self._get_max_version(user) + 1
-        for el in changes["words"]:
-            current_word = UserDictionaryWord.query(UserDictionaryWord.word == el["word"]).get() or UserDictionaryWord()
+        for el in changes:
+            current_word = (UserDictionaryWord.query(UserDictionaryWord.word ==
+                                                     el["word"]).get() or
+                            UserDictionaryWord())
             current_word.user = user
             current_word.status = el["status"]
             current_word.word = el["word"]
-            current_word.version += version
+            current_word.version = version
             current_word.put()
         self.response.write(version)
 
@@ -35,8 +37,11 @@ class UserDictionaryHandler(AllHandler):
         user = get_user_by_device(self.device_id)
         version_on_device = int(kwargs.get("version", 0))
         version = self._get_max_version(user)
-        diff = UserDictionaryWord.query(UserDictionaryWord.version > version_on_device)
-        self.response.write(json.dumps({"version": version, "words": [el.to_dict() for el in diff]}))
+        diff = UserDictionaryWord.query(UserDictionaryWord.version >
+                                        version_on_device)
+        self.response.write(json.dumps({"version": version,
+                                        "words": [el.to_dict()
+                                                  for el in diff]}))
 
 
 class DrawWebpage(webapp2.RedirectHandler):
