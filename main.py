@@ -162,7 +162,9 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/json_updater',
                   handler=handlers.global_dictionary_word_handlers.dictionary_updater,
-                  name='json_updater'
-    )
+                  name='json_updater'),
+    webapp2.Route(r'/clean_up/assign_pins',
+                  handler=handlers.assign_device_handler.DeleteOldPinsHandler,
+                  name='clean_assign_pins')
 ]
 app = webapp2.WSGIApplication(routes, debug=True)

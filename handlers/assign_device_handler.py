@@ -40,3 +40,10 @@ class AssignDeviceHandler(AllHandler):
                 # TODO: should we do something with old games?
             DeviceUser(device_id=self.device_id, user_id=user.user.user_id()).put()
             self.response.write(json.dumps({"email": user.user.email()}))
+
+
+class DeleteOldPinsHandler(webapp2.RequestHandler):
+    def get(self):
+        pins = UserPin.query()
+        for pin in pins:
+            pin.key.delete()
