@@ -36,7 +36,7 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         request.method = 'POST'
         request.get_response(main.app)
 
-        request = webapp2.Request.blank("/aaa/get_all_words/2")
+        request = webapp2.Request.blank("/get_all_words/2")
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)

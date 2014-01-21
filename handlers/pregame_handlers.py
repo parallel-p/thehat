@@ -32,6 +32,7 @@ class PreGameCreateHandler(AllHandler):
 class PreGameHandler(AllHandler):
     def get(self, **kwargs):
         super(PreGameHandler, self).set_device_id(**kwargs)
+        #TODO: but if we have incorrect game_id?
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
         game_struct = json.loads(game.game_json)
@@ -48,6 +49,7 @@ class PreGameHandler(AllHandler):
 class PreGameUpdateHandler(AllHandler):
     def post(self, **kwargs):
         super(PreGameUpdateHandler, self).set_device_id(**kwargs)
+        #TODO: but if we have incorrect game_id?
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
         if self.device_id not in game.device_ids:
