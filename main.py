@@ -160,4 +160,5 @@ routes = [
                   handler=handlers.global_dictionary_word_handlers.dictionary_updater,
                   name='json_updater')
 ] + handlers.assign_device_handler.assign_device_routes
+
 app = webapp2.WSGIApplication(routes, debug=True)

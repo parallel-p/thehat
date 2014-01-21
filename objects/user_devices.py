@@ -6,6 +6,7 @@ from google.appengine.ext import ndb
 class UserPin(ndb.Model):
     user = ndb.UserProperty()
     pin = ndb.StringProperty()
+    time = ndb.IntegerProperty()
 
 
 class DeviceUser(ndb.Model):

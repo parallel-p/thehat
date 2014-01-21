@@ -3,6 +3,7 @@ __author__ = 'nikolay'
 
 import random
 import json
+import time
 
 import webapp2
 from google.appengine.api import users
@@ -19,7 +20,7 @@ class GeneratePinHandler(webapp2.RequestHandler):
             self.redirect(users.create_login_url('/generate_pin'))
         else:
             pin = str(random.randint(100000000, 999999999))
-            UserPin(user=user, pin=pin).put()
+            UserPin(user=user, pin=pin, time=int(time.time())).put()
             template = JINJA_ENVIRONMENT.get_template('templates/generate_pin.html')
             self.response.write(template.render(
                 {"pin_code": pin,
@@ -44,7 +45,7 @@ class AssignDeviceHandler(AllHandler):
 
 class DeleteOldPinsHandler(webapp2.RequestHandler):
     def get(self):
-        pins = UserPin.query()
+        pins = UserPin.query(UserPin.time < int(time.time()) - 30 * 60) # 30 minutes
         for pin in pins:
             pin.key.delete()
 
