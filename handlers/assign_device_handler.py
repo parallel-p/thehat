@@ -44,7 +44,7 @@ class AssignDeviceHandler(AllHandler):
 
 
 class DeleteOldPinsHandler(webapp2.RequestHandler):
-    def get(self):
+    def post(self):
         pins = UserPin.query(UserPin.time < int(time.time()) - 30 * 60) # 30 minutes
         for pin in pins:
             pin.key.delete()
