@@ -1,22 +1,20 @@
 __author__ = 'ivan'
 
 import json
-import time
 
-import webapp2
-from google.appengine.ext import db
+from google.appengine.api import taskqueue
+from google.appengine.api import users
 
-from all_handler import AllHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
 import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-from google.appengine.api import taskqueue
-from google.appengine.api import users
+from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.admin_request_handler import AdminRequestHandler
 
 
-class dictionary_updater(webapp2.RequestHandler):
+class dictionary_updater(AdminRequestHandler):
     def post(self):
         str_data = self.request.get('data')
         data = str_data.split('\n') if str_data.find('\n') != -1 else [str_data, ]
@@ -53,8 +51,10 @@ class dictionary_updater(webapp2.RequestHandler):
         taskqueue.add(url='/json_updater', params={'data': data})
 
 
+class GlobalDictionaryWordHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GlobalDictionaryWordHandler, self).__init__(*args, **kwargs)
 
-class GlobalDictionaryWordHandler(AllHandler):
     @staticmethod
     def make_json():
         words = []
@@ -67,7 +67,7 @@ class GlobalDictionaryWordHandler(AllHandler):
         return json.dumps(words)
 
     def get(self, **kwargs):
-        super(GlobalDictionaryWordHandler, self).set_device_id(**kwargs)
+        super(GlobalDictionaryWordHandler, self).get_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
         if device_version == GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")
@@ -75,10 +75,11 @@ class GlobalDictionaryWordHandler(AllHandler):
             self.response.write(GlobalDictionaryJson.get_json())
 
 
-class GlobalWordEditor(webapp2.RequestHandler):
+class GlobalWordEditor(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(AdminRequestHandler, self).__init__(*args, **kwargs)
+
     def get(self):
-        if not users.is_current_user_admin():
-            self.redirect(users.create_login_url(self.request.uri))
         template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
         if users.get_current_user():
             self.response.write(template.render(

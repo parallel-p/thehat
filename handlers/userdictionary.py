@@ -1,23 +1,24 @@
 import json
 
-import webapp2
-
 from environment import JINJA_ENVIRONMENT
 
 from objects.user_devices import get_user_by_device
-from all_handler import AllHandler
-from google.appengine.api import users
 from objects.user_dictionary_word import UserDictionaryWord
+from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.web_request_handler import WebRequestHandler
 
 
-class UserDictionaryHandler(AllHandler):
+class UserDictionaryHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(UserDictionaryHandler, self).__init__(*args, **kwargs)
+
     def _get_max_version(self, user):
-        word = UserDictionaryWord.query(UserDictionaryWord.user == user).\
+        word = UserDictionaryWord.query(UserDictionaryWord.user == user). \
             order(-UserDictionaryWord.version).get()
         return word.version if word else 0
 
     def post(self, **kwargs):
-        super(UserDictionaryHandler, self).set_device_id(**kwargs)
+        super(UserDictionaryHandler, self).get_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         changes = json.loads(self.request.get("json"))
         version = self._get_max_version(user) + 1
@@ -33,7 +34,7 @@ class UserDictionaryHandler(AllHandler):
         self.response.write(version)
 
     def get(self, **kwargs):
-        super(UserDictionaryHandler, self).set_device_id(**kwargs)
+        super(UserDictionaryHandler, self).get_device_id(**kwargs)
         user = get_user_by_device(self.device_id)
         version_on_device = int(kwargs.get("version", 0))
         version = self._get_max_version(user)
@@ -44,27 +45,28 @@ class UserDictionaryHandler(AllHandler):
                                                   for el in diff]}))
 
 
-class DrawWebpage(webapp2.RedirectHandler):
+class DrawWebpage(WebRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(DrawWebpage, self).__init__(*args, **kwargs)
+
     def get(self):
-        user = users.get_current_user()
-        if user is None:
-            self.redirect(users.create_login_url('/generate_pin'))
-        else:
-            template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
-            try:
-                wordlist = list(UserDictionary.query(UserDictionary.user == str(user.user_id())))[0].to_userword_array()
-            except:
-                wordlist = []
-            rwordlist = []
-            for i in wordlist:
-                if i.active == "ok":
-                    rwordlist.append(i)
-            render_data = {"words": rwordlist, "USER": user.user_id()}
-            self.response.write(template.render(render_data))
+        template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
+        try:
+            wordlist = list(UserDictionary.query(UserDictionary.user == str(user.user_id())))[0].to_userword_array()
+        except:
+            wordlist = []
+        rwordlist = []
+        for i in wordlist:
+            if i.active == "ok":
+                rwordlist.append(i)
+        render_data = {"words": rwordlist, "USER": user.user_id()}
+        self.response.write(template.render(render_data))
 
 
+class ProcWebpage(WebRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(ProcWebpage, self).__init__(*args, **kwargs)
 
-class ProcWebpage(webapp2.RequestHandler):
     def post(self):
         words = self.request.get("words")
         user = self.request.get("user")

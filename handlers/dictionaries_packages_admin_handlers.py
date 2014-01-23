@@ -1,7 +1,8 @@
-import webapp2
+from google.appengine.api import users
+
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
 from environment import *
-from google.appengine.api import users
+from base_handlers.admin_request_handler import AdminRequestHandler
 
 
 def get_streams():
@@ -27,72 +28,69 @@ def get_packages(stream_id):
     return packages
 
 
-class AddStreamHandler(webapp2.RequestHandler):
-    def get(self):
-        if users.get_current_user() and users.is_current_user_admin():
-            template = JINJA_ENVIRONMENT.get_template('templates/streamsscreen.html')
+class AddStreamHandler(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(AddStreamHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        template = JINJA_ENVIRONMENT.get_template('templates/streamsscreen.html')
+        self.response.write(
+            template.render({'streams': get_streams(), "logout_link": users.create_logout_url('/')}))
+
+    def post(self, *args, **kwargs):
+        if PackagesStream.query(PackagesStream.id == self.request.get('stream_id')).get() is None:
+            PackagesStream(id=self.request.get('stream_id'), name=self.request.get('stream_name'),
+                           packages_id_list=[]).put()
+
+        self.redirect('/streams')
+
+
+class AddPackageHandler(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(AddPackageHandler, self).__init__(*args, **kwargs)
+
+    def get(self, **kwargs):
+        template = JINJA_ENVIRONMENT.get_template('templates/packagesscreen.html')
+        stream_id = kwargs.get('stream_id')
+        self.response.write(template.render({'packages': get_packages(stream_id), 'stream_id': stream_id}))
+
+    def post(self, **kwargs):
+        if PackageDictionary.query(PackageDictionary.id == self.request.get('package_id')).get() is None:
+            PackageDictionary(id=self.request.get('package_id'), name=self.request.get('package_name'),
+                              release_time=int(self.request.get('release_time')), words=[]).put()
+
+        stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).get()
+        if self.request.get('package_id') not in stream.packages_id_list:
+            stream.packages_id_list.append(self.request.get('package_id'))
+        stream.put()
+        self.redirect('/streams/' + kwargs.get('stream_id') + '/packages/add')
+
+
+class ChangeWordsHandler(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(ChangeWordsHandler, self).__init__(*args, **kwargs)
+
+    def get(self, **kwargs):
+        template = JINJA_ENVIRONMENT.get_template('templates/packagewordsscreen.html')
+        packages = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).fetch(1)
+        if len(packages) == 0:
+            self.error(404)
+        else:
+            list_words = packages[0].words
+            words = ''
+            for word in list_words:
+                words += '\n' + word
             self.response.write(
-                template.render({'streams': get_streams(), "logout_link": users.create_logout_url('/')}))
-        else:
-            self.redirect(users.create_login_url(self.request.uri))
-
-    def post(self):
-        if users.get_current_user() and users.is_current_user_admin():
-            if PackagesStream.query(PackagesStream.id == self.request.get('stream_id')).get() is None:
-                PackagesStream(id=self.request.get('stream_id'), name=self.request.get('stream_name'),
-                               packages_id_list=[]).put()
-
-            self.redirect('/streams')
-
-
-class AddPackageHandler(webapp2.RequestHandler):
-    def get(self, **kwargs):
-        if users.get_current_user() and users.is_current_user_admin():
-            template = JINJA_ENVIRONMENT.get_template('templates/packagesscreen.html')
-            stream_id = kwargs.get('stream_id')
-            self.response.write(template.render({'packages': get_packages(stream_id), 'stream_id': stream_id}))
-        else:
-            self.redirect(users.create_login_url(self.request.uri))
+                template.render({'package_id': kwargs.get('package_id'), 'words': words}))
 
     def post(self, **kwargs):
-        if users.get_current_user() and users.is_current_user_admin():
-            if PackageDictionary.query(PackageDictionary.id == self.request.get('package_id')).get() is None:
-                PackageDictionary(id=self.request.get('package_id'), name=self.request.get('package_name'),
-                                  release_time=int(self.request.get('release_time')), words=[]).put()
+        words = self.request.get('text')
+        list_word = []
+        for word in words.strip().split('\n'):
+            list_word.append(word.strip())
 
-            stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).get()
-            if self.request.get('package_id') not in stream.packages_id_list:
-                stream.packages_id_list.append(self.request.get('package_id'))
-            stream.put()
-            self.redirect('/streams/' + kwargs.get('stream_id') + '/packages/add')
-
-
-class ChangeWordsHandler(webapp2.RequestHandler):
-    def get(self, **kwargs):
-        if users.get_current_user() and users.is_current_user_admin():
-            template = JINJA_ENVIRONMENT.get_template('templates/packagewordsscreen.html')
-            packages = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).fetch(1)
-            if len(packages) == 0:
-                self.error(404)
-            else:
-                list_words = packages[0].words
-                words = ''
-                for word in list_words:
-                    words += '\n' + word
-                self.response.write(
-                    template.render({'package_id': kwargs.get('package_id'), 'words': words}))
-        else:
-            self.redirect(users.create_login_url(self.request.uri))
-
-    def post(self, **kwargs):
-        if users.get_current_user() and users.is_current_user_admin():
-            words = self.request.get('text')
-            list_word = []
-            for word in words.strip().split('\n'):
-                list_word.append(word.strip())
-
-            package = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).get()
-            package.words = list_word
-            package.put()
-            template = JINJA_ENVIRONMENT.get_template('templates/packagewordsscreen.html')
-            self.response.write(template.render({'package_id': kwargs.get('package_id'), 'words': words}))
+        package = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).get()
+        package.words = list_word
+        package.put()
+        template = JINJA_ENVIRONMENT.get_template('templates/packagewordsscreen.html')
+        self.response.write(template.render({'package_id': kwargs.get('package_id'), 'words': words}))

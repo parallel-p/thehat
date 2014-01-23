@@ -354,7 +354,8 @@ class TrueSkill(object):
                 yield TruncateFactor(team_diff_var,
                                      v_func, w_func, draw_margin)
 
-            # build layers
+                # build layers
+
         return (build_rating_layer, build_perf_layer, build_team_perf_layer,
                 build_team_diff_layer, build_trunc_layer)
 
@@ -374,6 +375,7 @@ class TrueSkill(object):
             return layers_built
 
             # gray arrows
+
         layers_built = build([build_rating_layer,
                               build_perf_layer,
                               build_team_perf_layer])
@@ -400,10 +402,10 @@ class TrueSkill(object):
                     team_diff_layer[x].down()
                     delta = max(delta, trunc_layer[x].up())
                     team_diff_layer[x].up(0)  # up to left variable
-                # repeat until to small update
+                    # repeat until to small update
             if delta <= min_delta:
                 break
-            # up both ends
+                # up both ends
         team_diff_layer[0].up(0)
         team_diff_layer[team_diff_len - 1].up(1)
         # up the remainder of the black arrows

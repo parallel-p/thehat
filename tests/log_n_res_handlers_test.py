@@ -1,11 +1,10 @@
 import unittest
 import json
-import webapp2
 from random import randint
 
+import webapp2
 from google.appengine.ext import testbed
 from google.appengine.ext import ndb
-from objects.game_results_log import GameLog
 
 import main
 

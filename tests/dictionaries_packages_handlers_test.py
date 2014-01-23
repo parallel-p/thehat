@@ -16,6 +16,8 @@ class PackagesHandlersTest(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.setup_env(user_is_admin='1')
+        self.testbed.init_user_stub()
 
     def test_get_streams_list_handler(self):
         PackagesStream(id='1', name='stream1', packages_id_list=['1', '2']).put()

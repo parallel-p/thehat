@@ -1,12 +1,15 @@
 __author__ = 'ivan'
-from environment import JINJA_ENVIRONMENT
-import webapp2
 from google.appengine.api import users
 
-class AdminPage(webapp2.RequestHandler):
-    def get(self):
-        if not users.is_current_user_admin():
-            self.redirect(users.create_login_url(self.request.uri))
+from environment import JINJA_ENVIRONMENT
+from base_handlers.admin_request_handler import AdminRequestHandler
+
+
+class AdminPage(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(AdminPage, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
         template = JINJA_ENVIRONMENT.get_template('templates/admin.html')
         if users.get_current_user():
             self.response.write(template.render(

@@ -5,13 +5,16 @@ import json
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from all_handler import AllHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
+from base_handlers.service_request_handler import ServiceRequestHandler
 
 
-class RecalcRatingHandler(AllHandler):
+class RecalcRatingHandler(ServiceRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(RecalcRatingHandler, self).__init__(*args, **kwargs)
+
     def post(self):
         words = json.loads(self.request.get("json"))
         ratings = []
@@ -34,7 +37,7 @@ MAX_TIME = 5 * 60 * 1000 # 5 minutes
 MIN_TIME = 3 * 1000 # 3 seconds
 
 
-class AddGameHandler(AllHandler):
+class AddGameHandler(ServiceRequestHandler):
     def post(self):
         game_id = self.request.get('game_id')
         log_db = ndb.Key(GameLog, game_id).get()
@@ -74,7 +77,7 @@ class AddGameHandler(AllHandler):
                 time_word[event['word']] = event['time'] + event['timeExtra']
             elif event['type'] == 'outcome_override':
                 words_current[event['word']] = event['outcome']
-        # for the last round
+            # for the last round
         for word in words_current.keys():
             if word not in words_seen:
                 if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
@@ -90,7 +93,7 @@ class AddGameHandler(AllHandler):
                         'time': MAX_TIME
                     })
                 words_seen.append(word)
-        # -----------------
+            # -----------------
         for players_pair in words_by_players_pair.keys():
             words = words_by_players_pair[players_pair]
             if len(words) > 1:

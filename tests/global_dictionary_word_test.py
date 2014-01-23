@@ -4,8 +4,6 @@ import webapp2
 from google.appengine.ext import testbed
 import unittest2
 
-from objects.global_dictionary_word import GlobalDictionaryWord
-from objects.global_dictionary_version import GlobalDictionaryVersion
 import main
 
 
@@ -16,6 +14,8 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
         self.testbed.init_taskqueue_stub()
+        self.testbed.init_user_stub()
+        self.testbed.setup_env(USER_EMAIL='test@example.com', USER_ID='123', USER_IS_ADMIN='1', overwrite=True)
 
     '''def test_add(self):
         version = GlobalDictionaryVersion.get_server_version()

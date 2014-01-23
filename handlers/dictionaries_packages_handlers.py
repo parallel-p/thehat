@@ -1,13 +1,15 @@
 import json
-from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
 from objects.user_streams import UserStreams
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
+from base_handlers.api_request_handlers import APIRequestHandler
 
 
-class GetStreamsListHandler(AllHandler):
-    def get(self, **kwargs):
-        super(GetStreamsListHandler, self).set_device_id(**kwargs)
+class GetStreamsListHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GetStreamsListHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
         streams_list = PackagesStream.query()
         json_obj = {'streams': []}
         for stream in streams_list:
@@ -16,9 +18,12 @@ class GetStreamsListHandler(AllHandler):
         self.response.write(json.dumps(json_obj))
 
 
-class ChangeStreamStateHandler(AllHandler):
-    def post(self, **kwargs):
-        super(ChangeStreamStateHandler, self).set_device_id(**kwargs)
+class ChangeStreamStateHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(ChangeStreamStateHandler, self).__init__(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        super(ChangeStreamStateHandler, self).get_device_id(**kwargs)
         user_id = get_user_by_device(self.device_id)
         subscribe_list = UserStreams.query(UserStreams.user_id == user_id).fetch(1)
 
@@ -34,9 +39,12 @@ class ChangeStreamStateHandler(AllHandler):
                     subscribe_list[0].streams.remove(stream_id)
 
 
-class GetPackagesListHandler(AllHandler):
+class GetPackagesListHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GetPackagesListHandler, self).__init__(*args, **kwargs)
+
     def get(self, **kwargs):
-        super(GetPackagesListHandler, self).set_device_id(**kwargs)
+        super(GetPackagesListHandler, self).get_device_id(**kwargs)
         packages_stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).fetch(1)
 
         if len(packages_stream) == 0:
@@ -56,9 +64,12 @@ class GetPackagesListHandler(AllHandler):
             self.response.write(json.dumps(json_obj))
 
 
-class GetPackageHandler(AllHandler):
+class GetPackageHandler(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GetPackageHandler, self).__init__(*args, **kwargs)
+
     def get(self, **kwargs):
-        super(GetPackageHandler, self).set_device_id(**kwargs)
+        super(GetPackageHandler, self).get_device_id(**kwargs)
         packages = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).fetch(1)
 
         if len(packages) == 0:

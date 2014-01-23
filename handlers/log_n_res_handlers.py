@@ -5,18 +5,21 @@ import time
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-from all_handler import AllHandler
 from objects.user_devices import get_user_by_device
 from objects.game_results_log import GameLog, Results, NonFinishedGame
+from base_handlers.api_request_handlers import APIRequestHandler
 
 
 def make_timestamp():
     return int(1000 * time.time())
 
 
-class UploadLog(AllHandler):
+class UploadLog(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(UploadLog, self).__init__(*args, **kwargs)
+
     def post(self, **kwargs):
-        super(UploadLog, self).set_device_id(**kwargs)
+        super(UploadLog, self).get_device_id(**kwargs)
         game_id = kwargs["game_id"]
         game_on_server = ndb.Key(GameLog, game_id).get()
         if game_on_server is not None:
@@ -28,9 +31,12 @@ class UploadLog(AllHandler):
             self.response.write("OK, added")
 
 
-class UploadRes(AllHandler):
+class UploadRes(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(UploadRes, self).__init__(*args, **kwargs)
+
     def post(self, **kwargs):
-        super(UploadRes, self).set_device_id(**kwargs)
+        super(UploadRes, self).get_device_id(**kwargs)
         game_id = kwargs.get("game_id")
         results = ndb.Key(Results, game_id).get()
         if results is not None:
@@ -61,21 +67,27 @@ class UploadRes(AllHandler):
         results.put()
 
 
-class CheckAnyResults(AllHandler):
+class CheckAnyResults(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(CheckAnyResults, self).__init__(*args, **kwargs)
+
     def get(self, **kwargs):
-        super(CheckAnyResults, self).set_device_id(**kwargs)
+        super(CheckAnyResults, self).get_device_id(**kwargs)
         player_id = get_user_by_device(self.device_id)
         timestamp = kwargs["timestamp"]
         results = Results.query(Results.players_ids.IN([player_id]),
                                 Results.timestamp > int(timestamp)).fetch(projection=["results_json"])
-        response = {'results':[result.results_json for result in results],
-                    'timestamp':make_timestamp()}
+        response = {'results': [result.results_json for result in results],
+                    'timestamp': make_timestamp()}
         self.response.write(json.dumps(response))
 
 
-class GetResults(AllHandler):
+class GetResults(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GetResults, self).__init__(*args, **kwargs)
+
     def get(self, **kwargs):
-        super(GetResults, self).set_device_id(**kwargs)
+        super(GetResults, self).get_device_id(**kwargs)
         game_id = kwargs["game_id"]
         result = ndb.Key(Results, game_id).get()
         if result is None:
@@ -87,9 +99,12 @@ class GetResults(AllHandler):
         self.response.write(result.results_json)
 
 
-class SaveGame(AllHandler):
+class SaveGame(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(SaveGame, self).__init__(*args, **kwargs)
+
     def post(self, **kwargs):
-        super(SaveGame, self).set_device_id(**kwargs)
+        super(SaveGame, self).get_device_id(**kwargs)
         game_id = kwargs["game_id"]
         key = ndb.Key(urlsafe=game_id)
         if key.kind() == 'PreGame':
@@ -103,9 +118,12 @@ class SaveGame(AllHandler):
         self.response.write("OK, game saved")
 
 
-class LoadGame(AllHandler):
+class LoadGame(APIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(LoadGame, self).__init__(*args, **kwargs)
+
     def get(self, **kwargs):
-        super(LoadGame, self).set_device_id(**kwargs)
+        super(LoadGame, self).get_device_id(**kwargs)
         game_id = kwargs["game_id"]
         game = ndb.Key(NonFinishedGame, game_id).get()
         if game is None:
