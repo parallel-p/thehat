@@ -45,13 +45,14 @@ class complain_word_test(unittest2.TestCase):
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
             format(json.dumps([word1, word2]))
+        print(request.body)
         request.method = 'POST'
         request.get_response(main.app)
         request = webapp2.Request.blank(
             constants.constants.show_complained_url)
         request.method = 'GET'
         response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 302)
+        self.assertEqual(response.status_int, 200)
 
     def test_erase(self):
         word1 = {constants.constants.complained_word: "vasya",

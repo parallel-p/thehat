@@ -88,7 +88,6 @@ class GlobalWordEditor(AdminRequestHandler):
             self.response.write(template.render({"login_link": users.create_login_url('/')}))
 
     def post(self):
-        if users.is_current_user_admin():
-            str_data = self.request.get('text').strip()
-            dictionary_updater.run_update(str_data)
-            self.redirect('/edit_words')
+        str_data = self.request.get('text').strip()
+        dictionary_updater.run_update(str_data)
+        self.redirect('/edit_words')

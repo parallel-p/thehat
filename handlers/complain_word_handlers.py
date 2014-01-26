@@ -58,10 +58,9 @@ class DeleteComplainedWords(AdminRequestHandler):
         super(DeleteComplainedWords, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        if users.is_current_user_admin():
-            for word in ComplainedWord.all():
-                db.delete(word)
-            self.redirect(constants.constants.show_complained_url)
+        for word in ComplainedWord.all():
+            db.delete(word)
+        self.redirect(constants.constants.show_complained_url)
 
 
 class DeleteComplainedWord(AdminRequestHandler):
@@ -69,12 +68,11 @@ class DeleteComplainedWord(AdminRequestHandler):
         super(DeleteComplainedWord, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        if users.is_current_user_admin():
-            deleted_word = self.request.get(constants.constants.deleted_word_name)
-            for word in ComplainedWord.all():
-                if word.word == deleted_word:
-                    db.delete(word)
-            self.redirect(constants.constants.show_complained_url)
+        deleted_word = self.request.get(constants.constants.deleted_word_name)
+        for word in ComplainedWord.all():
+            if word.word == deleted_word:
+                db.delete(word)
+        self.redirect(constants.constants.show_complained_url)
 
 
 class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
@@ -82,17 +80,16 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
         super(DeleteFromGlobalDictionaryHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        if users.is_current_user_admin():
-            data = self.request.get(constants.constants.complained_word)
-            word = GlobalDictionaryWord.get_by_key_name(data)
-            if word is not None:
-                if word.tags.find("-deleted") != -1:
-                    word.tags += "-deleted"
-                word.put()
-            for word in ComplainedWord.all():
-                if word.word == data:
-                    db.delete(word)
-            self.redirect(constants.constants.show_complained_url)
+        data = self.request.get(constants.constants.complained_word)
+        word = GlobalDictionaryWord.get_by_key_name(data)
+        if word is not None:
+            if word.tags.find("-deleted") != -1:
+                word.tags += "-deleted"
+            word.put()
+        for word in ComplainedWord.all():
+            if word.word == data:
+                db.delete(word)
+        self.redirect(constants.constants.show_complained_url)
 
 
 

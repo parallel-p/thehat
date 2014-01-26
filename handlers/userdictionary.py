@@ -6,6 +6,7 @@ from objects.user_devices import get_user_by_device
 from objects.user_dictionary_word import UserDictionaryWord
 from base_handlers.api_request_handlers import APIRequestHandler
 from base_handlers.web_request_handler import WebRequestHandler
+from google.appengine.api import users
 
 
 class UserDictionaryHandler(APIRequestHandler):
@@ -50,6 +51,7 @@ class DrawWebpage(WebRequestHandler):
         super(DrawWebpage, self).__init__(*args, **kwargs)
 
     def get(self):
+        user = users.get_current_user()
         template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
         try:
             wordlist = list(UserDictionary.query(UserDictionary.user == str(user.user_id())))[0].to_userword_array()
