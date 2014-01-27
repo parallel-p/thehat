@@ -8,15 +8,27 @@ import unittest2
 from objects.complained_word import ComplainedWord
 import main
 import constants.constants
-
+import os
 
 class complain_word_test(unittest2.TestCase):
+
+    @staticmethod
+    def setCurrentUser(email, user_id, is_admin=False):
+        os.environ['USER_EMAIL'] = email or ''
+        os.environ['USER_ID'] = user_id or ''
+        os.environ['USER_IS_ADMIN'] = '1' if is_admin else '0'
+
+    @staticmethod
+    def logoutCurrentUser():
+        complain_word_test.setCurrentUser(None, None)
+
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-        self.testbed.setup_env(user_is_admin='1')
+        #self.testbed.setup_env(USER_EMAIL='usermail@gmail.com', USER_ID='1', USER_IS_ADMIN='true') # it is true way
+        complain_word_test.setCurrentUser('usermail@gmail.com', '1', True)  # but it is "hack" way...
         self.testbed.init_user_stub()
 
     def test_post(self):
@@ -45,7 +57,6 @@ class complain_word_test(unittest2.TestCase):
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
             format(json.dumps([word1, word2]))
-        print(request.body)
         request.method = 'POST'
         request.get_response(main.app)
         request = webapp2.Request.blank(
@@ -84,6 +95,7 @@ class complain_word_test(unittest2.TestCase):
         self.assertEqual(ComplainedWord.all().count(), 0)
 
     def tearDown(self):
+        complain_word_test.logoutCurrentUser()
         self.testbed.deactivate()
 
 

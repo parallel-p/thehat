@@ -11,7 +11,9 @@ class AdminRequestHandler(WebRequestHandler):
     def dispatch(self):
         if users.get_current_user() is None:
             self.redirect(users.create_login_url())
+            print('no admin')
         elif not users.is_current_user_admin():
+            print('no auth')
             self.redirect('/')
         else:
             webapp2.RequestHandler.dispatch(self)
