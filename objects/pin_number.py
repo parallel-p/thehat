@@ -25,10 +25,14 @@ class PinNumber(ndb.Model):
 
     @staticmethod
     def retrive(pin, data=None, remove=False):
+        if not pin.isdigit():
+            return None
         key = int(pin[:7:2]+pin[8:])
         rand = int(pin[1:8:2])
         key = ndb.Key(PinNumber, key)
         pin_number = key.get()
+        if pin_number is None:
+            return None
         if rand != pin_number.rand:
             return None
         if data is not None:

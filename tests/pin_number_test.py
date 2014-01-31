@@ -50,6 +50,12 @@ class PinNumberTestCase(unittest.TestCase):
         m.UnsetStubs()
         self.assertEqual(len(PinNumber.query().fetch()), 2)
 
+    def test_bad_pins(self):
+        pin_string = PinNumber.generate(data=TEST_DATA)
+        bad_string = str(int(pin_string) + 1000)
+        self.assertIsNone(PinNumber.retrive("101"))
+        self.assertIsNone(PinNumber.retrive("axbc"))
+        self.assertIsNone(PinNumber.retrive(bad_string))
     def tearDown(self):
         self.testbed.deactivate()
 
