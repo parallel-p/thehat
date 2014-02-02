@@ -9,13 +9,15 @@ class PinNumber(ndb.Model):
     rand = ndb.IntegerProperty(indexed=False)
     expires = ndb.IntegerProperty()
     used = ndb.BooleanProperty()
+    data_key = ndb.StringProperty(indexed=False)
     data = ndb.StringProperty(indexed=False)
 
     @staticmethod
-    def generate(data=None, lifetime=30*60):
+    def generate(key, data="", lifetime=30*60):
         obj = (PinNumber.query(PinNumber.used == False).get()
                or PinNumber.query(PinNumber.expires < int(PinNumber.time())).get()
                or PinNumber())
+        obj.data_key = key
         obj.data = data
         obj.expires = int(PinNumber.time()) + lifetime
         obj.rand = random.randint(0, 9999)
@@ -24,22 +26,22 @@ class PinNumber(ndb.Model):
         return str(obj)
 
     @staticmethod
-    def retrive(pin, data=None, remove=False):
+    def retrive(pin, key=None, free=False):
         if not pin.isdigit():
             return None
-        key = int(pin[:7:2]+pin[8:])
+        entity_key = int(pin[:7:2]+pin[8:])
         rand = int(pin[1:8:2])
-        key = ndb.Key(PinNumber, key)
-        pin_number = key.get()
+        entity_key = ndb.Key(PinNumber, entity_key)
+        pin_number = entity_key.get()
         if pin_number is None:
             return None
         if rand != pin_number.rand:
             return None
-        if data is not None:
-            if data != pin_number.data:
+        if key is not None:
+            if key != pin_number.data_key:
                 return None
-            if remove:
-                del pin_number
+            if free:
+                pin_number.free()
         return pin_number
 
     def free(self):
