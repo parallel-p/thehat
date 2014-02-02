@@ -1,9 +1,11 @@
 import unittest
+import mox
 
 from google.appengine.ext import testbed
+from google.appengine.ext import ndb
 
-from objects.pin_number import PinNumber
-import mox
+
+from objects.pin_number import PinNumber, PinNumberData
 import time
 
 TEST_KEY = "test key"
@@ -72,6 +74,14 @@ class PinNumberTestCase(unittest.TestCase):
         self.assertIsNone(PinNumber.retrive("101"))
         self.assertIsNone(PinNumber.retrive("axbc"))
         self.assertIsNone(PinNumber.retrive(bad_string))
+
+    def test_descendants_removal(self):
+        pin_string = PinNumber.generate(TEST_KEY, TEST_DATA)
+        pin = PinNumber.retrive(pin_string)
+        PinNumberData(parent=pin.key).put()
+        self.assertEqual(len(PinNumberData.query(ancestor=pin.key).fetch()), 1)
+        pin.free()
+        self.assertEqual(len(PinNumberData.query(ancestor=pin.key).fetch()), 0)
 
     def tearDown(self):
         self.testbed.deactivate()

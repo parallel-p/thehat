@@ -1,8 +1,13 @@
 __author__ = 'nikolay'
 
 from google.appengine.ext import ndb
+from google.appengine.ext.ndb import polymodel
 import time
 import random
+
+
+class PinNumberData(polymodel.PolyModel):
+    pass
 
 
 class PinNumber(ndb.Model):
@@ -13,7 +18,7 @@ class PinNumber(ndb.Model):
     data = ndb.StringProperty(indexed=False)
 
     @staticmethod
-    def generate(key, data="", lifetime=30*60):
+    def generate(key, data="", lifetime=30 * 60):
         obj = (PinNumber.query(PinNumber.used == False).get()
                or PinNumber.query(PinNumber.expires < int(PinNumber.time())).get()
                or PinNumber())
@@ -29,7 +34,7 @@ class PinNumber(ndb.Model):
     def retrive(pin, key=None, free=False):
         if not pin.isdigit():
             return None
-        entity_key = int(pin[:7:2]+pin[8:])
+        entity_key = int(pin[:7:2] + pin[8:])
         rand = int(pin[1:8:2])
         entity_key = ndb.Key(PinNumber, entity_key)
         pin_number = entity_key.get()
@@ -46,6 +51,7 @@ class PinNumber(ndb.Model):
 
     def free(self):
         self.used = False
+        ndb.delete_multi(PinNumberData.query(ancestor=self.key).fetch(keys_only=True))
         self.put()
 
     def __str__(self):
