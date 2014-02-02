@@ -6,7 +6,8 @@ from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 from objects.user_devices import get_user_by_device
-from objects.game_results_log import GameLog, Results, NonFinishedGame
+from objects.pin_number import PinNumber
+from objects.game_results_log import GameLog, Results, SavedGame
 from base_handlers.api_request_handlers import APIRequestHandler
 
 
@@ -14,21 +15,22 @@ def make_timestamp():
     return int(1000 * time.time())
 
 
-class UploadLog(APIRequestHandler):
+class GameLogHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
-        super(UploadLog, self).__init__(*args, **kwargs)
+        super(GameLogHandler, self).__init__(*args, **kwargs)
 
-    def post(self, **kwargs):
-        super(UploadLog, self).get_device_id(**kwargs)
-        game_id = kwargs["game_id"]
+    def post(self, game_id, **kwargs):
+        super(GameLogHandler, self).get_device_id(**kwargs)
+        game_id = game_id
         game_on_server = ndb.Key(GameLog, game_id).get()
         if game_on_server is not None:
-            self.response.write("OK, already exist")
+            self.error(409)
+            return
         else:
             log = GameLog(json=self.request.get("json"), id=game_id)
             log.put()
             taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id}, countdown=5)
-            self.response.write("OK, added")
+            self.response.set_status(201)
 
 
 class UploadRes(APIRequestHandler):
@@ -40,7 +42,7 @@ class UploadRes(APIRequestHandler):
         game_id = kwargs.get("game_id")
         results = ndb.Key(Results, game_id).get()
         if results is not None:
-            self.error(403)  # you have no access to rewrite results
+            self.error(409)
             return
         req_json = json.loads(self.request.get("json"))
 
@@ -99,37 +101,22 @@ class GetResults(APIRequestHandler):
         self.response.write(result.results_json)
 
 
-class SaveGame(APIRequestHandler):
+class SaveGameHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
-        super(SaveGame, self).__init__(*args, **kwargs)
+        super(SaveGameHandler, self).__init__(*args, **kwargs)
 
-    def post(self, **kwargs):
-        super(SaveGame, self).get_device_id(**kwargs)
-        game_id = kwargs["game_id"]
-        key = ndb.Key(urlsafe=game_id)
-        if key.kind() == 'PreGame':
-            devices = key.get().device_ids
-        else:
-            devices = [self.device_id]
-        players = [get_user_by_device(device) for device in devices]
+    def post(self):
         log = self.request.get("json")
-        game = NonFinishedGame(log=log, players_ids=players, id=game_id)
+        game = SavedGame(log=log)
         game.put()
-        self.response.write("OK, game saved")
-
-
-class LoadGame(APIRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super(LoadGame, self).__init__(*args, **kwargs)
+        pin = PinNumber.generate("savegame", data=game.key, lifetime=24*60*60)
+        self.response.write(pin)
+        self.response.set_status(201)
 
     def get(self, **kwargs):
-        super(LoadGame, self).get_device_id(**kwargs)
-        game_id = kwargs["game_id"]
-        game = ndb.Key(NonFinishedGame, game_id).get()
-        if game is None:
+        pin = PinNumber.retrive(kwargs["pin"], "savegame")
+        if pin is None:
             self.error(404)
             return
-        if not get_user_by_device(self.device_id) in game.players_ids:
-            self.error(403)
-            return
+        game = pin.data.get()
         self.response.write(game.log)

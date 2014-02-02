@@ -14,9 +14,8 @@ class StatisticVersion(ndb.Model):
     version = ndb.IntegerProperty()
 
 
-class NonFinishedGame(ndb.Model):
-    log = ndb.StringProperty()
-    players_ids = ndb.StringProperty(repeated=True)
+class SavedGame(ndb.Model):
+    log = ndb.TextProperty()
 
 
 class GameLog(ndb.Model):

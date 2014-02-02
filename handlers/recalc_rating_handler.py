@@ -33,8 +33,8 @@ class RecalcRatingHandler(ServiceRequestHandler):
         self.response.write("OK, %d words rated" % len(rated))
 
 
-MAX_TIME = 5 * 60 * 1000 # 5 minutes
-MIN_TIME = 3 * 1000 # 3 seconds
+MAX_TIME = 5 * 60 * 1000  # 5 minutes
+MIN_TIME = 3 * 1000  # 3 seconds
 
 
 class AddGameHandler(ServiceRequestHandler):
