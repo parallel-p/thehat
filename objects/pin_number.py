@@ -17,6 +17,8 @@ class PinNumber(ndb.Model):
         obj = (PinNumber.query(PinNumber.used == False).get()
                or PinNumber.query(PinNumber.expires < int(PinNumber.time())).get()
                or PinNumber())
+        if obj.used:
+            obj.free()
         obj.data_key = key
         obj.data = data
         obj.expires = int(PinNumber.time()) + lifetime
