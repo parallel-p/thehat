@@ -4,30 +4,29 @@ from environment import JINJA_ENVIRONMENT
 
 from objects.user_devices import get_user_by_device
 from objects.user_dictionary_word import UserDictionaryWord
-from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 from base_handlers.web_request_handler import WebRequestHandler
 from google.appengine.api import users
 
 
-class UserDictionaryHandler(APIRequestHandler):
+class UserDictionaryHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(UserDictionaryHandler, self).__init__(*args, **kwargs)
 
     def _get_max_version(self, user):
-        word = UserDictionaryWord.query(UserDictionaryWord.user == user). \
+        word = UserDictionaryWord.query(ancestor=user). \
             order(-UserDictionaryWord.version).get()
         return word.version if word else 0
 
     def post(self, **kwargs):
-        super(UserDictionaryHandler, self).get_device_id(**kwargs)
-        user = get_user_by_device(self.device_id)
+        super(UserDictionaryHandler, self).authorizate(**kwargs)
         changes = json.loads(self.request.get("json"))
-        version = self._get_max_version(user) + 1
+        version = self._get_max_version(self.user_key) + 1
         for el in changes:
             current_word = (UserDictionaryWord.query(UserDictionaryWord.word ==
-                                                     el["word"]).get() or
-                            UserDictionaryWord())
-            current_word.user = user
+                                                     el["word"],
+                                                     ancestor=self.user_key).get() or
+                            UserDictionaryWord(parent=self.user_key))
             current_word.status = el["status"]
             current_word.word = el["word"]
             current_word.version = version
@@ -35,12 +34,12 @@ class UserDictionaryHandler(APIRequestHandler):
         self.response.write(version)
 
     def get(self, **kwargs):
-        super(UserDictionaryHandler, self).get_device_id(**kwargs)
-        user = get_user_by_device(self.device_id)
+        super(UserDictionaryHandler, self).authorizate(**kwargs)
         version_on_device = int(kwargs.get("version", 0))
-        version = self._get_max_version(user)
+        version = self._get_max_version(self.user_key)
         diff = UserDictionaryWord.query(UserDictionaryWord.version >
-                                        version_on_device)
+                                        version_on_device,
+                                        ancestor=self.user_key)
         self.response.write(json.dumps({"version": version,
                                         "words": [el.to_dict()
                                                   for el in diff]}))

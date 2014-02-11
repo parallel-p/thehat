@@ -10,6 +10,7 @@ import main
 import constants.constants
 import os
 
+
 class complain_word_test(unittest2.TestCase):
 
     @staticmethod
@@ -37,14 +38,14 @@ class complain_word_test(unittest2.TestCase):
                  constants.constants.word_to_replace: "petya"}
         word2 = {constants.constants.complained_word: "vasya",
                  constants.constants.reason: "not_a_noun"}
-        len_before = ComplainedWord.all().count()
+        len_before = ComplainedWord.query().count()
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
             format(json.dumps([word1, word2]))
         request.method = 'POST'
         request.get_response(main.app)
         response = request.get_response(main.app)  # It is need to call it twice
-        len_after = ComplainedWord.all().count()
+        len_after = ComplainedWord.query().count()
         self.assertEqual(response.status_int, 200)
         self.assertEqual(len_after, len_before + 4)
 
@@ -82,17 +83,17 @@ class complain_word_test(unittest2.TestCase):
             constants.constants.delete_current_url)
         request.method = 'POST'
         request.body = "word=vasya"
-        len_before = ComplainedWord.all().count()
+        len_before = ComplainedWord.query().count()
         response = request.get_response(main.app)
 
         self.assertEqual(response.status_int, 302)  # not 200, because redirrect
-        len_after = ComplainedWord.all().count()
+        len_after = ComplainedWord.query().count()
         self.assertEqual(len_before, len_after + 2)
         request = webapp2.Request.blank(
             constants.constants.delete_all_url)
         request.method = 'POST'
         response = request.get_response(main.app)
-        self.assertEqual(ComplainedWord.all().count(), 0)
+        self.assertEqual(ComplainedWord.query().count(), 0)
 
     def tearDown(self):
         complain_word_test.logoutCurrentUser()

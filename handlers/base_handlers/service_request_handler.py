@@ -1,9 +1,9 @@
 __author__ = 'ivan'
 
-from all_handler import AllHandler
+from generic_handler import GenericHandler
 
 
-class ServiceRequestHandler(AllHandler):
+class ServiceRequestHandler(GenericHandler):
     def __init__(self, *args, **kwargs):
         super(ServiceRequestHandler, self).__init__(*args, **kwargs)
 

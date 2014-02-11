@@ -1,13 +1,13 @@
 __author__ = 'ivan'
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 
-class ComplainedWord(db.Model):
-    device_id = db.StringProperty()
-    word = db.StringProperty()
-    reason = db.StringProperty()
-    replacement_word = db.StringProperty()
+class ComplainedWord(ndb.Model):
+    device = ndb.KeyProperty()
+    word = ndb.StringProperty()
+    reason = ndb.StringProperty()
+    replacement_word = ndb.StringProperty()
 
 
 "typo"

@@ -10,7 +10,7 @@ from objects.global_dictionary_version import GlobalDictionaryVersion
 import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 
 
@@ -67,7 +67,6 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
         return json.dumps(words)
 
     def get(self, **kwargs):
-        super(GlobalDictionaryWordHandler, self).get_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
         if device_version == GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")

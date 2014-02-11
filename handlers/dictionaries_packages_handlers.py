@@ -2,7 +2,7 @@ import json
 from objects.user_devices import get_user_by_device
 from objects.user_streams import UserStreams
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
-from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 
 
 class GetStreamsListHandler(APIRequestHandler):
@@ -18,15 +18,13 @@ class GetStreamsListHandler(APIRequestHandler):
         self.response.write(json.dumps(json_obj))
 
 
-class ChangeStreamStateHandler(APIRequestHandler):
+class ChangeStreamStateHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(ChangeStreamStateHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        super(ChangeStreamStateHandler, self).get_device_id(**kwargs)
-        user_id = get_user_by_device(self.device_id)
-        subscribe_list = UserStreams.query(UserStreams.user_id == user_id).fetch(1)
-
+        super(ChangeStreamStateHandler, self).authorizate(**kwargs)
+        subscribe_list = UserStreams.query(ancestor=self.user_key).fetch(1)
         if len(subscribe_list) == 0:
             self.error(404)
         else:
@@ -39,12 +37,12 @@ class ChangeStreamStateHandler(APIRequestHandler):
                     subscribe_list[0].streams.remove(stream_id)
 
 
-class GetPackagesListHandler(APIRequestHandler):
+class GetPackagesListHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GetPackagesListHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GetPackagesListHandler, self).get_device_id(**kwargs)
+        super(GetPackagesListHandler, self).authorizate(**kwargs)
         packages_stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).fetch(1)
 
         if len(packages_stream) == 0:
@@ -64,12 +62,12 @@ class GetPackagesListHandler(APIRequestHandler):
             self.response.write(json.dumps(json_obj))
 
 
-class GetPackageHandler(APIRequestHandler):
+class GetPackageHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GetPackageHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GetPackageHandler, self).get_device_id(**kwargs)
+        super(GetPackageHandler, self).authorizate(**kwargs)
         packages = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).fetch(1)
 
         if len(packages) == 0:

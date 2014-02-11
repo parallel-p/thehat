@@ -6,6 +6,7 @@ from google.appengine.ext import testbed
 
 import main
 from objects.user_dictionary_word import UserDictionaryWord
+from objects.user_devices import get_user_by_device
 
 
 class UserDictionaryTestCase(unittest.TestCase):
@@ -14,6 +15,7 @@ class UserDictionaryTestCase(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.user = get_user_by_device("123")[1]
 
     def test_post(self):
         REQUEST_DATA = ['''[{"word": "hat", "status": "ok"},
@@ -30,8 +32,7 @@ class UserDictionaryTestCase(unittest.TestCase):
             version += 1
             a = response.text
             self.assertEqual(int(a), version)
-        words = UserDictionaryWord.query(UserDictionaryWord.user ==
-                                         "device_123").fetch(4)
+        words = UserDictionaryWord.query(ancestor=self.user).fetch(4)
         self.assertEqual(len(words), 3)
         for el in words:
             self.assertEqual(VERSION_BY_WORD[el.word], el.version)
@@ -39,10 +40,10 @@ class UserDictionaryTestCase(unittest.TestCase):
     def test_get(self):
         new_words = ["hat", "cat", "rat"]
         for word in new_words:
-            UserDictionaryWord(word=word, version=57, user="device_123").put()
+            UserDictionaryWord(word=word, version=57, parent=self.user).put()
         old_words = ["son", "run"]
         for word in old_words:
-            UserDictionaryWord(word=word, version=56, user="device_123").put()
+            UserDictionaryWord(word=word, version=56, parent=self.user).put()
         request = webapp2.Request.blank('/123/api/udict/since/56')
         request.method = "GET"
         response = request.get_response(main.app)

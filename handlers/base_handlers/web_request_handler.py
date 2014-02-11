@@ -2,11 +2,11 @@ __author__ = 'ivan'
 
 from google.appengine.api import users
 
-from all_handler import AllHandler
+from generic_handler import GenericHandler
 import webapp2
 
 
-class WebRequestHandler(AllHandler):
+class WebRequestHandler(GenericHandler):
     def dispatch(self):
         if users.get_current_user() is None:
             self.redirect(users.create_login_url())

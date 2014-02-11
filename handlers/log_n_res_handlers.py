@@ -8,19 +8,19 @@ from google.appengine.api import taskqueue
 from objects.user_devices import get_user_by_device
 from objects.pin_number import PinNumber
 from objects.game_results_log import GameLog, Results, SavedGame
-from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 
 
 def make_timestamp():
     return int(1000 * time.time())
 
 
-class GameLogHandler(APIRequestHandler):
+class GameLogHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GameLogHandler, self).__init__(*args, **kwargs)
 
     def post(self, game_id, **kwargs):
-        super(GameLogHandler, self).get_device_id(**kwargs)
+        super(GameLogHandler, self).authorizate(**kwargs)
         game_id = game_id
         game_on_server = ndb.Key(GameLog, game_id).get()
         if game_on_server is not None:
@@ -33,12 +33,12 @@ class GameLogHandler(APIRequestHandler):
             self.response.set_status(201)
 
 
-class UploadRes(APIRequestHandler):
+class UploadRes(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(UploadRes, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(UploadRes, self).get_device_id(**kwargs)
+        super(UploadRes, self).authorizate(**kwargs)
         game_id = kwargs.get("game_id")
         results = ndb.Key(Results, game_id).get()
         if results is not None:
@@ -69,12 +69,12 @@ class UploadRes(APIRequestHandler):
         results.put()
 
 
-class CheckAnyResults(APIRequestHandler):
+class CheckAnyResults(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(CheckAnyResults, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(CheckAnyResults, self).get_device_id(**kwargs)
+        super(CheckAnyResults, self).authorizate(**kwargs)
         player_id = get_user_by_device(self.device_id)
         timestamp = kwargs["timestamp"]
         results = Results.query(Results.players_ids.IN([player_id]),
@@ -84,12 +84,12 @@ class CheckAnyResults(APIRequestHandler):
         self.response.write(json.dumps(response))
 
 
-class GetResults(APIRequestHandler):
+class GetResults(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GetResults, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GetResults, self).get_device_id(**kwargs)
+        super(GetResults, self).authorizate(**kwargs)
         game_id = kwargs["game_id"]
         result = ndb.Key(Results, game_id).get()
         if result is None:

@@ -2,7 +2,7 @@ __author__ = 'ivan'
 
 import json
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 from google.appengine.api import users
 
 from objects.complained_word import ComplainedWord
@@ -10,19 +10,19 @@ from environment import JINJA_ENVIRONMENT
 import constants.constants
 from objects.global_dictionary_word import GlobalDictionaryWord
 from base_handlers.admin_request_handler import AdminRequestHandler
-from base_handlers.api_request_handlers import APIRequestHandler
+from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 
 
-class ComplainWordHandler(APIRequestHandler):
+class ComplainWordHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(ComplainWordHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        super(ComplainWordHandler, self).get_device_id(**kwargs)
+        super(ComplainWordHandler, self).authorizate(**kwargs)
         complained_word_json_list = \
             json.loads(self.request.get(constants.constants.get_title))
         for current_word_json in complained_word_json_list:
-            current_word = ComplainedWord(device_id=self.device_id,
+            current_word = ComplainedWord(device=self.device_key,
                                           word=current_word_json[constants.constants.complained_word],
                                           reason=current_word_json[constants.constants.reason])
             if constants.constants.word_to_replace in current_word_json:
@@ -39,7 +39,7 @@ class ShowComplainedWords(AdminRequestHandler):
         template = JINJA_ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
         render_data = {constants.constants.render_data_name: []}
-        for word in ComplainedWord.all():
+        for word in ComplainedWord.query():
             word_render = word
             word_render.cnt = cnt
             if word.replacement_word is None:
@@ -58,8 +58,7 @@ class DeleteComplainedWords(AdminRequestHandler):
         super(DeleteComplainedWords, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        for word in ComplainedWord.all():
-            db.delete(word)
+        ndb.delete_multi(ComplainedWord.query().fetch(keys_only=True))
         self.redirect(constants.constants.show_complained_url)
 
 
@@ -69,9 +68,7 @@ class DeleteComplainedWord(AdminRequestHandler):
 
     def post(self, *args, **kwargs):
         deleted_word = self.request.get(constants.constants.deleted_word_name)
-        for word in ComplainedWord.all():
-            if word.word == deleted_word:
-                db.delete(word)
+        ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(keys_only=True))
         self.redirect(constants.constants.show_complained_url)
 
 
@@ -86,9 +83,7 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
             if word.tags.find("-deleted") != -1:
                 word.tags += "-deleted"
             word.put()
-        for word in ComplainedWord.all():
-            if word.word == data:
-                db.delete(word)
+        ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == data).fetch(keys_only=True))
         self.redirect(constants.constants.show_complained_url)
 
 
