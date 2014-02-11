@@ -1,3 +1,5 @@
+import constants
+
 __author__ = 'ivan'
 
 import json
@@ -7,10 +9,9 @@ from google.appengine.api import users
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
-import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
+from base_handlers.api_request_handlers import APIRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 
 
@@ -59,10 +60,10 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
     def make_json():
         words = []
         for word in GlobalDictionaryWord.all():
-            to_json = {constants.constants.global_dict_word: word.word,
-                       constants.constants.Expectation: float(word.E),
-                       constants.constants.Dispersion: float(word.D),
-                       constants.constants.Tags: word.tags}
+            to_json = {constants.global_dict_word: word.word,
+                       constants.Expectation: float(word.E),
+                       constants.Dispersion: float(word.D),
+                       constants.Tags: word.tags}
             words.append(to_json)
         return json.dumps(words)
 

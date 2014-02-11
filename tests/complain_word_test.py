@@ -1,3 +1,5 @@
+import constants
+
 __author__ = 'ivan'
 import json
 
@@ -7,7 +9,6 @@ import unittest2
 
 from objects.complained_word import ComplainedWord
 import main
-import constants.constants
 import os
 
 
@@ -33,11 +34,11 @@ class complain_word_test(unittest2.TestCase):
         self.testbed.init_user_stub()
 
     def test_post(self):
-        word1 = {constants.constants.complained_word: "vasya",
-                 constants.constants.reason: "typo",
-                 constants.constants.word_to_replace: "petya"}
-        word2 = {constants.constants.complained_word: "vasya",
-                 constants.constants.reason: "not_a_noun"}
+        word1 = {constants.complained_word: "vasya",
+                 constants.reason: "typo",
+                 constants.word_to_replace: "petya"}
+        word2 = {constants.complained_word: "vasya",
+                 constants.reason: "not_a_noun"}
         len_before = ComplainedWord.query().count()
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
@@ -50,28 +51,28 @@ class complain_word_test(unittest2.TestCase):
         self.assertEqual(len_after, len_before + 4)
 
     def test_get_table(self):
-        word1 = {constants.constants.complained_word: "vasya",
-                 constants.constants.reason: "typo",
-                 constants.constants.word_to_replace: "petya"}
-        word2 = {constants.constants.complained_word: "vasya",
-                 constants.constants.reason: "not_a_noun"}
+        word1 = {constants.complained_word: "vasya",
+                 constants.reason: "typo",
+                 constants.word_to_replace: "petya"}
+        word2 = {constants.complained_word: "vasya",
+                 constants.reason: "not_a_noun"}
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
             format(json.dumps([word1, word2]))
         request.method = 'POST'
         request.get_response(main.app)
         request = webapp2.Request.blank(
-            constants.constants.show_complained_url)
+            constants.show_complained_url)
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
     def test_erase(self):
-        word1 = {constants.constants.complained_word: "vasya",
-                 constants.constants.reason: "typo",
-                 constants.constants.word_to_replace: "petya"}
-        word2 = {constants.constants.complained_word: "kokoko",
-                 constants.constants.reason: "not_a_noun"}
+        word1 = {constants.complained_word: "vasya",
+                 constants.reason: "typo",
+                 constants.word_to_replace: "petya"}
+        word2 = {constants.complained_word: "kokoko",
+                 constants.reason: "not_a_noun"}
         request = webapp2.Request.blank('/abc/complain')
         request.body = "json={0}". \
             format(json.dumps([word1, word2]))
@@ -80,7 +81,7 @@ class complain_word_test(unittest2.TestCase):
         request.get_response(main.app)
 
         request = webapp2.Request.blank(
-            constants.constants.delete_current_url)
+            constants.delete_current_url)
         request.method = 'POST'
         request.body = "word=vasya"
         len_before = ComplainedWord.query().count()
@@ -90,7 +91,7 @@ class complain_word_test(unittest2.TestCase):
         len_after = ComplainedWord.query().count()
         self.assertEqual(len_before, len_after + 2)
         request = webapp2.Request.blank(
-            constants.constants.delete_all_url)
+            constants.delete_all_url)
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(ComplainedWord.query().count(), 0)

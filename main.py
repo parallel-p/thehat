@@ -15,7 +15,9 @@
 # limitations under the License.
 #
 import webapp2
+from google.appengine.api import users
 
+import constants
 import handlers.pregame_handlers
 import handlers.dictionaries_packages_handlers
 import handlers.dictionaries_packages_admin_handlers
@@ -26,10 +28,8 @@ import handlers.newsfeed_handlers
 import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
-import constants.constants
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
-from google.appengine.api import users
 
 
 class MainPage(webapp2.RequestHandler):
@@ -47,19 +47,19 @@ routes = [
     (r'/', MainPage),
     (r'/admin', handlers.admin_page_handler.AdminPage),
     webapp2.Route(
-        constants.constants.delete_all_url,
+        constants.delete_all_url,
         handler=handlers.complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
     webapp2.Route(
-        constants.constants.delete_current_url,
+        constants.delete_current_url,
         handler=handlers.complain_word_handlers.DeleteComplainedWord,
         name='delete_current_complained_word'),
     webapp2.Route(
-        constants.constants.show_complained_url,
+        constants.show_complained_url,
         handler=handlers.complain_word_handlers.ShowComplainedWords,
         name='show_complained_words'),
     webapp2.Route(
-        constants.constants.delete_from_global_url,
+        constants.delete_from_global_url,
         handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
         name='delete_from_global'
     ),
