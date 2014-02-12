@@ -4,8 +4,8 @@ from google.appengine.ext import ndb
 
 
 class Results(ndb.Model):
-    results_json = ndb.StringProperty(indexed=True)
-    players_ids = ndb.StringProperty(repeated=True)
+    results_json = ndb.StringProperty(indexed=False)
+    players_ids = ndb.KeyProperty(repeated=True)
     timestamp = ndb.IntegerProperty()
     is_public = ndb.BooleanProperty()
 
