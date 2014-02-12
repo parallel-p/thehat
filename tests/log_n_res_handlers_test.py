@@ -168,6 +168,13 @@ class TestResults(unittest.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 404)  # not found
 
+    def test_load_results_with_bad_game_id(self):
+        urlsafe = "thisisaninvalidgameid"
+        request = webapp2.Request.blank('/device_1/game_results/%s' % urlsafe)
+        request.method = 'GET'
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 404)  # not found
+
     def test_save_n_load_game(self):
         request = webapp2.Request.blank('/savegame')
         request.method = 'POST'
