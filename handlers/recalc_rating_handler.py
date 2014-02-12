@@ -20,7 +20,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
         ratings = []
         words_db = []
         for word in words:
-            word_db = GlobalDictionaryWord.get_by_key_name(word)
+            word_db = ndb.Key(GlobalDictionaryWord, word).get()
             if word_db is None:
                 continue
             words_db.append(word_db)

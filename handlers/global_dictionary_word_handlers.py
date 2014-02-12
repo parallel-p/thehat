@@ -6,6 +6,7 @@ import json
 
 from google.appengine.api import taskqueue
 from google.appengine.api import users
+from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
@@ -27,7 +28,7 @@ class dictionary_updater(AdminRequestHandler):
                 splited = word_info.split()
             word = splited[0]
 
-            in_base = GlobalDictionaryWord.get_by_key_name(word)
+            in_base = ndb.Key(GlobalDictionaryWord, word).get()
             if in_base is not None:
                 continue
             changed = True
@@ -35,7 +36,7 @@ class dictionary_updater(AdminRequestHandler):
                 E = float(splited[1])
             if len(splited) >= 3:
                 D = float(splited[2])
-            new_word = GlobalDictionaryWord(key_name=word, word=word, E=E, D=D, tags="")
+            new_word = GlobalDictionaryWord(id=word, word=word, E=E, D=D, tags="")
             new_word.put()
         if changed:
             server_json = GlobalDictionaryJson.get_by_key_name('json')
@@ -59,7 +60,7 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
     @staticmethod
     def make_json():
         words = []
-        for word in GlobalDictionaryWord.all():
+        for word in GlobalDictionaryWord.query():
             to_json = {constants.global_dict_word: word.word,
                        constants.Expectation: float(word.E),
                        constants.Dispersion: float(word.D),

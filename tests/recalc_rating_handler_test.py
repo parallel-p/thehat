@@ -4,7 +4,7 @@ import json
 import unittest
 
 import webapp2
-from google.appengine.ext import testbed
+from google.appengine.ext import testbed, ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 import main
@@ -21,7 +21,7 @@ class RecalcRatingTest(unittest.TestCase):
         game_words = []
         for i in range(5):
             game_words.append(str(i))
-            GlobalDictionaryWord(key_name=str(i), word=str(i), E=50.0, D=50.0 / 3).put()
+            GlobalDictionaryWord(id=str(i), word=str(i), E=50.0, D=50.0 / 3).put()
         request = webapp2.Request.blank('/internal/recalc_rating_after_game')
         request.method = 'POST'
         request.body = "json=%s" % json.dumps(game_words)
@@ -30,7 +30,7 @@ class RecalcRatingTest(unittest.TestCase):
         self.assertEqual(response.body, "OK, 5 words rated")
         last_rating = 100
         for i in range(5):
-            word_db = GlobalDictionaryWord.get_by_key_name(str(i))
+            word_db = ndb.Key(GlobalDictionaryWord, str(i)).get()
             self.assertIsNotNone(word_db)
             self.assertGreater(last_rating, word_db.E)
             last_rating = word_db.E

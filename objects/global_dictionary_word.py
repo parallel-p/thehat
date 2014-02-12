@@ -1,10 +1,10 @@
 __author__ = 'ivan'
 
-from google.appengine.ext import db
+from google.appengine.ext import ndb
 
 
-class GlobalDictionaryWord(db.Expando):
-    word = db.StringProperty()
-    E = db.FloatProperty()
-    D = db.FloatProperty()
-    tags = db.StringProperty(indexed=False)
+class GlobalDictionaryWord(ndb.Model):
+    word = ndb.StringProperty()
+    E = ndb.FloatProperty()
+    D = ndb.FloatProperty()
+    tags = ndb.StringProperty(indexed=False)
