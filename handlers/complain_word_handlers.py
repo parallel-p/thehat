@@ -10,8 +10,8 @@ from google.appengine.api import users
 from objects.complained_word import ComplainedWord
 from environment import JINJA_ENVIRONMENT
 from objects.global_dictionary_word import GlobalDictionaryWord
-from base_handlers.admin_request_handler import AdminRequestHandler
-from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
+from handlers.base_handlers.admin_request_handler import AdminRequestHandler
+from handlers.base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 
 
 class ComplainWordHandler(AuthorizedAPIRequestHandler):

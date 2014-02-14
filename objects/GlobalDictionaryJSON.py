@@ -3,9 +3,8 @@ __author__ = 'ivan'
 from google.appengine.ext import db
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
-import constants.constants
+import constants
 import json
-import time
 
 
 class GlobalDictionaryJson(db.Model):
@@ -19,11 +18,11 @@ class GlobalDictionaryJson(db.Model):
     @staticmethod
     def make_json():
         words = []
-        for word in GlobalDictionaryWord.all():
-            to_json = {constants.constants.global_dict_word: word.word,
-                       constants.constants.Expectation: float(word.E),
-                       constants.constants.Dispersion: float(word.D),
-                       constants.constants.Tags: word.tags}
+        for word in GlobalDictionaryWord.query().fetch():
+            to_json = {constants.global_dict_word: word.word,
+                       constants.Expectation: float(word.E),
+                       constants.Dispersion: float(word.D),
+                       constants.Tags: word.tags}
             words.append(to_json)
         return json.dumps(words)
 

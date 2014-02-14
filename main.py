@@ -28,10 +28,9 @@ import handlers.newsfeed_handlers
 import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
-import constants.constants
+
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
-from google.appengine.api import users
 import handlers.global_dictionary_editor_handlers
 
 

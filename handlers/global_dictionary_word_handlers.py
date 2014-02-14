@@ -10,11 +10,11 @@ from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
-import constants.constants
+import constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-from base_handlers.api_request_handlers import APIRequestHandler
-from base_handlers.admin_request_handler import AdminRequestHandler
+from handlers.base_handlers.api_request_handlers import APIRequestHandler
+from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 import webapp2
 import time
 
@@ -56,7 +56,6 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
         super(GlobalDictionaryWordHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GlobalDictionaryWordHandler, self).get_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
         if device_version == GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")

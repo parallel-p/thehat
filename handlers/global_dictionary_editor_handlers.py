@@ -5,7 +5,7 @@ from google.appengine.api import users
 
 from objects.complained_word import ComplainedWord
 from environment import JINJA_ENVIRONMENT
-import constants.constants
+import constants
 from objects.global_dictionary_word import GlobalDictionaryWord
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
@@ -28,7 +28,7 @@ class GlobalDictionaryWordList(AdminRequestHandler):
         if curr_json is not None:
             for i in json.loads(curr_json.json):
                 word_cnt += 1
-                if i['tags'].find('-deleted') != -1 or word_cnt < id * 500 or word_cnt > (id + 1) * 500:
+                if i['tags'].find('-deleted') != -1 or word_cnt < id * 200 or word_cnt > (id + 1) * 200:
                     continue
                 word = GlobalDictionaryWord(cnt=num, word=i['word'], E=i['E'], D=i['D'], tags=i['tags'])
                 num += 1
@@ -45,7 +45,7 @@ class GlobalDictionaryDeleteWord(AdminRequestHandler):
 
     def post(self, *args, **kwargs):
         word_to_delete = self.request.get("word")
-        entity = GlobalDictionaryWord.get_by_key_name(word_to_delete)
+        entity = GlobalDictionaryWord.get_by_id(word_to_delete)
         if entity is not None and entity.tags.find("-deleted") == -1:
             entity.tags += "-deleted"
         entity.put()
