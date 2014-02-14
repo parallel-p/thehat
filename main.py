@@ -28,8 +28,11 @@ import handlers.newsfeed_handlers
 import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
+import constants.constants
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
+from google.appengine.api import users
+import handlers.global_dictionary_editor_handlers
 
 
 class MainPage(webapp2.RequestHandler):
@@ -46,6 +49,16 @@ class MainPage(webapp2.RequestHandler):
 routes = [
     (r'/', MainPage),
     (r'/admin', handlers.admin_page_handler.AdminPage),
+    webapp2.Route(
+        r'/global/edit/<id:[-\w]+>',
+        handler=handlers.global_dictionary_editor_handlers.GlobalDictionaryWordList,
+        name='editor'
+    ),
+    webapp2.Route(
+        r'/global/delete',
+        handler=handlers.global_dictionary_editor_handlers.GlobalDictionaryDeleteWord,
+        name='global_delete'
+    ),
     webapp2.Route(
         constants.delete_all_url,
         handler=handlers.complain_word_handlers.DeleteComplainedWords,

@@ -10,13 +10,16 @@ from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
+import constants.constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 from base_handlers.api_request_handlers import APIRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
+import webapp2
+import time
 
 
-class dictionary_updater(AdminRequestHandler):
+class dictionary_updater(webapp2.RequestHandler):
     def post(self):
         str_data = self.request.get('data')
         data = str_data.split('\n') if str_data.find('\n') != -1 else [str_data, ]
@@ -39,14 +42,9 @@ class dictionary_updater(AdminRequestHandler):
             new_word = GlobalDictionaryWord(id=word, word=word, E=E, D=D, tags="")
             new_word.put()
         if changed:
-            server_json = GlobalDictionaryJson.get_by_key_name('json')
-            new_json = GlobalDictionaryWordHandler.make_json()
-            if server_json is None:
-                server_json = GlobalDictionaryJson(key_name='json', json=new_json)
-            else:
-                server_json.json = new_json
-            server_json.put()
-            GlobalDictionaryVersion.update_version()
+            #TODO: i think we must date Json one or two times a day.
+            time.sleep(1)
+            GlobalDictionaryJson.update_json()
 
     @staticmethod
     def run_update(data):
@@ -57,18 +55,8 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GlobalDictionaryWordHandler, self).__init__(*args, **kwargs)
 
-    @staticmethod
-    def make_json():
-        words = []
-        for word in GlobalDictionaryWord.query():
-            to_json = {constants.global_dict_word: word.word,
-                       constants.Expectation: float(word.E),
-                       constants.Dispersion: float(word.D),
-                       constants.Tags: word.tags}
-            words.append(to_json)
-        return json.dumps(words)
-
     def get(self, **kwargs):
+        super(GlobalDictionaryWordHandler, self).get_device_id(**kwargs)
         device_version = int(kwargs.get("version"))
         if device_version == GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")
