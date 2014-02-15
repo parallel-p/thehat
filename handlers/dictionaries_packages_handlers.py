@@ -23,7 +23,6 @@ class ChangeStreamStateHandler(AuthorizedAPIRequestHandler):
         super(ChangeStreamStateHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        super(ChangeStreamStateHandler, self).authorizate(**kwargs)
         subscribe_list = UserStreams.query(ancestor=self.user_key).fetch(1)
         if len(subscribe_list) == 0:
             self.error(404)
@@ -42,7 +41,6 @@ class GetPackagesListHandler(AuthorizedAPIRequestHandler):
         super(GetPackagesListHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GetPackagesListHandler, self).authorizate(**kwargs)
         packages_stream = PackagesStream.query(PackagesStream.id == kwargs.get('stream_id')).fetch(1)
 
         if len(packages_stream) == 0:
@@ -67,7 +65,6 @@ class GetPackageHandler(AuthorizedAPIRequestHandler):
         super(GetPackageHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GetPackageHandler, self).authorizate(**kwargs)
         packages = PackageDictionary.query(PackageDictionary.id == kwargs.get('package_id')).fetch(1)
 
         if len(packages) == 0:

@@ -19,7 +19,6 @@ class ComplainWordHandler(AuthorizedAPIRequestHandler):
         super(ComplainWordHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        super(ComplainWordHandler, self).authorizate(**kwargs)
         complained_word_json_list = \
             json.loads(self.request.get(constants.get_title))
         for current_word_json in complained_word_json_list:

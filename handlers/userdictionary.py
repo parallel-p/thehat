@@ -19,7 +19,6 @@ class UserDictionaryHandler(AuthorizedAPIRequestHandler):
         return word.version if word else 0
 
     def post(self, **kwargs):
-        super(UserDictionaryHandler, self).authorizate(**kwargs)
         changes = json.loads(self.request.get("json"))
         version = self._get_max_version(self.user_key) + 1
         for el in changes:
@@ -34,7 +33,6 @@ class UserDictionaryHandler(AuthorizedAPIRequestHandler):
         self.response.write(version)
 
     def get(self, **kwargs):
-        super(UserDictionaryHandler, self).authorizate(**kwargs)
         version_on_device = int(kwargs.get("version", 0))
         version = self._get_max_version(self.user_key)
         diff = UserDictionaryWord.query(UserDictionaryWord.version >

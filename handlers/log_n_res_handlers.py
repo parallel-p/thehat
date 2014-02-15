@@ -20,7 +20,6 @@ class GameLogHandler(AuthorizedAPIRequestHandler):
         super(GameLogHandler, self).__init__(*args, **kwargs)
 
     def put(self, game_id, **kwargs):
-        super(GameLogHandler, self).authorizate(**kwargs)
         game_key = ndb.Key(GameLog, game_id).get()
         if game_key is not None:
             self.abort(409)
@@ -36,7 +35,6 @@ class GameResultsHandler(AuthorizedAPIRequestHandler):
         super(GameResultsHandler, self).__init__(*args, **kwargs)
 
     def put(self, **kwargs):
-        super(GameResultsHandler, self).authorizate(**kwargs)
         game_id = kwargs.get("game_id")
         results = ndb.Key(Results, game_id).get()
         if results is not None:
@@ -67,7 +65,6 @@ class GameResultsHandler(AuthorizedAPIRequestHandler):
         self.response.set_status(201)
 
     def get(self, **kwargs):
-        super(GameResultsHandler, self).authorizate(**kwargs)
         game_id = kwargs["game_id"]
         result = ndb.Key(Results, game_id).get()
         if result is None:
@@ -82,7 +79,6 @@ class GameResultsUpdateHandler(AuthorizedAPIRequestHandler):
         super(GameResultsUpdateHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(GameResultsUpdateHandler, self).authorizate(**kwargs)
         timestamp = kwargs["timestamp"]
         results = Results.query(Results.players_ids == self.user_key,
                                 Results.timestamp > int(timestamp))

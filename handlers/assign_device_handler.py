@@ -33,7 +33,6 @@ class AssignDeviceHandler(AuthorizedAPIRequestHandler):
         super(AssignDeviceHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        super(AssignDeviceHandler, self).authorizate(*args, **kwargs)
         pin = json.loads(self.request.get('json'))['pin']
         pin = PinNumber.retrive(pin, "assign_device")
         if pin is None:

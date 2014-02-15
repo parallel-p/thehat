@@ -12,7 +12,6 @@ class PreGameCreateHandler(AuthorizedAPIRequestHandler):
         super(PreGameCreateHandler, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(PreGameCreateHandler, self).authorizate(**kwargs)
         game = json.loads(self.request.get('json'))
         game['pin'] = str(random.randint(100000000, 999999999))
         if 'version' not in game:
@@ -37,7 +36,6 @@ class PreGameHandler(AuthorizedAPIRequestHandler):
         super(PreGameHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(PreGameHandler, self).authorizate(**kwargs)
         #TODO: but if we have incorrect game_id?
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
@@ -57,7 +55,6 @@ class PreGameUpdateHandler(AuthorizedAPIRequestHandler):
         super(PreGameUpdateHandler, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(PreGameUpdateHandler, self).authorizate(**kwargs)
         #TODO: but if we have incorrect game_id?
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
@@ -131,7 +128,6 @@ class PreGameVersionHandler(AuthorizedAPIRequestHandler):
         super(PreGameVersionHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(PreGameVersionHandler, self).authorizate(**kwargs)
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
         if self.device_id in game.device_ids:
@@ -146,7 +142,6 @@ class PreGameSinceHandler(AuthorizedAPIRequestHandler):
         super(PreGameSinceHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(PreGameSinceHandler, self).authorizate(**kwargs)
         key_db = ndb.Key(urlsafe=kwargs.get('game_id'))
         game = key_db.get()
         game_struct = json.loads(game.game_json)
@@ -180,7 +175,6 @@ class PreGameStartHandler(AuthorizedAPIRequestHandler):
         super(PreGameStartHandler, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(PreGameStartHandler, self).authorizate(**kwargs)
         PreGame.abort_game(kwargs.get('game_id'))
 
 
@@ -189,7 +183,6 @@ class PreGameAbortHandler(AuthorizedAPIRequestHandler):
         super(PreGameAbortHandler, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(PreGameAbortHandler, self).authorizate(**kwargs)
         PreGame.abort_game(kwargs.get('game_id'))
 
 
@@ -198,7 +191,6 @@ class PreGameJoinHandler(AuthorizedAPIRequestHandler):
         super(PreGameJoinHandler, self).__init__(*args, **kwargs)
 
     def post(self, **kwargs):
-        super(PreGameJoinHandler, self).authorizate(**kwargs)
         pin = str(json.loads(self.request.get('json'))['pin'])
         game = PreGame.query().filter(PreGame.pin == pin).get()
         if game is None:
@@ -227,7 +219,6 @@ class PreGameCurrentHandler(AuthorizedAPIRequestHandler):
         super(PreGameCurrentHandler, self).__init__(*args, **kwargs)
 
     def get(self, **kwargs):
-        super(PreGameCurrentHandler, self).authorizate(**kwargs)
         game_id = CurrentGame.get_current_game(self.device_id)
         if game_id is None:
             self.response.write(json.dumps([]))
