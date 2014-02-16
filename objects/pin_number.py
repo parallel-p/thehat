@@ -46,10 +46,11 @@ class PinNumber(ndb.Model):
                 pin_number.free()
         return pin_number
 
-    def free(self):
+    def free(self, remove_data=True):
         self.used = False
-        if isinstance(self.data, ndb.Key):
+        if remove_data and isinstance(self.data, ndb.Key):
             self.data.delete()
+        self.data = None
         self.put()
 
     def __str__(self):

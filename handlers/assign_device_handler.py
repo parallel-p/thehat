@@ -1,8 +1,6 @@
 __author__ = 'nikolay'
 
-import random
 import json
-import time
 
 import webapp2
 from google.appengine.api import users
@@ -20,8 +18,12 @@ class GeneratePinHandler(WebRequestHandler):
 
     def get(self, *args, **kwargs):
         user = users.get_current_user()
-        user_key = User.query(User.user == user).get(keys_only=True) or User(user=user).put().key
-        pin = PinNumber("assign_device", user_key, 60*60*24)
+        user_key = User.query(User.user_id == user.user_id()).get(keys_only=True) or User(user_id=user.user_id(),
+                                                                                          user_object=user).put()
+        pin = PinNumber.generate("assign_device", user_key, 60*60*24)
+        self.render(pin)
+
+    def render(self, pin):
         template = JINJA_ENVIRONMENT.get_template('templates/generate_pin.html')
         self.response.write(template.render(
             {"pin_code": pin,
@@ -39,16 +41,15 @@ class AssignDeviceHandler(AuthorizedAPIRequestHandler):
             self.error(404)
             return
         user = pin.data.get()
-        device = self.device_key
-        device.parent = user.key
-        device.put()
-        self.response.write(json.dumps({"email": user.user.email()}))
-        pin.free()
+        user.devices.append(self.device_key)
+        user.put()
+        self.response.write(json.dumps({"email": user.user_object.email()}))
+        pin.free(False)
 
 
 assign_device_routes = [
     (r'/generate_pin', GeneratePinHandler),
-    webapp2.Route(r'/<device_id:[-\w]+>/assign_device/',
+    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=AssignDeviceHandler,
                   name='assign_device'),
 ]

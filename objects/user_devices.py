@@ -4,7 +4,9 @@ from google.appengine.ext import ndb
 
 
 class User(ndb.Model):
-    user = ndb.UserProperty()
+    user_id = ndb.StringProperty()
+    user_object = ndb.UserProperty()
+    devices = ndb.KeyProperty(repeated=True)
 
 
 class Device(ndb.Model):
@@ -17,7 +19,8 @@ def get_device(device_id):
 
 def get_user_by_device(device_id):
     device = get_device(device_id)
-    if device.parent() is None:
+    user = User.query(User.devices == device).get(keys_only=True)
+    if user is None:
         return device, device
     else:
-        return device, device.parent()
+        return device, user
