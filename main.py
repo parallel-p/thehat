@@ -59,19 +59,19 @@ routes = [
         name='global_delete'
     ),
     webapp2.Route(
-        constants.delete_all_url,
+        '/admin/complain/clear',
         handler=handlers.complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
     webapp2.Route(
-        constants.delete_current_url,
+        '/admin/complain/cancel',
         handler=handlers.complain_word_handlers.DeleteComplainedWord,
         name='delete_current_complained_word'),
     webapp2.Route(
-        constants.show_complained_url,
+        '/admin/complain/list',
         handler=handlers.complain_word_handlers.ShowComplainedWords,
         name='show_complained_words'),
     webapp2.Route(
-        constants.delete_from_global_url,
+        '/admin/complain/remove',
         handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
         name='delete_from_global'
     ),
@@ -160,9 +160,9 @@ routes = [
     (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
     (r'/html/udict/proc', handlers.userdictionary.ProcWebpage),
     (r'/login', handlers.newsfeed_handlers.LoginPageHandler), # News Feed starts here
-    (r'/addnews', handlers.newsfeed_handlers.AddNewsHandler),
+    (r'/news/add', handlers.newsfeed_handlers.AddNewsHandler),
     (r'/news/(\d+)', handlers.newsfeed_handlers.ShowNewsHandler),
-    (r'/listofnews', handlers.newsfeed_handlers.ListOfNewsHandler),
+    (r'/news/list', handlers.newsfeed_handlers.ListOfNewsHandler),
     (r'/loadnews/(\d+)', handlers.newsfeed_handlers.LoadNewsHandler), # News Feed finishes here
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=handlers.recalc_rating_handler.RecalcRatingHandler,

@@ -61,8 +61,7 @@ class complain_word_test(unittest2.TestCase):
             format(json.dumps([word1, word2]))
         request.method = 'POST'
         request.get_response(main.app)
-        request = webapp2.Request.blank(
-            constants.show_complained_url)
+        request = webapp2.Request.blank('/admin/complain/list')
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
@@ -80,8 +79,7 @@ class complain_word_test(unittest2.TestCase):
         request.get_response(main.app)
         request.get_response(main.app)
 
-        request = webapp2.Request.blank(
-            constants.delete_current_url)
+        request = webapp2.Request.blank('/admin/complain/cancel')
         request.method = 'POST'
         request.body = "word=vasya"
         len_before = ComplainedWord.query().count()
@@ -90,8 +88,7 @@ class complain_word_test(unittest2.TestCase):
         self.assertEqual(response.status_int, 302)  # not 200, because redirrect
         len_after = ComplainedWord.query().count()
         self.assertEqual(len_before, len_after + 2)
-        request = webapp2.Request.blank(
-            constants.delete_all_url)
+        request = webapp2.Request.blank('/admin/complain/clear')
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(ComplainedWord.query().count(), 0)

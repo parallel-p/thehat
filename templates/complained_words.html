@@ -47,7 +47,7 @@
               <a href="/streams">Потоки слов</a>
             </li>
              <li>
-              <a href="/complained">Жалобы на слова</a>
+              <a href="/admin/complain/list">Жалобы на слова</a>
             </li>
           </ul>
           <form class="navbar-form navbar-right">
@@ -101,7 +101,7 @@
                     ;
                 }
             }
-            post('/delete_curr', word);
+            post('/admin/complain/cancel', word);
         }
         function delete_global(word, number)
         {
@@ -116,19 +116,23 @@
                     ;
                 }
             }
-            post('/delete_glob', word);
+            post('/admin/complain/remove', word);
         }
     </script>
     <p align="right"> <a href="/admin"> Взад к админскому интерфейсу </a> </p>
-    <table border="5" width="100%">
-        <tr align="center">
-            <td align="center"><strong>Устройство</strong></td>
-            <td align="center"><strong>Слово</strong></td>
-            <td align="center"><strong>Причина</strong></td>
-            <td align="center"><strong>Замена</strong></td>
-            <td align="center"  valign="center">     <br> <form method="post" action="/delete_all_words"> <input type="submit" value="Игнорировать все"/> </form> </td>
-            <td>  </td>
-        </tr>
+    <div class="container">
+        <div class="left">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Устройство</th>
+                <th>Слово</th>
+                 <th>Причина</th>
+                  <th>Замена</th>
+                  <th>     <br> <form method="post" action="/admin/complain/clear"> <input type="submit" value="Игнорировать все"/> </form> </th>
+              </tr>
+            </thead>
+         <tbody>
         {% for word in words %}
             <tr id="{{ word.word }}_{{ word.cnt }}" >
                 <td>{{ word.device_id }}</td>
@@ -139,6 +143,7 @@
                 <td align="center"> <button onclick="delete_global('{{ word.word }}', '{{ word.cnt }}')"> Удалить из словаря </button> </td>
             </tr>
         {% endfor %}
+        </tbody>
     </table>
   </body>
 
