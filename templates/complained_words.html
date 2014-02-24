@@ -37,6 +37,9 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+              <li>
+              <a href="/admin">Admin</a>
+            </li>
             <li>
               <a href="/admin/dictionary/add">Добавление слов</a>
             </li>
@@ -58,8 +61,11 @@
         </div>
         <!--/.navbar-collapse -->
       </div>
-    </div>
 
+    </div>
+        <div class="container">
+          <h1 align="center">Жалобы на слова</h1>
+        </div>
     <script type="application/javascript">
 
         function getXmlHttp() {
@@ -119,7 +125,6 @@
             post('/admin/complain/remove', word);
         }
     </script>
-    <p align="right"> <a href="/admin"> Взад к админскому интерфейсу </a> </p>
     <div class="container">
         <div class="left">
           <table class="table table-striped">

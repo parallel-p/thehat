@@ -78,4 +78,4 @@ class GlobalWordEditor(AdminRequestHandler):
     def post(self):
         str_data = self.request.get('text').strip()
         dictionary_updater.run_update(str_data)
-        self.redirect('/edit_words')
+        self.redirect('/admin/dictionary/add')

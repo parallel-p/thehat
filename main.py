@@ -59,7 +59,7 @@ routes = [
         name='global_delete'
     ),
     webapp2.Route(
-        '/admin/complain/clear',
+        'complain/clear',
         handler=handlers.complain_word_handlers.DeleteComplainedWords,
         name='delete_complained_words'),
     webapp2.Route(
@@ -109,9 +109,9 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
                   handler=handlers.pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
-    webapp2.Route(r'/admin/streams',
+ webapp2.Route(r'/admin/streams',
                   handler=handlers.dictionaries_packages_admin_handlers.AddStreamHandler,
-                  name='add_stream'),
+                  name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=handlers.dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>'

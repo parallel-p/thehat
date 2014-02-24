@@ -57,6 +57,9 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+              <li>
+              <a href="/admin">Admin</a>
+            </li>
             <li>
               <a href="/admin/dictionary/add">Добавление слов</a>
             </li>
@@ -79,12 +82,15 @@
         <!--/.navbar-collapse -->
       </div>
     </div>
+            <div class="container">
+          <h1 align="center">Добавление слов</h1>
+        </div>
     <div class="container">
 
    <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
         нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
     <center>
-        <form method="post" action="/edit_words">
+        <form method="post" action="/admin/dictionary/add">
         <div>
             <br/> <textarea class="form-control" name="text" rows="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
         </div>
