@@ -53,18 +53,18 @@
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="/admin">Sombrero-admin</a>
+          <a class="navbar-brand" href="/">Sombrero</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li>
-              <a href="/edit_words">Добавление слов</a>
+              <a href="/admin/dictionary/add">Добавление слов</a>
             </li>
             <li>
               <a href="/global/edit/0">Редактирование словаря</a>
             </li>
             <li>
-              <a href="/streams">Потоки слов</a>
+              <a href="/admin/streams">Потоки слов</a>
             </li>
              <li>
               <a href="/admin/complain/list">Жалобы на слова</a>
@@ -79,11 +79,14 @@
         <!--/.navbar-collapse -->
       </div>
     </div>
-    <table width="100%"> <tr> <td width="33%" align="center"> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
-        нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td> <td width="33%" align="center">
-    <form method="post" action="/edit_words">
+    <div class="container">
+
+   <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
+        нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
+    <center>
+        <form method="post" action="/edit_words">
         <div>
-            <br/> <textarea name="text" rows="30" cols="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
+            <br/> <textarea class="form-control" name="text" rows="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
         </div>
         <div id="sendbutton">
         <div id="alertion"></div>
@@ -92,14 +95,18 @@
         <input type="submit" value="Cancel"
                onclick="window.location='/'; return false;"/>
     </form>
+    </center>
     {% if error is defined %}
         <p>
             {{ error }}
         </p>
     {% endif %}
-    </td> <td width="34%" align="center">Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>
-<img src="/img/editing_dict_ok.png" height="249" width="147"> <img src="/img/editing_dict_bad.png" height="249" width="147"><br>
+    </td>
+     </div>
+    <center>
+        <td width="34%" align="center">Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>
 Если формочка подсвечена зеленым, все правильно, если красным - значит, формат нарушен. </td> </tr> </table>
+        </center>
   </body>
 
 </html>

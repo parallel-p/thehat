@@ -75,7 +75,7 @@ routes = [
         handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
         name='delete_from_global'
     ),
-    webapp2.Route(r'/edit_words',
+    webapp2.Route(r'/admin/dictionary/add',
                   handler=handlers.global_dictionary_word_handlers.GlobalWordEditor,
                   name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
@@ -109,6 +109,9 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
                   handler=handlers.pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
+    webapp2.Route(r'/admin/streams',
+                  handler=handlers.dictionaries_packages_admin_handlers.AddStreamHandler,
+                  name='add_stream'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=handlers.dictionaries_packages_handlers.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>'
@@ -121,9 +124,6 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
                   handler=handlers.dictionaries_packages_handlers.GetPackageHandler,
                   name='get_package'),
-    webapp2.Route(r'/streams',
-                  handler=handlers.dictionaries_packages_admin_handlers.AddStreamHandler,
-                  name='add_stream'),
     webapp2.Route(
         r'/streams/<stream_id:[-\w]+>/packages/add',
         handler=handlers.dictionaries_packages_admin_handlers.AddPackageHandler,
