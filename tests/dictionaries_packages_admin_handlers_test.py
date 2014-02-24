@@ -17,20 +17,20 @@ class PackagesHandlersTest(unittest.TestCase):
         self.testbed.setup_env(USER_EMAIL='test@example.com', USER_ID='123', USER_IS_ADMIN='1', overwrite=True)
 
     def test_add_stream_handler(self):
-        request = webapp2.Request.blank('/streams')
+        request = webapp2.Request.blank('/admin/streams')
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
     def test_add_package_handler(self):
         PackagesStream(id='stream_id_1', name='stream1', packages_id_list=[]).put()
-        request = webapp2.Request.blank('/streams/stream_id_1/packages/add')
+        request = webapp2.Request.blank('/admin/streams/stream_id_1/packages/add')
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
     def test_change_words_handler(self):
         PackageDictionary(id='package_id_1', name='package1',
                           release_time=1, words=['apple', 'banana']).put()
-        request = webapp2.Request.blank('/streams/packages/package_id_1/words')
+        request = webapp2.Request.blank('/admin/streams/packages/package_id_1/words')
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 

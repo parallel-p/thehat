@@ -9,7 +9,7 @@ def get_streams():
     streams_list = PackagesStream.query()
     streams = 'id name<br/>'
     for stream in streams_list:
-        streams += "<a href='/streams/" + stream.id + "/packages/add'>" + stream.id + ' ' + stream.name + '</a><br/>'
+        streams += "<a href='/admin/streams/" + stream.id + "/packages/add'>" + stream.id + ' ' + stream.name + '</a><br/>'
 
     return streams
 
@@ -22,7 +22,7 @@ def get_packages(stream_id):
 
     packages = 'id name<br/>'
     for package in packages_list:
-        packages += "<a href='/streams/packages/" + package.id + "/words'>" + \
+        packages += "<a href='/admin/streams/packages/" + package.id + "/words'>" + \
                     package.id + ' ' + package.name + "</a><br/>"
 
     return packages
@@ -42,7 +42,7 @@ class AddStreamHandler(AdminRequestHandler):
             PackagesStream(id=self.request.get('stream_id'), name=self.request.get('stream_name'),
                            packages_id_list=[]).put()
 
-        self.redirect('/streams')
+        self.redirect('/admin/streams')
 
 
 class AddPackageHandler(AdminRequestHandler):
@@ -63,7 +63,7 @@ class AddPackageHandler(AdminRequestHandler):
         if self.request.get('package_id') not in stream.packages_id_list:
             stream.packages_id_list.append(self.request.get('package_id'))
         stream.put()
-        self.redirect('/streams/' + kwargs.get('stream_id') + '/packages/add')
+        self.redirect('/admin/streams/' + kwargs.get('stream_id') + '/packages/add')
 
 
 class ChangeWordsHandler(AdminRequestHandler):
