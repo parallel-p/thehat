@@ -1,7 +1,8 @@
 from google.appengine.ext import ndb
+from objects.user_devices import DeviceSpecificModel
 
 
-class UserDictionaryWord(ndb.Model):
+class UserDictionaryWord(DeviceSpecificModel):
     word = ndb.StringProperty()
     status = ndb.StringProperty(indexed=False, default="")
     dictionary = ndb.IntegerProperty(indexed=False, default=0)
