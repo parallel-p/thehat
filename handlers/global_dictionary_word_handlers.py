@@ -57,7 +57,7 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
 
     def get(self, **kwargs):
         device_version = int(kwargs.get("version"))
-        if device_version == GlobalDictionaryVersion.get_server_version():
+        if device_version >= GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")
         else:
             self.response.write(GlobalDictionaryJson.get_json())
@@ -78,4 +78,4 @@ class GlobalWordEditor(AdminRequestHandler):
     def post(self):
         str_data = self.request.get('text').strip()
         dictionary_updater.run_update(str_data)
-        self.redirect('/admin/dictionary/add')
+        self.redirect('/admin/global_dictionary/add')
