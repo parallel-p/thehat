@@ -57,7 +57,7 @@ class GlobalDictionaryWordHandler(APIRequestHandler):
 
     def get(self, **kwargs):
         device_version = int(kwargs.get("version"))
-        if device_version == GlobalDictionaryVersion.get_server_version():
+        if device_version >= GlobalDictionaryVersion.get_server_version():
             self.response.write("{}")
         else:
             self.response.write(GlobalDictionaryJson.get_json())
