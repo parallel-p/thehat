@@ -80,7 +80,7 @@
         {
             hide(cnt);
             document.getElementById(cnt).textContent += "-deleted";
-            post('/global/delete', word);
+            post('/admin/global_dictionary/delete', word);
         }
 
         function search_words()
@@ -142,10 +142,10 @@
               <a href="/admin">Admin</a>
             </li>
             <li>
-              <a href="/admin/dictionary/add">Добавление слов</a>
+              <a href="/admin/global_dictionary/add">Добавление слов</a>
             </li>
-            <li class="active">
-              <a href="/global/edit/0">Редактирование словаря</a>
+            <li>
+              <a href="/admin/global_dictionary/edit/0">Редактирование словаря</a>
             </li>
             <li>
               <a href="/admin/streams">Потоки слов</a>

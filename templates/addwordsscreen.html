@@ -61,10 +61,10 @@
               <a href="/admin">Admin</a>
             </li>
             <li>
-              <a href="/admin/dictionary/add">Добавление слов</a>
+              <a href="/admin/global_dictionary/add">Добавление слов</a>
             </li>
             <li>
-              <a href="/global/edit/0">Редактирование словаря</a>
+              <a href="/admin/global_dictionary/edit/0">Редактирование словаря</a>
             </li>
             <li>
               <a href="/admin/streams">Потоки слов</a>
@@ -90,7 +90,7 @@
    <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
         нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
     <center>
-        <form method="post" action="/admin/dictionary/add">
+        <form method="post" action="/admin/global_dictionary/add">
         <div>
             <br/> <textarea class="form-control" name="text" rows="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
         </div>

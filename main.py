@@ -49,12 +49,12 @@ routes = [
     (r'/', MainPage),
     (r'/admin', handlers.admin_page_handler.AdminPage),
     webapp2.Route(
-        r'/global/edit/<id:[-\w]+>',
+        r'/admin/global_dictionary/edit/<id:[-\w]+>',
         handler=handlers.global_dictionary_editor_handlers.GlobalDictionaryWordList,
         name='editor'
     ),
     webapp2.Route(
-        r'/global/delete',
+        r'/admin/global_dictionary/delete',
         handler=handlers.global_dictionary_editor_handlers.GlobalDictionaryDeleteWord,
         name='global_delete'
     ),
@@ -75,7 +75,7 @@ routes = [
         handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
         name='delete_from_global'
     ),
-    webapp2.Route(r'/admin/dictionary/add',
+    webapp2.Route(r'/admin/global_dictionary/add',
                   handler=handlers.global_dictionary_word_handlers.GlobalWordEditor,
                   name='edit_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/complain',

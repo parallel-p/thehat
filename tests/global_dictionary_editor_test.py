@@ -34,7 +34,7 @@ class GlobalDictionaryEditorTest(unittest2.TestCase):
         return body[left:right]
 
     def test_get(self):
-        request = webapp2.Request.blank("/global/edit/0")
+        request = webapp2.Request.blank("/admin/global_dictionary/edit/0")
         GlobalDictionaryEditorTest.setCurrentUser('usermail@gmail.com', '1', False)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 302)
