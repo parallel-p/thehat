@@ -31,7 +31,7 @@ class dictionary_updater(webapp2.RequestHandler):
                 splited = word_info.split()
             word = splited[0]
 
-            in_base = ndb.Key(GlobalDictionaryWord, word).get()
+            in_base = GlobalDictionaryWord.query(GlobalDictionaryWord.word == word).get()
             if in_base is not None:
                 continue
             changed = True

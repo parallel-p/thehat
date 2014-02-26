@@ -28,7 +28,7 @@ class GlobalDictionaryWordList(AdminRequestHandler):
         if curr_json is not None:
             for i in json.loads(curr_json.json):
                 word_cnt += 1
-                if i['tags'].find('-deleted') != -1 or word_cnt < id * 200 or word_cnt > (id + 1) * 200:
+                if i['tags'].find('-deleted') != -1 or word_cnt <= id * 200 or word_cnt > (id + 1) * 200:
                     continue
                 word = GlobalDictionaryWord(cnt=num, word=i['word'], E=i['E'], D=i['D'], tags=i['tags'])
                 num += 1
