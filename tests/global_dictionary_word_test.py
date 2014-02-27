@@ -54,8 +54,6 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body.count("E"), 3)
 
-
-
     def tearDown(self):
         self.testbed.deactivate()
 
