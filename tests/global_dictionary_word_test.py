@@ -4,7 +4,7 @@ import webapp2
 from objects.global_dictionary_version import GlobalDictionaryVersion
 from objects.global_dictionary_word import GlobalDictionaryWord
 from google.appengine.ext import testbed
-from base_functions import *
+from tests.base_functions import *
 import unittest2
 
 import main
@@ -38,7 +38,7 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body.count("E"), 2)
 
-        request = make_request("/get_all_words/2", "GET", False)
+        request = make_request("/get_all_words/1", "GET", False)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body.count("E"), 0)
@@ -50,10 +50,9 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body.count("E"), 3)
 
-        request = make_request("/get_all_words/2", "GET", False)
-        response = request.get_response(main.app)
+        request = make_request("/get_all_words/1", "GET", False)
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body.count("E"), 1)
+        self.assertEqual(response.body.count("E"), 3)
 
 
 
