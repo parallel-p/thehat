@@ -40,10 +40,10 @@ class UserDictionaryTestCase(unittest.TestCase):
     def test_get(self):
         new_words = ["hat", "cat", "rat"]
         for word in new_words:
-            UserDictionaryWord(word=word, version=57, device=self.device).put()
+            UserDictionaryWord(word=word, version=57, owner=self.device).put()
         old_words = ["son", "run"]
         for word in old_words:
-            UserDictionaryWord(word=word, version=56, device=self.device).put()
+            UserDictionaryWord(word=word, version=56, owner=self.device).put()
         request = webapp2.Request.blank('/123/api/udict/since/56')
         request.method = "GET"
         response = request.get_response(main.app)

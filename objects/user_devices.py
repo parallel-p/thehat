@@ -13,8 +13,8 @@ class Device(ndb.Model):
     device_id = ndb.StringProperty()
 
 
-class DeviceSpecificModel(ndb.Model):
-    device = ndb.KeyProperty()
+class OwnedModel(ndb.Model):
+    owner = ndb.KeyProperty()
 
     @classmethod
     def query(cls, user, *args, **kwargs):
@@ -23,12 +23,12 @@ class DeviceSpecificModel(ndb.Model):
         if user.kind() == 'User':
             devices = user.get().devices
             devices.append(user)
-            filt = cls.device.IN(devices)
+            filt = cls.owner.IN(devices)
         elif user.kind() == 'Device':
-            filt = cls.device == user
+            filt = cls.owner == user
         else:
             raise ValueError()
-        return super(DeviceSpecificModel, cls).query(filt, *args, **kwargs)
+        return super(OwnedModel, cls).query(filt, *args, **kwargs)
 
 
 def get_device(device_id):
