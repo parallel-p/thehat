@@ -5,7 +5,7 @@ import webapp2
 from google.appengine.ext import testbed
 import main
 from objects.pregame import *
-from tests.pregame_tests.pregame_jsons import CREATE_GAME_JSON, \
+from tests.pregame_jsons import CREATE_GAME_JSON, \
     UPDATE_META_JSON, GAME_JSON, DELETE_PLAYERS_JSON, BROKEN_CREATE_GAME_JSON, \
     BROKEN_DELETE_PLAYERS_JSON, BROKEN_UPDATE_META_JSON
 

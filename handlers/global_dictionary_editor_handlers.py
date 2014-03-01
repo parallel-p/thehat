@@ -1,11 +1,6 @@
 __author__ = 'ivan'
 
-from google.appengine.ext import db
-from google.appengine.api import users
-
-from objects.complained_word import ComplainedWord
 from environment import JINJA_ENVIRONMENT
-import constants
 from objects.global_dictionary_word import GlobalDictionaryWord
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
@@ -16,7 +11,7 @@ import time
 class GlobalDictionaryWordList(AdminRequestHandler):
 
     def __init__(self, *args, **kwargs):
-        super(AdminRequestHandler, self).__init__(*args, **kwargs)
+        super(GlobalDictionaryWordList, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         template = JINJA_ENVIRONMENT.get_template('templates/global_word_editor.html')

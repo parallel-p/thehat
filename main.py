@@ -28,6 +28,7 @@ import handlers.newsfeed_handlers
 import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
+import handlers.web_game_creation_handler
 
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
@@ -42,7 +43,6 @@ class MainPage(webapp2.RequestHandler):
                 {"logout_link": users.create_logout_url('/')}))
         else:
             self.response.write(template.render({"login_link": users.create_login_url('/')}))
-
 
 
 routes = [
@@ -172,7 +172,10 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/json_updater',
                   handler=handlers.global_dictionary_word_handlers.dictionary_updater,
-                  name='json_updater')
+                  name='json_updater'),
+    webapp2.Route(r'/user/create_game',
+                  handler=handlers.web_game_creation_handler.WebGameCreationHandler,
+                  name='create_game')
 ] + handlers.assign_device_handler.assign_device_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)

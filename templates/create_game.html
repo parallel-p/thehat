@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Jumbotron</title>
+    <meta name="viewport" content="width=device-width">
+    <script type="text/javascript" src="http://bootstrap-ru.com/204/assets/js/bootstrap-collapse.js"></script>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
+
+    <style type="text/css">
+      body {
+      padding-top: 50px;
+      padding-bottom: 20px;
+      }
+    </style>
+
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
+    <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <style type='text/css'>
+      body {
+      padding: 10px;
+      }
+    </style>
+    <script type='text/javascript'>//<![CDATA[
+      $(window).load(function(){
+      var $template = $(".template");
+
+      var hash = 2;
+      $(".btn-add-panel").on("click", function () {
+          var $newPanel = $template.clone();
+          var firstname = document.getElementById("player_name").value;
+          document.getElementById("player_name").value = "";
+          $newPanel.removeClass("hidden");
+          $newPanel.find(".collapse").removeClass("in");
+          $newPanel.find(".accordion-toggle").attr("href",  "#" + (++hash))
+                   .text(firstname);
+          $newPanel.find(".panel-collapse").attr("id", hash).addClass("collapse").removeClass("in");
+          if(firstname != "")
+            $("#accordion").append($newPanel.fadeIn());
+      });
+
+      });//]]>
+
+    </script>
+    <script type='text/javascript'>
+        function send_game()
+        {
+
+        }
+    </script>
+  </head>
+  <body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Шляпа</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="/admin">Admin</a>
+                </li>
+            </ul>
+            <form class="navbar-form navbar-right">
+                <div class="form-group"></div>
+                <div class="form-group"></div>
+                <button type="submit" class="btn btn-success">Sign in</button>
+            </form>
+        </div>
+    </div>
+</div>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Создание игры</h1>
+        <p></p>
+      </div>
+    </div>
+    <div class="container">
+      <span class="help-block">Title</span><input type="text" class="form-control clearfix input-sm">
+    </div>
+
+    <div class="container">
+           <span class="help-block">Игроки</span>
+     <input type="text" class="form-control" id="player_name">
+     <br>
+    <button class="btn btn-lg btn-primary btn-add-panel">
+    <i class="glyphicon glyphicon-plus"></i> Добавить игрока
+    </button>
+
+      <!-- Example row of columns -->
+      <div class="row"></div>
+      <div class="panel-group" id="accordion">
+      <div class="panel panel-default template hidden">
+        <div class="panel-heading">
+          <h4 class="panel-title">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+            Collapsible Group Item #2 (template panel)
+            </a>
+          </h4>
+        </div>
+        <div id="collapseThree" class="panel-collapse collapse">
+          <div class="panel-body">
+              <textarea class="form-control input-block-level" rows="8"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <form class="form-horizontal" role="form">
+        <div class="form-group">
+            <label for="time_per_round" class="col-sm-2 control-label">Time per round</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" min="0" step="1" id="time_per_round">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="words_per_player" class="col-sm-2 control-label">Words per player</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" min="0" step="1" id="words_per_player">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="skip_count" class="col-sm-2 control-label">Skip count</label>
+            <div class="col-sm-10">
+              <input type="number" class="form-control" min="0" step="1" id="skip_count">
+            </div>
+        </div>
+    </form>
+      <hr>
+      <footer>
+        <p>&copy; Company 2013</p>
+      </footer>
+    </div>
+    <!-- /container -->
+  </body>
+</html>
