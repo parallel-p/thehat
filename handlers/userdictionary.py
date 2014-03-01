@@ -18,10 +18,8 @@ class UserDictionaryHandler(AuthorizedAPIRequestHandler):
         for el in changes:
             current_word = (UserDictionaryWord.query(self.user_key, UserDictionaryWord.word ==
                                                      el["word"]).get() or
-                            UserDictionaryWord(device=self.device_key))
-            current_word.status = el["status"]
-            current_word.word = el["word"]
-            current_word.version = version
+                            UserDictionaryWord(owner=self.device_key))
+            current_word.populate(version=version, **el)
             current_word.put()
         self.response.write(version)
 
@@ -31,7 +29,7 @@ class UserDictionaryHandler(AuthorizedAPIRequestHandler):
         diff = UserDictionaryWord.query(self.user_key, UserDictionaryWord.version >
                                         version_on_device)
         self.response.write(json.dumps({"version": version,
-                                        "words": [el.to_dict(exclude=('device',))
+                                        "words": [el.to_dict(exclude=('owner',))
                                                   for el in diff]}))
 
 

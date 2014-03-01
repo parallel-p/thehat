@@ -12,11 +12,11 @@ indexes:
 
 - kind: UserDictionaryWord
   properties:
-  - name: device
+  - name: owner
   - name: version
 
 - kind: UserDictionaryWord
   properties:
-  - name: device
+  - name: owner
   - name: version
     direction: desc
