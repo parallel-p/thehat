@@ -1,33 +1,21 @@
 <!doctype html>
 <html>
   <head>
-    <title>Jumbotron</title>
+    <title>Шляпа::Создание игры</title>
     <meta name="viewport" content="width=device-width">
-    <script type="text/javascript" src="http://bootstrap-ru.com/204/assets/js/bootstrap-collapse.js"></script>
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css">
-    <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
 
-    <style type="text/css">
-      body {
-      padding-top: 50px;
-      padding-bottom: 20px;
-      }
-    </style>
+    <script src="http://bootstrap-ru.com/204/assets/js/bootstrap-modal.js   "></script>
+    <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
 
     <script type='text/javascript' src='http://code.jquery.com/jquery-1.8.3.js'></script>
     <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <script type='text/javascript' src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-    <style type='text/css'>
-      body {
-      padding: 10px;
-      }
-    </style>
+
     <script type='text/javascript'>//<![CDATA[
       $(window).load(function(){
       var $template = $(".template");
 
-      var hash = 2;
+      var hash = 0;
       $(".btn-add-panel").on("click", function () {
           var $newPanel = $template.clone();
           var firstname = document.getElementById("player_name").value;
@@ -35,21 +23,102 @@
           $newPanel.removeClass("hidden");
           $newPanel.find(".collapse").removeClass("in");
           $newPanel.find(".accordion-toggle").attr("href",  "#" + (++hash))
-                   .text(firstname);
+                   .text(firstname).attr("id", "name"+hash);
           $newPanel.find(".panel-collapse").attr("id", hash).addClass("collapse").removeClass("in");
+          $newPanel.find(".form-control").attr("id", "words"+hash);
           if(firstname != "")
             $("#accordion").append($newPanel.fadeIn());
       });
 
       });//]]>
 
-    </script>
-    <script type='text/javascript'>
-        function send_game()
-        {
 
+    </script>
+    <script type="application/javascript">
+
+        function getXmlHttp() {
+            var xmlhttp;
+            try {
+              xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+            try {
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+              xmlhttp = false;
+            }
+            }
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+              xmlhttp = new XMLHttpRequest();
+            }
+            return xmlhttp;
+          }
+        var xmlhttp = getXmlHttp();
+        function post(url, json)
+        {
+            // alert(xmlhttp);
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+            xmlhttp.send("json=" + json); // Отправляем POST-запрос
+        }
+
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState == 4) {
+                var response = JSON.parse(xmlhttp.responseText);
+                $('#myModal').find(".text-warning").text("pin : " +response["pin"]);
+                $('#myModal').modal('show');
+            }
         }
     </script>
+    <script type='application/javascript'>
+        function get_words(id)
+        {
+            var words = [];
+            var text_area_value = document.getElementById("words"+id).value;
+            var strings = text_area_value.split("\n");
+            var all_words = []
+            for(var i = 0; i < strings.length; ++i)
+                all_words = all_words.concat(strings[i].split(" "));
+            while (all_words.indexOf('') != -1)
+              all_words.splice(all_words.indexOf(''), 1);
+
+            for(var num = 0; num < all_words.length; ++num)
+            {
+                var curr_word = {}
+                curr_word["text"] = all_words[num];
+                curr_word["origin"] = "MANUAL_INPUT";
+                words.push(curr_word);
+            }
+            return words;
+        }
+
+        function send_game()
+        {
+            var curr_json = {};
+            curr_json["title"] = document.getElementById("title").value;
+            var players = []
+            var count = document.getElementsByClassName("accordion-toggle").length - 1;
+            var order = []
+            for(var i = 1; i <= count; ++i)
+            {
+                var player = {}
+                order.push(i.toString());
+                player["name"] = document.getElementById("name"+i.toString()).text;
+                player["id"] = i;
+                player["words"] = get_words(i);
+                players.push(player);
+            }
+            var meta = {}
+            meta["time_per_round"] = document.getElementById("time_per_round").value;
+            meta["words_per_player"] = document.getElementById("words_per_player").value;
+            meta["skip_count"] = document.getElementById("skip_count").value;
+            curr_json["players"] = players;
+            curr_json["version"] = 0;
+            curr_json["order"] = order;
+            curr_json["meta"] = meta;
+            post("/web/pregame/create", JSON.stringify(curr_json));
+        }
+    </script>
+
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -74,6 +143,7 @@
         </div>
     </div>
 </div>
+
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
@@ -81,15 +151,39 @@
         <p></p>
       </div>
     </div>
+    <div class="bs-example">
+
+    <!-- Modal HTML -->
+    <div id="myModal" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">Congratulations!</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Ваша игра создана</p>
+                    <p class="text-warning" id="id"><small>If you don't save, your changes will be lost.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" onclick="location.href='/'">Закрыть</button>
+                    <button type="button" class="btn btn-primary" onclick="location.href='/user/create_game'">Создать еще одну игру</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal HTML -->
     <div class="container">
-      <span class="help-block">Title</span><input type="text" class="form-control clearfix input-sm">
+      <span class="help-block">Название</span><input type="text" class="form-control clearfix input-sm" id="title">
     </div>
 
     <div class="container">
            <span class="help-block">Игроки</span>
      <input type="text" class="form-control" id="player_name">
      <br>
-    <button class="btn btn-lg btn-primary btn-add-panel">
+    <button class="btn btn-lg btn-primary btn-add-panel btn-block">
     <i class="glyphicon glyphicon-plus"></i> Добавить игрока
     </button>
 
@@ -99,14 +193,14 @@
       <div class="panel panel-default template hidden">
         <div class="panel-heading">
           <h4 class="panel-title">
-            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
-            Collapsible Group Item #2 (template panel)
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" id="0">
+            template
             </a>
           </h4>
         </div>
         <div id="collapseThree" class="panel-collapse collapse">
           <div class="panel-body">
-              <textarea class="form-control input-block-level" rows="8"></textarea>
+              <textarea class="form-control input-block-level" rows="8" id="words0"></textarea>
           </div>
         </div>
       </div>
@@ -116,22 +210,23 @@
         <div class="form-group">
             <label for="time_per_round" class="col-sm-2 control-label">Time per round</label>
             <div class="col-sm-10">
-              <input type="number" class="form-control" min="0" step="1" id="time_per_round">
+              <input type="number" class="form-control" min="0" step="1" id="time_per_round" value="20">
             </div>
         </div>
         <div class="form-group">
             <label for="words_per_player" class="col-sm-2 control-label">Words per player</label>
             <div class="col-sm-10">
-              <input type="number" class="form-control" min="0" step="1" id="words_per_player">
+              <input type="number" class="form-control" min="0" step="1" id="words_per_player" value="5">
             </div>
         </div>
         <div class="form-group">
             <label for="skip_count" class="col-sm-2 control-label">Skip count</label>
             <div class="col-sm-10">
-              <input type="number" class="form-control" min="0" step="1" id="skip_count">
+              <input type="number" class="form-control" min="0" step="1" id="skip_count" value="1">
             </div>
         </div>
-    </form>
+        </form>
+          <button onclick="send_game()" type="button" class="btn btn-success btn-lg btn-block" >Создать</button>
       <hr>
       <footer>
         <p>&copy; Company 2013</p>
