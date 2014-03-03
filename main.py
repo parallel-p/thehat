@@ -29,6 +29,7 @@ import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
 import handlers.web_game_creation_handler
+import handlers.link_device
 
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
@@ -157,6 +158,9 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/api/udict',
                   handler=handlers.userdictionary.UserDictionaryHandler,
                   name='udict_get'),
+    webapp2.Route(r'/<device_id:[-\w]+>/api/linkdevice',
+                  handler=handlers.link_device.LinkDevice,
+                  name='linkdevice'),
     (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
     (r'/html/udict/proc', handlers.userdictionary.ProcWebpage),
     (r'/login', handlers.newsfeed_handlers.LoginPageHandler), # News Feed starts here
