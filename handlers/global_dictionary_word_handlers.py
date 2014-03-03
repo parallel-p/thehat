@@ -1,22 +1,17 @@
-import constants
-
 __author__ = 'ivan'
 
-import json
+import time
 
 from google.appengine.api import taskqueue
 from google.appengine.api import users
-from google.appengine.ext import ndb
+import webapp2
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.global_dictionary_version import GlobalDictionaryVersion
-import constants
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
-import webapp2
-import time
 
 
 class dictionary_updater(webapp2.RequestHandler):

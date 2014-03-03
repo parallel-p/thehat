@@ -1,5 +1,3 @@
-import constants
-
 __author__ = 'denspb'
 
 from google.appengine.api import users

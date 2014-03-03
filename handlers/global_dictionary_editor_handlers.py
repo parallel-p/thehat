@@ -1,11 +1,12 @@
 __author__ = 'ivan'
 
+import json
+import time
+
 from environment import JINJA_ENVIRONMENT
 from objects.global_dictionary_word import GlobalDictionaryWord
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-import json
-import time
 
 
 class GlobalDictionaryWordList(AdminRequestHandler):

@@ -17,8 +17,7 @@
 import webapp2
 from google.appengine.api import users
 
-import constants
-import handlers.pregame_handlers
+import handlers
 import handlers.dictionaries_packages_handlers
 import handlers.dictionaries_packages_admin_handlers
 import handlers.userdictionary
@@ -30,9 +29,11 @@ import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
 import handlers.web_game_creation_handler
 import handlers.link_device
+import handlers.statistics.word_statistics_handler
 
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
+import handlers.pregame_handlers
 import handlers.global_dictionary_editor_handlers
 
 
@@ -47,6 +48,9 @@ class MainPage(webapp2.RequestHandler):
 
 
 routes = [
+    webapp2.Route(r'/stat',
+        handler=handlers.statistics.word_statistics_handler.WordStatisticsHandler,
+        name='stats'),
     (r'/', MainPage),
     (r'/admin', handlers.admin_page_handler.AdminPage),
     webapp2.Route(
