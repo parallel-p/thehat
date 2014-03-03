@@ -27,7 +27,6 @@ class RecalcRatingTest(unittest.TestCase):
         request.body = "json=%s" % json.dumps(game_words)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body, "OK, 5 words rated")
         last_rating = 100
         for i in range(5):
             word_db = ndb.Key(GlobalDictionaryWord, str(i)).get()
