@@ -2,11 +2,7 @@ __author__ = 'ivan'
 
 
 from environment import JINJA_ENVIRONMENT
-from objects.global_dictionary_word import GlobalDictionaryWord
 from handlers.base_handlers.web_request_handler import WebRequestHandler
-from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-import json
-import time
 
 
 class WebGameCreationHandler(WebRequestHandler):
