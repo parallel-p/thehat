@@ -36,7 +36,7 @@ function add_word()
 <li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
 {% endfor %}
 </ol>
-<input type="text" id="inp"><a onclick="add_word()">+</a>
+<input type="text" id="inp"><button onclick="add_word()">+</button>
 <br/>
-<a onclick="submit()">Готово</a>
+<button onclick="submit()">Готово</button>
 {% endblock %}

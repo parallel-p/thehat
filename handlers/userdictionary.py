@@ -54,9 +54,8 @@ class ProcWebpage(WebRequestHandler):
         super(ProcWebpage, self).__init__(*args, **kwargs)
 
     def post(self):
-        added = self.request.get("added[]", allow_multiple=True)
-        removed = self.request.get("removed[]", allow_multiple=True)
-        print(added, removed)
+        added = self.request.get_all("added[]")
+        removed = self.request.get_all("removed[]")
         version = _get_max_version(self.user_key) + 1
         for word in removed:
             w = UserDictionaryWord.query(self.user_key, UserDictionaryWord.word == word).get()
@@ -64,7 +63,7 @@ class ProcWebpage(WebRequestHandler):
             w.version = version
             w.put()
         for word in added:
-            UserDictionaryWord(word=word, status="ok", owner=self.user_key).put()
+            UserDictionaryWord(word=word, status="ok", version=version, owner=self.user_key).put()
 
 
 def merge_data(user, device):
