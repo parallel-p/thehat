@@ -35,5 +35,5 @@ class AssignDeviceTestCase(unittest.TestCase):
         request.body = 'json={"pin": "%s"}' % self.pin
         response = request.get_response(main.app)
         self.assertEqual(response.status_code, 200)
-        device, user_after = get_user_by_device('123')
+        device, user_after = get_device_and_user('123')
         self.assertEqual(user_after, self.user)

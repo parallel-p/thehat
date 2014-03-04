@@ -1,47 +1,42 @@
 {% extends "templates/base.html" %}
 {% block title %}Редактирование личного словаря :: Шляпа{% endblock %}
+{% block head %}<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>{% endblock %}
 {% block contentheader %}Личный словарь{% endblock %}
 
 {% block content %}
 <script type="application/javascript">
-    function validate()
-    {
-        words = document.getElementById("words").value;
-        var separated_words = words.split("\n");
-        var check_ok = 1;
-        for (var i = 0; i < separated_words.length; i = i + 1)
-        {
-            // alert((separated_words[i].split(" ").length - 1));
-            if ((separated_words[i].split(" ").length - 1) > 0)
-            {
-                check_ok = 0;
-            }
-        }
-        if (check_ok == 0)
-        {
-            document.getElementById("words").style.color = "red";
-            document.getElementById("sendbutton").style.display = "none";
-        }
-        else
-        {
-            document.getElementById("words").style.color = "green";
-            document.getElementById("sendbutton").style.display = "block";
-        }
-    }
+function submit()
+{
+    var removed = [];
+    $.each($(".word"), function(i, el) {
+        if (!$(el).prop("checked"))
+            removed[removed.length] = $(el).attr("data-word");
+    });
+    var added = [];
+    $.each($(".new-word"), function(i, el) {
+        added[added.length] = $(el).attr("data-word");
+    });
+    $.post("/html/udict/proc", {"added": added, "removed": removed}).done(function (d) {
+    location.reload(true);
+    });
+}
+function add_word()
+{
+    inp = $("#inp");
+    if (inp.val() == "")
+        return;
+    $("#word_list").append('<li class="new-word" data-word="'+inp.val()+'">'+inp.val()+'</li>');
+    inp.val("")
+}
 </script>
-
-    <div id="debug"></div>
-
-    <table width="100%"> <tr> <td width="33%" align="center">
-    <strong> Вы можете редактировать Ваш личный словарь. Вы можете удалить, добавить или отредактировать каждое слово. </strong>
-</td> <td width="33%" align="center">
-    <form method="post" action="/html/udict/proc">
-    <input type="hidden" name="user" value="{{ USER }}">
-    <textarea name="words" cols="30" rows="30" onchange="validate()" onkeyup="validate()" id="words" style="color: green">{%  for word in words %}{{ word.word }}
-{% endfor %}</textarea> <br> <br> <br>
-    <div id="sendbutton"> <input type="submit" value="Привнести изменения"> </div>
-    </form>
-    </td> <td width="34%"> Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>
-<img src="/img/editing_dict_ok.png" height="249" width="147"> <img src="/img/editing_dict_bad.png" height="249" width="147"><br>
-Если формочка подсвечена зеленым, все правильно, если красным - значит, формат нарушен.</td>
+<strong> Вы можете редактировать Ваш личный словарь.</strong>
+<input type="hidden" name="user" value="{{ USER }}">
+<ol id="word_list">
+{%  for word in words %}
+<li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
+{% endfor %}
+</ol>
+<input type="text" id="inp"><a onclick="add_word()">+</a>
+<br/>
+<a onclick="submit()">Готово</a>
 {% endblock %}

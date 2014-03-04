@@ -1,7 +1,7 @@
 __author__ = 'ivan'
 
 from generic_handler import GenericHandler
-from objects.user_devices import get_user_by_device
+from objects.user_devices import get_device_and_user
 
 
 class APIRequestHandler(GenericHandler):
@@ -21,7 +21,7 @@ class AuthorizedAPIRequestHandler(APIRequestHandler):
         if self.device_id is None:
             self.response.headers.add("WWW-Authenticate", "device-id")
             self.abort(401)
-        self.device_key, self.user_key = get_user_by_device(self.device_id)
+        self.device_key, self.user_key = get_device_and_user(self.device_id)
         super(APIRequestHandler, self).dispatch()
 
 

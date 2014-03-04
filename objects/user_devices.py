@@ -35,7 +35,12 @@ def get_device(device_id):
     return Device.query(Device.device_id == device_id).get(keys_only=True) or Device(device_id=device_id).put()
 
 
-def get_user_by_device(device_id):
+def get_user(user_object):
+    return User.query(User.user_id == user_object.user_id()).get(keys_only=True) or User(user_id=user_object.user_id(),
+                                                                                         user_object=user_object).put()
+
+
+def get_device_and_user(device_id):
     device = get_device(device_id)
     user = User.query(User.devices == device).get(keys_only=True)
     if user is None:

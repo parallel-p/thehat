@@ -5,7 +5,7 @@ import time
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-from objects.user_devices import get_user_by_device
+from objects.user_devices import get_device_and_user
 from objects.pin_number import PinNumber
 from objects.game_results_log import GameLog, Results, SavedGame
 from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
@@ -55,7 +55,7 @@ class GameResultsHandler(AuthorizedAPIRequestHandler):
             devices = pregame.device_ids
         else:
             devices = [self.device_id]
-        players_ids = [get_user_by_device(device)[1] for device in devices]
+        players_ids = [get_device_and_user(device)[1] for device in devices]
         results = Results(id=game_id)
         results.results_json = results_json
         results.players_ids = players_ids

@@ -6,7 +6,7 @@ from google.appengine.ext import testbed, ndb
 
 import main
 from objects.user_dictionary_word import UserDictionaryWord
-from objects.user_devices import get_user_by_device, User, Device
+from objects.user_devices import get_device_and_user, User, Device
 
 
 class UserDictionaryTestCase(unittest.TestCase):
@@ -15,7 +15,7 @@ class UserDictionaryTestCase(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-        self.device, self.user = get_user_by_device("123")
+        self.device, self.user = get_device_and_user("123")
 
     def test_post(self):
         REQUEST_DATA = ['''[{"word": "hat", "status": "ok"},

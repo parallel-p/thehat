@@ -165,6 +165,9 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/api/linkdevice',
                   handler=handlers.link_device.LinkDevice,
                   name='linkdevice'),
+    webapp2.Route(r'/internal/linkdevice',
+                  handler=handlers.link_device.LinkDeviceMaintainConsistency,
+                  name='internal_linkdevice'),
     (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
     (r'/html/udict/proc', handlers.userdictionary.ProcWebpage),
     (r'/login', handlers.newsfeed_handlers.LoginPageHandler), # News Feed starts here

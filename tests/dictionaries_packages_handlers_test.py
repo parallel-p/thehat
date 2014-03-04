@@ -7,7 +7,7 @@ from google.appengine.ext import testbed
 import main
 from objects.dictionaries_packages import PackageDictionary, PackagesStream
 from objects.user_streams import UserStreams
-from objects.user_devices import get_user_by_device
+from objects.user_devices import get_device_and_user
 
 
 class PackagesHandlersTest(unittest.TestCase):
@@ -44,7 +44,7 @@ class PackagesHandlersTest(unittest.TestCase):
         self.assertEqual(response_struct, right)
 
     def test_change_stream_state_handler(self):
-        UserStreams(parent=get_user_by_device('device_id_1')[1], streams=['2', '3']).put()
+        UserStreams(parent=get_device_and_user('device_id_1')[1], streams=['2', '3']).put()
         request = webapp2.Request.blank(r'/device_id_1/streams/1/to/true')
         request.method = 'POST'
         response = request.get_response(main.app)
