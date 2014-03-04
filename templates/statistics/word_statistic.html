@@ -6,51 +6,13 @@
       <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
       <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
       <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-      <!-- graph header -->	
-      <script type="text/javascript">
-         (function() {
-         	var dMode		= document.documentMode;
-         	var className	= "";
-         	if ( dMode ) {
-         		if ( dMode < 9 ) {
-         			className += ' ieLT9 ';
-         		}
-         		className += 'ie' + dMode;
-         		document.getElementById('__html').setAttribute('class',className);
-         	}
-         })();
-      </script>
-      <!-- META PROFILE / PINGBACK -->
-      <link rel="profile" href="http://gmpg.org/xfn/11">
-      <link rel="pingback" href="http://www.amcharts.com/xmlrpc.php">
-      <script type="text/javascript">
-         var ajaxurl = 'http://www.amcharts.com/wp-admin/admin-ajax.php';
-         var homeurl = 'http://www.amcharts.com';
-      </script>
-      <link rel="canonical" href="http://www.amcharts.com/demos/line-chart-with-scroll-and-zoom/" />
-      <meta property="og:locale" content="en_US" />
-      <meta property="og:type" content="article" />
-      <meta property="og:title" content="Line Chart with Scroll and Zoom - amCharts" />
-      <meta property="og:description" content="All our serial charts (and actually XY chart too) can be zoomed-in, scrolled and panned. All you have to do is add a scrollbar to the chart. This is one of the most important features of charts, especially when dealing with large data sets. Right approach to zooming When displaying a zoomed-in chart we do &hellip;" />
-      <meta property="og:url" content="http://www.amcharts.com/demos/line-chart-with-scroll-and-zoom/" />
-      <meta property="og:site_name" content="amCharts" />
-      <meta property="article:published_time" content="2014-01-07T14:51:36+00:00" />
-      <meta property="article:modified_time" content="2014-02-08T09:06:33+00:00" />
-      <link rel="alternate" type="application/rss+xml" title="amCharts &raquo; Feed" href="http://feeds.feedburner.com/amcharts/" />
-      <link rel="alternate" type="application/rss+xml" title="amCharts &raquo; Comments Feed" href="http://www.amcharts.com/comments/feed/" />
-      <link rel='stylesheet' type='text/css' media='all' href='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/download-monitor/assets/css/frontend.css,wp-content/plugins/nextend-facebook-connect/buttons/facebook-btn.css,wp-content/plugins/nextend-google-connect/buttons/google-btn.css,wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.css,wp-content/themes/amcharts/static/vendor/fontawesome/font-awesome.min.css,wp-content/themes/amcharts/static/css/core.css,wp-content/themes/amcharts/static/vendor/codemirror/lib/codemirror.css' />
-      <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js?ver=1.8.1'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-includes/js/jquery/jquery-migrate.min.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/amcharts.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/ammap_amcharts_extension.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/worldLow.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/continentsLow.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/usaLow.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/exporting/amexport_combined.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/js/core.js,lib/3/pie.js,lib/3/serial.js,lib/3/amstock.js,lib/3/funnel.js,lib/3/gauge.js,lib/3/radar.js,lib/3/xy.js,wp-content/themes/amcharts/static/vendor/codemirror/lib/codemirror.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/javascript/javascript.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/css/css.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/xml/xml.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/htmlmixed/htmlmixed.js,wp-content/themes/amcharts/static/js/demo.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.js'></script>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/anti-captcha/anti-captcha-0.3.js.php?ver=db64f68dee27eb08d29117c7da678f81'></script>
-      <!-- -->
+      <!--amcharts imports-->
+      <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+		<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+		<script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
+		<script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
+      <!--amcharts import end-->
+      
    </head>
    <body>
       <div class="navbar navbar-default">
@@ -73,151 +35,343 @@
                   <button type="submit" class="btn btn-success">Sign in</button>
                </form>
             </div>
-            <!--/.navbar-collapse -->
          </div>
       </div>
       <div class="container">
          <h1>Статистика</h1>
-      
       <div class="row">
-         <div class="col-6 col-sm-6 col-lg-4">
-            <input type="text" class="form-control">
-            <div class="app-body">
-               <div class="demo-body">
-                  <div id="style_css">
-                     <style type="text/css">#chartdiv {
-                        width	: 45%;
-                        height	: 500px;
-                        }		
-                     </style>
-                  </div>
-                  <div class="col-sm-12">
-                     <div class="demo-flipper">
-                        <div class="demo-flipper-container">
-                           <div class="demo-flipper-front demo-panel-white fx-all-250">
-                              <div id="container_html" class="chart-reset overflow-auto" style="height: 100%;"></div>
-                           </div>
-                           <div class="demo-flipper-back demo-panel-white fx-all-250">
-                              <form id="jsfiddle" target="_amcharts" method="post" action="http://jsfiddle.net/api/post/library/pure/">
-                                 <ul class="nav nav-tabs">
-                                    <li class="active"><a href="#javascript" data-toggle="tab">Javascript</a></li>
-                                    <li><a href="#html" data-toggle="tab">HTML</a></li>
-                                    <li><a href="#css" data-toggle="tab">CSS</a></li>
-                                    <li><a href="#resources" data-toggle="tab">Resources</a></li>
-                                    <li class="pull-right"><a href="#" class="demo-flipper-jsfiddle">Open in JSFiddle</a></li>
-                                 </ul>
-                                 <div class="tab-content position-relative">
-                                    <div id="javascript" class="tab-pane overflow-auto active">
-                                       <div id="editor_js" style="height: 437px;"></div>
-                                       <textarea id="code_js" name="js" class="hidden">
-var chartData = generateChartData();
-var chart = AmCharts.makeChart("chartdiv", {
-    "type": "serial",
-    "theme": "light",
-    "pathToImages": "http://www.amcharts.com/lib/3/images/",
-    "dataProvider": chartData,
-    "valueAxes": [{
-        "axisAlpha": 0.2,
-        "dashLength": 1,
-        "position": "left"
-    }],
-    "graphs": [{
-        "id":"g1",
-        "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>value: [[value]]</span></b>",
-        "bullet": "round",
-        "bulletBorderAlpha": 1,
-		"bulletColor":"#FFFFFF",
-        "hideBulletsCount": 50,
-        "title": "red line",
-        "valueField": "visits",
-		"useLineColorForBulletBorder":true
-    }],
-    "chartScrollbar": {
-        "autoGridCount": true,
-        "graph": "g1",
-        "scrollbarHeight": 40
-    },
-    "chartCursor": {
-        "cursorPosition": "mouse"
-    },
-    "categoryField": "date",
-    "categoryAxis": {
-        "parseDates": true,
-        "axisColor": "#DADADA",
-        "dashLength": 1,
-        "minorGridEnabled": true
-    },
-	"exportConfig":{
-	  menuRight: '20px',
-      menuBottom: '30px',
-      menuItems: [{
-      icon: 'http://www.amcharts.com/lib/3/images/export.png',
-      format: 'png'
-      }]
-	}
-});
-
-chart.addListener("rendered", zoomChart);
-zoomChart();
-
-// this method is called when chart is first inited as we listen for "dataUpdated" event
-function zoomChart() {
-    // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
-    chart.zoomToIndexes(chartData.length - 40, chartData.length - 1);
-}
-
-
-// generate some random data, quite different range
-function generateChartData() {
-    var chartData = [];
-    var firstDate = new Date();
-    firstDate.setDate(firstDate.getDate() - 5);
-
-    for (var i = 0; i < 1000; i++) {
-        var newDate = new Date(firstDate);
-        newDate.setDate(newDate.getDate() + i);
-
-        var visits = Math.round(i);
-
-        chartData.push({
-            date: newDate,
-            visits: visits
-        });
-    }
-    return chartData;
-}
-</textarea>
-                                    </div>
-                                    <div id="html" class="tab-pane overflow-auto">
-                                       <div id="editor_html" style="height: 437px;"></div>
-                                       <textarea id="code_html" name="html" class="hidden"><div id="chartdiv"></div>		</textarea>
-                                    </div>
-                                    <div id="css" class="tab-pane overflow-auto">
-                                       <div id="editor_css" style="height: 437px;"></div>
-                                       <textarea id="code_css" name="css" class="hidden">#chartdiv {
-	width	: 100%;
-	height	: 500px;
-}		</textarea>
-                                    </div>
-                                    <div id="resources" class="tab-pane overflow-auto">
-                                       <div id="editor_resources" style="height: 437px;"></div>
-                                       <textarea id="code_resources" name="resourcesDEF" class="hidden">&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/amcharts.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/serial.js&quot;&gt;&lt;/script&gt;
-&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/themes/none.js&quot;&gt;&lt;/script&gt;
-</textarea>
-                                    </div>
-                                 </div>
-                              </form>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-         <div class="col-6 col-sm-6 col-lg-4"><textarea rows="8"></textarea></div>
+			<div class="col-md-10">
+				<input type="text" class="form-control">
+			</div>   
+			<div class="col-md-2">
+			<a class="btn btn-primary btn-block">Найти</a>
+			</div>   
+      </div>
+          
+      <div class="row">
+      	<div class="col-md-6">
+      		<script type="text/javascript">
+            var diff_chart;
+            var diff_arrow;
+            var diff_axis;
+            
+            AmCharts.ready(function () {
+                // create angular gauge
+                diff_chart = new AmCharts.AmAngularGauge();
+                diff_chart.addTitle("Сложность");
+            
+                // create axis
+                diff_axis = new AmCharts.GaugeAxis();
+                diff_axis.startValue = 0;
+					 diff_axis.axisThickness = 1;
+                diff_axis.endValue = 220;
+                // color bands
+                var diff_band1 = new AmCharts.GaugeBand();
+                diff_band1.startValue = 0;
+                diff_band1.endValue = 90;
+                diff_band1.color = "#00CC00";
+                
+                var diff_band2 = new AmCharts.GaugeBand();
+                diff_band2.startValue = 90;
+                diff_band2.endValue = 130;
+                diff_band2.color = "#ffac29";
+                
+                var diff_band3 = new AmCharts.GaugeBand();
+                diff_band3.startValue = 130;
+                diff_band3.endValue = 220;
+                diff_band3.color = "#ea3838";
+                diff_band3.innerRadius = "95%";
+                
+                diff_axis.bands = [diff_band1, diff_band2, diff_band3];
+                
+                // bottom text
+                diff_axis.bottomTextYOffset = -20;
+                diff_axis.setBottomText("0 km/h");
+                diff_chart.addAxis(diff_axis);
+            
+                // gauge arrow
+                diff_arrow = new AmCharts.GaugeArrow();
+                diff_chart.addArrow(diff_arrow);
+                diff_arrow.setValue(90);
+            
+                diff_chart.write("diff_chartdiv");
+            });					
+        </script>
+        <div id="diff_chartdiv" style="height:250px;"></div>
+      	</div>
+      	<div class="col-md-6">
+      	<br>
+      	 <table class="table">
+            <tbody>
+              <tr>
+                <td><p class="text-info">Общее количество попыток</p></td>
+                <td>300</td>
+              </tr>
+              <tr>
+                <td><p class="text-info">Среднее количество попыток</p></td>
+                <td>10</td>
+              </tr>
+              <tr>
+                <td><p class="text-info">Суммарное время отгадывания</p></td>
+                <td>3000</td>
+              </tr>
+              <tr>
+                <td><p class="text-info">Среднее время отгадывания</p></td>
+                <td>10</td>
+              </tr>
+					
+            </tbody>
+          </table>
       </div>
       </div>
-      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.js'></script>
+      <div class="row">      
+      
+        <div class="col-md-6">
+        	<div id="chartdiv" style="width: 100%; height: 400px;"></div>
+    		<script type="text/javascript">	
+			var chartData = [{
+				"game": 1,
+				"difficulty": 422
+			}, {
+				"game": 2,
+				"difficulty": 188
+			}, {
+				"game":3,
+				"difficulty": 189
+			}, {
+				"game": 4,
+				"difficulty": 122
+			}, {
+				"game": 5,
+				"difficulty": 112
+			}, {
+				"game": 6,
+				"difficulty": 114
+			}, {
+				"game": 7,
+				"difficulty": 94
+			}, {
+				"game": 8,
+				"difficulty": 71
+			}, {
+				"game": 9,
+				"difficulty": 65
+			}, {
+				"game": 10,
+				"difficulty": 50
+			}, {
+				"game": 11,
+				"difficulty": 43
+			}, {
+				"game": 12,
+				"difficulty": 41
+			}, {
+				"game": 13,
+				"difficulty": 35
+			}, {
+				"game": 14,
+				"difficulty": 36
+			}, {
+				"game": 15,
+				"difficulty": 34
+			}, {
+				"game": 16,
+				"difficulty": 33
+			}, {
+				"game": 17,
+				"difficulty": 32
+			}];
+			AmCharts.ready(function () {
+					
+                chart = new AmCharts.AmSerialChart();
+                chart.addTitle("изменение сложности");
+                chart.dataProvider = chartData;
+                chart.startDuration = 1;
+
+                // AXES
+                // category
+                var categoryAxis = chart.categoryAxis;
+                categoryAxis.labelRotation = 90;
+                categoryAxis.gridPosition = "start";
+
+                // value
+                // in case you don't want to change default settings of value axis,
+                // you don't need to create it, as one value axis is created automatically.
+                // value
+                var valueAxis = new AmCharts.ValueAxis();
+                valueAxis.axisAlpha = 2;
+                valueAxis.dashLength = 1;
+                chart.addValueAxis(valueAxis);
+
+                // GRAPH
+               var graph = new AmCharts.AmGraph();
+                graph.title = "red line";
+                graph.valueField = "difficulty";
+                graph.bullet = "round";
+                graph.bulletBorderColor = "#FFFFFF";
+                graph.bulletBorderThickness = 2;
+                graph.bulletBorderAlpha = 1;
+                graph.lineThickness = 2;
+                graph.lineColor = "#b5030d";
+                graph.negativeLineColor = "#0352b5";
+                graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
+                graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
+                chart.addGraph(graph);
+
+                // CURSOR
+                var chartCursor = new AmCharts.ChartCursor();
+                chartCursor.cursorAlpha = 0;
+                chartCursor.zoomable = true;
+                chartCursor.categoryBalloonEnabled = false;
+                chart.addChartCursor(chartCursor);
+
+                chart.creditsPosition = "top-left";
+
+                chart.write("chartdiv");
+            });
+		
+			</script>
+        </div>
+        <div class="col-md-6">
+        <script type="text/javascript">
+            var chart2;
+            var legend2;
+
+            var chartData2 = [{
+                type: "Ok",
+                games: 301.90
+            }, {
+                type: "Fail",
+                games: 201.10
+            }, {
+                type: "not played",
+                games: 165.80
+            }];
+
+            AmCharts.ready(function () {
+                // PIE CHART
+                chart2 = new AmCharts.AmPieChart();
+						chart2.addTitle("Попытки");
+                chart2.dataProvider = chartData2;
+                chart2.titleField = "type";
+                chart2.valueField = "games";
+                chart2.outlineColor = "#FFFFFF";
+                chart2.outlineAlpha = 0.8;
+                chart2.outlineThickness = 2;
+
+                // WRITE
+                chart2.write("chartdiv2");
+            });
+        </script>
+        <div id="chartdiv2" style="width: 100%; height: 400px;"></div>
+        </div>
+      </div>
+    	<div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
+    		<script type="text/javascript">	
+			var gist_chartData = [{
+				"game": 1,
+				"difficulty": 422
+			}, {
+				"game": 2,
+				"difficulty": 188
+			}, {
+				"game":3,
+				"difficulty": 189
+			}, {
+				"game": 4,
+				"difficulty": 122
+			}, {
+				"game": 5,
+				"difficulty": 112
+			}, {
+				"game": 6,
+				"difficulty": 114
+			}, {
+				"game": 7,
+				"difficulty": 94
+			}, {
+				"game": 8,
+				"difficulty": 71
+			}, {
+				"game": 9,
+				"difficulty": 65
+			}, {
+				"game": 10,
+				"difficulty": 50
+			}, {
+				"game": 11,
+				"difficulty": 43
+			}, {
+				"game": 12,
+				"difficulty": 41
+			}, {
+				"game": 13,
+				"difficulty": 35
+			}, {
+				"game": 14,
+				"difficulty": 36
+			}, {
+				"game": 15,
+				"difficulty": 34
+			}, {
+				"game": 16,
+				"difficulty": 33
+			}, {
+				"game": 17,
+				"difficulty": 32
+			}];
+			AmCharts.ready(function () {
+					
+                gist_chart = new AmCharts.AmSerialChart();
+                gist_chart.addTitle("Гистограмма");
+                gist_chart.dataProvider = gist_chartData;
+                gist_chart.startDuration = 1;
+
+                // AXES
+                // category
+                var gist_categoryAxis = chart.categoryAxis;
+                gist_categoryAxis.labelRotation = 90;
+                gist_categoryAxis.gridPosition = "start";
+
+                // value
+                // in case you don't want to change default settings of value axis,
+                // you don't need to create it, as one value axis is created automatically.
+                // value
+                var gist_valueAxis = new AmCharts.ValueAxis();
+                gist_valueAxis.axisAlpha = 2;
+                gist_valueAxis.dashLength = 1;
+                gist_chart.addValueAxis(gist_valueAxis);
+
+                // GRAPH
+               var gist_graph = new AmCharts.AmGraph();
+                gist_graph.title = "red line";
+                gist_graph.valueField = "difficulty";
+                gist_graph.bullet = "round";
+                gist_graph.type = "column";
+                gist_graph.bulletBorderColor = "#FFFFFF";
+                gist_graph.bulletBorderThickness = 2;
+                gist_graph.bulletBorderAlpha = 1;
+                gist_graph.lineThickness = 2;
+                gist_graph.lineColor = "#b5030d";
+                gist_graph.negativeLineColor = "#0352b5";
+                gist_graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
+                gist_graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
+                gist_chart.addGraph(gist_graph);
+
+                // CURSOR
+                var gist_chartCursor = new AmCharts.ChartCursor();
+                gist_chartCursor.cursorAlpha = 0;
+                gist_chartCursor.zoomable = true;
+                gist_chartCursor.categoryBalloonEnabled = false;
+                gist_chart.addChartCursor(gist_chartCursor);
+
+                gist_chart.creditsPosition = "top-left";
+
+                gist_chart.write("gist_chartdiv");
+            });
+		
+			</script>
+        </div>
+		</div>
    </body>
 </html>
