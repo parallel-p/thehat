@@ -1,0 +1,223 @@
+<!doctype html>
+<html>
+   <head>
+      <title>Stat</title>
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+      <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+      <!-- graph header -->	
+      <script type="text/javascript">
+         (function() {
+         	var dMode		= document.documentMode;
+         	var className	= "";
+         	if ( dMode ) {
+         		if ( dMode < 9 ) {
+         			className += ' ieLT9 ';
+         		}
+         		className += 'ie' + dMode;
+         		document.getElementById('__html').setAttribute('class',className);
+         	}
+         })();
+      </script>
+      <!-- META PROFILE / PINGBACK -->
+      <link rel="profile" href="http://gmpg.org/xfn/11">
+      <link rel="pingback" href="http://www.amcharts.com/xmlrpc.php">
+      <script type="text/javascript">
+         var ajaxurl = 'http://www.amcharts.com/wp-admin/admin-ajax.php';
+         var homeurl = 'http://www.amcharts.com';
+      </script>
+      <link rel="canonical" href="http://www.amcharts.com/demos/line-chart-with-scroll-and-zoom/" />
+      <meta property="og:locale" content="en_US" />
+      <meta property="og:type" content="article" />
+      <meta property="og:title" content="Line Chart with Scroll and Zoom - amCharts" />
+      <meta property="og:description" content="All our serial charts (and actually XY chart too) can be zoomed-in, scrolled and panned. All you have to do is add a scrollbar to the chart. This is one of the most important features of charts, especially when dealing with large data sets. Right approach to zooming When displaying a zoomed-in chart we do &hellip;" />
+      <meta property="og:url" content="http://www.amcharts.com/demos/line-chart-with-scroll-and-zoom/" />
+      <meta property="og:site_name" content="amCharts" />
+      <meta property="article:published_time" content="2014-01-07T14:51:36+00:00" />
+      <meta property="article:modified_time" content="2014-02-08T09:06:33+00:00" />
+      <link rel="alternate" type="application/rss+xml" title="amCharts &raquo; Feed" href="http://feeds.feedburner.com/amcharts/" />
+      <link rel="alternate" type="application/rss+xml" title="amCharts &raquo; Comments Feed" href="http://www.amcharts.com/comments/feed/" />
+      <link rel='stylesheet' type='text/css' media='all' href='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/plugins/download-monitor/assets/css/frontend.css,wp-content/plugins/nextend-facebook-connect/buttons/facebook-btn.css,wp-content/plugins/nextend-google-connect/buttons/google-btn.css,wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.css,wp-content/themes/amcharts/static/vendor/fontawesome/font-awesome.min.css,wp-content/themes/amcharts/static/css/core.css,wp-content/themes/amcharts/static/vendor/codemirror/lib/codemirror.css' />
+      <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js?ver=1.8.1'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-includes/js/jquery/jquery-migrate.min.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/amcharts.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/ammap_amcharts_extension.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/worldLow.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/continentsLow.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/maps/js/usaLow.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=lib/3/exporting/amexport_combined.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/js/core.js,lib/3/pie.js,lib/3/serial.js,lib/3/amstock.js,lib/3/funnel.js,lib/3/gauge.js,lib/3/radar.js,lib/3/xy.js,wp-content/themes/amcharts/static/vendor/codemirror/lib/codemirror.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/javascript/javascript.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/css/css.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/xml/xml.js,wp-content/themes/amcharts/static/vendor/codemirror/mode/htmlmixed/htmlmixed.js,wp-content/themes/amcharts/static/js/demo.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.js'></script>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/anti-captcha/anti-captcha-0.3.js.php?ver=db64f68dee27eb08d29117c7da678f81'></script>
+      <!-- -->
+   </head>
+   <body>
+      <div class="navbar navbar-default">
+         <div class="container">
+            <div class="navbar-header">
+               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+               <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+               </button>
+               <a class="navbar-brand" href="#">Project name</a>
+            </div>
+            <div class="navbar-collapse collapse">
+               <ul class="nav navbar-nav">
+                  <li class="active">
+                     <a href="#">Home</a>
+                  </li>
+               </ul>
+               <form class="navbar-form navbar-right">
+                  <div class="form-group"></div>
+                  <div class="form-group"></div>
+                  <button type="submit" class="btn btn-success">Sign in</button>
+               </form>
+            </div>
+            <!--/.navbar-collapse -->
+         </div>
+      </div>
+      <div class="container">
+         <h1>Статистика</h1>
+      
+      <div class="row">
+         <div class="col-6 col-sm-6 col-lg-4">
+            <input type="text" class="form-control">
+            <div class="app-body">
+               <div class="demo-body">
+                  <div id="style_css">
+                     <style type="text/css">#chartdiv {
+                        width	: 45%;
+                        height	: 500px;
+                        }		
+                     </style>
+                  </div>
+                  <div class="col-sm-12">
+                     <div class="demo-flipper">
+                        <div class="demo-flipper-container">
+                           <div class="demo-flipper-front demo-panel-white fx-all-250">
+                              <div id="container_html" class="chart-reset overflow-auto" style="height: 100%;"></div>
+                           </div>
+                           <div class="demo-flipper-back demo-panel-white fx-all-250">
+                              <form id="jsfiddle" target="_amcharts" method="post" action="http://jsfiddle.net/api/post/library/pure/">
+                                 <ul class="nav nav-tabs">
+                                    <li class="active"><a href="#javascript" data-toggle="tab">Javascript</a></li>
+                                    <li><a href="#html" data-toggle="tab">HTML</a></li>
+                                    <li><a href="#css" data-toggle="tab">CSS</a></li>
+                                    <li><a href="#resources" data-toggle="tab">Resources</a></li>
+                                    <li class="pull-right"><a href="#" class="demo-flipper-jsfiddle">Open in JSFiddle</a></li>
+                                 </ul>
+                                 <div class="tab-content position-relative">
+                                    <div id="javascript" class="tab-pane overflow-auto active">
+                                       <div id="editor_js" style="height: 437px;"></div>
+                                       <textarea id="code_js" name="js" class="hidden">
+var chartData = generateChartData();
+var chart = AmCharts.makeChart("chartdiv", {
+    "type": "serial",
+    "theme": "light",
+    "pathToImages": "http://www.amcharts.com/lib/3/images/",
+    "dataProvider": chartData,
+    "valueAxes": [{
+        "axisAlpha": 0.2,
+        "dashLength": 1,
+        "position": "left"
+    }],
+    "graphs": [{
+        "id":"g1",
+        "balloonText": "[[category]]<br /><b><span style='font-size:14px;'>value: [[value]]</span></b>",
+        "bullet": "round",
+        "bulletBorderAlpha": 1,
+		"bulletColor":"#FFFFFF",
+        "hideBulletsCount": 50,
+        "title": "red line",
+        "valueField": "visits",
+		"useLineColorForBulletBorder":true
+    }],
+    "chartScrollbar": {
+        "autoGridCount": true,
+        "graph": "g1",
+        "scrollbarHeight": 40
+    },
+    "chartCursor": {
+        "cursorPosition": "mouse"
+    },
+    "categoryField": "date",
+    "categoryAxis": {
+        "parseDates": true,
+        "axisColor": "#DADADA",
+        "dashLength": 1,
+        "minorGridEnabled": true
+    },
+	"exportConfig":{
+	  menuRight: '20px',
+      menuBottom: '30px',
+      menuItems: [{
+      icon: 'http://www.amcharts.com/lib/3/images/export.png',
+      format: 'png'
+      }]
+	}
+});
+
+chart.addListener("rendered", zoomChart);
+zoomChart();
+
+// this method is called when chart is first inited as we listen for "dataUpdated" event
+function zoomChart() {
+    // different zoom methods can be used - zoomToIndexes, zoomToDates, zoomToCategoryValues
+    chart.zoomToIndexes(chartData.length - 40, chartData.length - 1);
+}
+
+
+// generate some random data, quite different range
+function generateChartData() {
+    var chartData = [];
+    var firstDate = new Date();
+    firstDate.setDate(firstDate.getDate() - 5);
+
+    for (var i = 0; i < 1000; i++) {
+        var newDate = new Date(firstDate);
+        newDate.setDate(newDate.getDate() + i);
+
+        var visits = Math.round(i);
+
+        chartData.push({
+            date: newDate,
+            visits: visits
+        });
+    }
+    return chartData;
+}
+</textarea>
+                                    </div>
+                                    <div id="html" class="tab-pane overflow-auto">
+                                       <div id="editor_html" style="height: 437px;"></div>
+                                       <textarea id="code_html" name="html" class="hidden"><div id="chartdiv"></div>		</textarea>
+                                    </div>
+                                    <div id="css" class="tab-pane overflow-auto">
+                                       <div id="editor_css" style="height: 437px;"></div>
+                                       <textarea id="code_css" name="css" class="hidden">#chartdiv {
+	width	: 100%;
+	height	: 500px;
+}		</textarea>
+                                    </div>
+                                    <div id="resources" class="tab-pane overflow-auto">
+                                       <div id="editor_resources" style="height: 437px;"></div>
+                                       <textarea id="code_resources" name="resourcesDEF" class="hidden">&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/amcharts.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/serial.js&quot;&gt;&lt;/script&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;http://www.amcharts.com/lib/3/themes/none.js&quot;&gt;&lt;/script&gt;
+</textarea>
+                                    </div>
+                                 </div>
+                              </form>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="col-6 col-sm-6 col-lg-4"><textarea rows="8"></textarea></div>
+      </div>
+      </div>
+      <script type='text/javascript' src='http://www.amcharts.com/wp-content/plugins/bwp-minify/min/?f=wp-content/themes/amcharts/static/vendor/bootstrap/bootstrap.min.js'></script>
+   </body>
+</html>
