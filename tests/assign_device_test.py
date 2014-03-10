@@ -4,7 +4,6 @@ import unittest
 from google.appengine.ext import testbed
 
 import main
-from objects.user_devices import *
 from handlers.assign_device_handler import *
 
 
@@ -14,6 +13,7 @@ class AssignDeviceTestCase(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.init_taskqueue_stub()
         self.testbed.setup_env(
             USER_EMAIL='test@example.com',
             USER_ID='123',
@@ -21,6 +21,7 @@ class AssignDeviceTestCase(unittest.TestCase):
             overwrite=True)
         self.testbed.init_user_stub()
         self.device = Device(device_id='123').put()
+        self.taskq = self.testbed.get_stub(testbed.TASKQUEUE_SERVICE_NAME)
 
     def test_assign_device(self):
         def _render(x, pin):
@@ -33,6 +34,13 @@ class AssignDeviceTestCase(unittest.TestCase):
         request = webapp2.Request.blank('/123/assign_device')
         request.method = "POST"
         request.body = 'json={"pin": "%s"}' % self.pin
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_code, 200)
+        tasks = self.taskq.get_filtered_tasks(url='/internal/linkdevice')
+        self.assertEqual(1, len(tasks))
+        request = webapp2.Request.blank(tasks[0].url)
+        request.method = "POST"
+        request.body = tasks[0].payload
         response = request.get_response(main.app)
         self.assertEqual(response.status_code, 200)
         device, user_after = get_device_and_user('123')

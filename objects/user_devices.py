@@ -21,7 +21,7 @@ class OwnedModel(ndb.Model):
         if not isinstance(user, ndb.Key):
             raise TypeError()
         if user.kind() == 'User':
-            devices = user.get().devices
+            devices = user.get().devices[:]
             devices.append(user)
             filt = cls.owner.IN(devices)
         elif user.kind() == 'Device':
