@@ -4,6 +4,7 @@ import json
 
 import webapp2
 from google.appengine.api import users
+from google.appengine.api import taskqueue
 
 from objects.user_devices import *
 from environment import *
@@ -40,10 +41,11 @@ class AssignDeviceHandler(AuthorizedAPIRequestHandler):
         if pin is None:
             self.error(404)
             return
-        user = pin.data.get()
-        user.devices.append(self.device_key)
-        user.put()
-        self.response.write(json.dumps({"email": user.user_object.email()}))
+        user_key = pin.data
+        taskqueue.add(url='/internal/linkdevice', params={'user_key': user_key.id(),
+                                                          'device_key': self.device_key.id()},
+                      countdown=5)
+        self.response.write(json.dumps({"email": user_key.get().user_object.email()}))
         pin.free(False)
 
 

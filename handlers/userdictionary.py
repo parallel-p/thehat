@@ -66,21 +66,22 @@ class ProcWebpage(WebRequestHandler):
             UserDictionaryWord(word=word, status="ok", version=version, owner=self.user_key).put()
 
 
-def merge_data(user, device):
-    device_words = UserDictionaryWord.query(device).fetch()
-    version = max(_get_max_version(user), _get_max_version(device)) + 1
+def merge_user_dictionary_data(user_key, device_key):
+    device_words = UserDictionaryWord.query(device_key).fetch()
+    version = max(_get_max_version(user_key), _get_max_version(device_key)) + 1
     for word in device_words:
-        user_word = UserDictionaryWord.query(user, UserDictionaryWord.word == word.word).get()
+        user_word = UserDictionaryWord.query(user_key, UserDictionaryWord.word == word.word).get()
         if user_word:
             user_word.status = "ok" if word.status == "ok" or user_word.status == "ok" else "removed"
             user_word.created = min(user_word.created, word.created)
             user_word.used = max(user_word.used, word.used)
+            user_word.version = version
             user_word.put()
             del word.key
         else:
-            word.owner = user
+            word.owner = user_key
             word.put()
-    user_words = UserDictionaryWord.query(user).fetch()
+    user_words = UserDictionaryWord.query(user_key).fetch()
     for word in user_words:
         word.version = version
         word.put()
