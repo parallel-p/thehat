@@ -94,3 +94,10 @@ class AddGameHandler(ServiceRequestHandler):
             to_recalc = [w['word'] for w in words]
             taskqueue.add(url='/internal/recalc_rating_after_game',
                             params={'json': json.dumps(to_recalc)})
+
+
+class RecalcAllLogs(ServiceRequestHandler):
+    def post(self):
+        logs = GameLog.query().get(keys_only=True)
+        for el in logs:
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el}, countdown=5)

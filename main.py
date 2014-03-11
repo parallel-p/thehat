@@ -181,6 +181,8 @@ routes = [
     webapp2.Route(r'/internal/add_game_to_statistic',
                   handler=handlers.recalc_rating_handler.AddGameHandler,
                   name='add_game_Statistic'),
+    webapp2.Route(r'/internal/recalc_all_logs',
+                  handler=handlers.recalc_rating_handler.RecalcAllLogs),
     webapp2.Route(r'/json_updater',
                   handler=handlers.global_dictionary_word_handlers.dictionary_updater,
                   name='json_updater'),
