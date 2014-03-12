@@ -77,7 +77,7 @@ class UpdateJsonHandler(AdminRequestHandler):
         taskqueue.add(url='/admin/global_dictionary/update_json/task_queue', params={"timestamp":max_timestamp})
 
 
-class GlobalDictionaryGetWordsHandler(ApiRequestHandler):
+class GlobalDictionaryGetWordsHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GlobalDictionaryGetWordsHandler, self).__init__(*args, **kwargs)
 
