@@ -46,20 +46,12 @@
         function is_good(element) {
             return element != '';
         }
-        function send_words()
+        function update_json()
         {
-            var url = "/admin/global_dictionary/add_words";
-            var text = document.getElementById("words").value;
-            var re = new RegExp('\n', 'g');
-            text = text.replace(re, ' ');
-            var words = text.split(' ').filter(is_good);
-            var len = words.length;
-            for(var i = 0; i < (len / 1000) + 1; ++i)
-            {
-                var json = JSON.stringify(words.slice(1000 * i, 1000 * (i + 1)));
-                post(url, json);
-            }
+            var url = "/admin/global_dictionary/update_json";
+            post(url, "");
         }
+
 </script>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -122,7 +114,11 @@
         </p>
     {% endif %}
     </td>
-     </div>
+
+    <button type="button" class="btn btn-success btn-lg btn-block" onclick="update_json()">
+             Обновить
+        </button>
+    </div>
     <center>
         <td width="34%" align="center">Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>
 Если формочка подсвечена зеленым, все правильно, если красным - значит, формат нарушен. </td> </tr> </table>
