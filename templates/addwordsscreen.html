@@ -17,34 +17,49 @@
   </head>
 
     <script type="application/javascript">
-    function validate()
-    {
-        words = document.getElementById("words").value;
-        if (words.length > 33000)
-            document.getElementById("alertion").innerHTML = "<strong> Внимание! Текст слишком большой!";
-        else
-            document.getElementById("alertion").innerHTML = "";
-        var separated_words = words.split("\n");
-        var check_ok = 1;
-        for (var i = 0; i < separated_words.length; i = i + 1)
+
+    function getXmlHttp() {
+            var xmlhttp;
+            try {
+              xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+            try {
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+              xmlhttp = false;
+            }
+            }
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+              xmlhttp = new XMLHttpRequest();
+            }
+            return xmlhttp;
+          }
+
+        function post(url, json)
         {
-            // alert((separated_words[i].split(" ").length - 1));
-            if ((separated_words[i].split(" ").length - 1) > 0)
+            // alert(xmlhttp);
+            var xmlhttp = getXmlHttp();
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+            xmlhttp.send("json=" + json); // Отправляем POST-запрос
+        }
+        function is_good(element) {
+            return element != '';
+        }
+        function send_words()
+        {
+            var url = "/admin/global_dictionary/add_words";
+            var text = document.getElementById("words").value;
+            var re = new RegExp('\n', 'g');
+            text = text.replace(re, ' ');
+            var words = text.split(' ').filter(is_good);
+            var len = words.length;
+            for(var i = 0; i < (len / 1000) + 1; ++i)
             {
-                check_ok = 0;
+                var json = JSON.stringify(words.slice(1000 * i, 1000 * (i + 1)));
+                post(url, json);
             }
         }
-        if (check_ok == 0)
-        {
-            document.getElementById("words").style.color = "red";
-            document.getElementById("sendbutton").style.display = "none";
-        }
-        else
-        {
-            document.getElementById("words").style.color = "green";
-            document.getElementById("sendbutton").style.display = "block";
-        }
-    }
 </script>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -90,17 +105,16 @@
    <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
         нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
     <center>
-        <form method="post" action="/admin/global_dictionary/add">
         <div>
-            <br/> <textarea class="form-control" name="text" rows="30" onchange="validate()" onkeyup="validate()" id="words"></textarea>
+            <br/> <textarea class="form-control" name="text" rows="30"  id="words"></textarea>
         </div>
         <div id="sendbutton">
         <div id="alertion"></div>
-        <input type="submit" value="Send"/>
+        <button type="button" class="btn btn-success btn-lg btn-block" onclick="send_words()">
+            <span class="glyphicon glyphicon-plus"></span> Добавить
+        </button>
         </div>
-        <input type="submit" value="Cancel"
-               onclick="window.location='/'; return false;"/>
-    </form>
+        <input type="submit" value="Cancel" onclick="window.location='/'; return false;"/>
     </center>
     {% if error is defined %}
         <p>

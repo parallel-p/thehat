@@ -48,7 +48,8 @@ class MainPage(webapp2.RequestHandler):
 
 
 routes = [
-    webapp2.Route(r'/stat',
+    webapp2.Route(
+        r'/stat/<word:[-\w]+>',
         handler=handlers.statistics.word_statistics_handler.WordStatisticsHandler,
         name='stats'),
     (r'/', MainPage),
@@ -86,9 +87,6 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
                   handler=handlers.complain_word_handlers.ComplainWordHandler,
                   name='complain_word'),
-    webapp2.Route(r'/get_all_words/<version:[-\w]+>',
-                  handler=handlers.global_dictionary_word_handlers.GlobalDictionaryWordHandler,
-                  name='get_all_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
                   handler=handlers.pregame_handlers.PreGameCreateHandler,
                   name='pregame_create'),
@@ -183,12 +181,9 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/internal/recalc_all_logs',
                   handler=handlers.recalc_rating_handler.RecalcAllLogs),
-    webapp2.Route(r'/json_updater',
-                  handler=handlers.global_dictionary_word_handlers.dictionary_updater,
-                  name='json_updater'),
     webapp2.Route(r'/user/create_game',
                   handler=handlers.web_game_creation_handler.WebGameCreationHandler,
                   name='create_game')
-] + handlers.assign_device_handler.assign_device_routes
+] + handlers.assign_device_handler.assign_device_routes + handlers.global_dictionary_word_handlers.global_dictionary_word_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)

@@ -5,57 +5,97 @@ import time
 from google.appengine.api import taskqueue
 from google.appengine.api import users
 import webapp2
+import json
 
 from objects.global_dictionary_word import GlobalDictionaryWord
-from objects.global_dictionary_version import GlobalDictionaryVersion
 from environment import *
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+from google.appengine.ext import ndb
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
+from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
-class dictionary_updater(webapp2.RequestHandler):
-    def post(self):
-        str_data = self.request.get('data')
-        data = str_data.split('\n') if str_data.find('\n') != -1 else [str_data, ]
-        changed = False
-        for i in data:
-            word_info = i.strip()
-            splited, E, D = [word_info, ], 50.0, float(50.0 / 3)
-            if word_info.count(' ') != 0:
-                splited = word_info.split()
-            word = splited[0]
-
-            in_base = GlobalDictionaryWord.query(GlobalDictionaryWord.word == word).get()
-            if in_base is not None:
-                continue
-            changed = True
-            if len(splited) >= 2:
-                E = float(splited[1])
-            if len(splited) >= 3:
-                D = float(splited[2])
-            new_word = GlobalDictionaryWord(id=word, word=word, E=E, D=D, tags="")
-            new_word.put()
-        if changed:
-            #TODO: i think we must date Json one or two times a day.
-            time.sleep(1)
-            GlobalDictionaryJson.update_json()
-
-    @staticmethod
-    def run_update(data):
-        taskqueue.add(url='/json_updater', params={'data': data})
+def make_timestamp():
+    return int(1000 * time.time())
 
 
-class GlobalDictionaryWordHandler(APIRequestHandler):
+class WordsAddHandler(AdminRequestHandler):
+
     def __init__(self, *args, **kwargs):
-        super(GlobalDictionaryWordHandler, self).__init__(*args, **kwargs)
+        super(WordsAddHandler, self).__init__(*args, **kwargs)
 
-    def get(self, **kwargs):
-        device_version = int(kwargs.get("version"))
-        if device_version >= GlobalDictionaryVersion.get_server_version():
-            self.response.write("{}")
-        else:
-            self.response.write(GlobalDictionaryJson.get_json())
+    def post(self, *args, **kwargs):
+        words = json.loads(self.request.get("json"))
+        to_add = []
+        for word in words:
+            in_base = ndb.gql(u"SELECT D FROM GlobalDictionaryWord WHERE word = '{0}'".format(word)).get()
+            if in_base is None:
+                to_add.append(word)
+        taskqueue.add(url='/admin/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
+
+
+class TaskQueueAddWords(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskQueueAddWords, self).__init__(*args, **kwargs)
+
+    def post(self):
+        new_words = json.loads(self.request.get("json"))
+        for word in new_words:
+            GlobalDictionaryWord(id=word, word=word, E=50.0, D=50.0/3, tags="",
+                                 timestamp=make_timestamp()).put()
+
+
+class TaskQueueUpdateJson(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskQueueUpdateJson, self).__init__(*args, **kwargs)
+
+    def post(self):
+        timestamp = int(self.request.get("timestamp"))
+        max_timestamp = 0
+        word_list = []
+        for word in ndb.gql(u"SELECT word, timestamp FROM GlobalDictionaryWord"):
+            if word.timestamp > timestamp:
+                max_timestamp = max(max_timestamp, word.timestamp)
+                downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
+                word_list.append({"word": word.word, "tags": downloaded_word.tags})
+        GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
+
+
+class UpdateJsonHandler(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateJsonHandler, self).__init__(*args, **kwargs)
+
+    def post(self):
+        max_timestamp = 0
+        for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
+            if json.timestamp > max_timestamp:
+                max_timestamp = json.timestamp
+        taskqueue.add(url='/admin/global_dictionary/update_json/task_queue', params={"timestamp":max_timestamp})
+
+
+class GlobalDictionaryGetWordsHandler(ApiRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GlobalDictionaryGetWordsHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        device_timestamp = int(kwargs.get("timestamp"))
+        max_timestamp = 0
+        response_json = {"words":[]}
+        for diff_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson "
+                                 "ORDER BY timestamp"):
+            if diff_json.timestamp > device_timestamp:
+                max_timestamp = max(max_timestamp, diff_json.timestamp)
+                for res_json in ndb.gql("SELECT * FROM GlobalDictionaryJson "
+                                        "WHERE timestamp = {0} "
+                                        "ORDER BY timestamp".format(diff_json.timestamp)):
+                    to_add = json.loads(res_json.json)
+                    response_json["words"].extend(to_add)
+        response_json["timestamp"] = max_timestamp
+        self.response.write(json.dumps(response_json))
 
 
 class GlobalWordEditor(AdminRequestHandler):
@@ -70,7 +110,21 @@ class GlobalWordEditor(AdminRequestHandler):
         else:
             self.response.write(template.render({"login_link": users.create_login_url('/')}))
 
-    def post(self):
-        str_data = self.request.get('text').strip()
-        dictionary_updater.run_update(str_data)
-        self.redirect('/admin/global_dictionary/add')
+
+global_dictionary_word_routes = [
+    webapp2.Route(r'/admin/global_dictionary/add_words',
+                  handler=WordsAddHandler,
+                  name='add words to global'),
+    webapp2.Route(r'/admin/global_dictionary/add_words/task_queue',
+                  handler=TaskQueueAddWords,
+                  name='add words to global task queue'),
+    webapp2.Route(r'/admin/global_dictionary/update_json/task_queue',
+                  handler=TaskQueueUpdateJson,
+                  name='update json task queue'),
+    webapp2.Route(r'/admin/global_dictionary/update_json',
+                  handler=UpdateJsonHandler,
+                  name='update json'),
+    webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
+                  handler=GlobalDictionaryGetWordsHandler,
+                  name='get words')
+]

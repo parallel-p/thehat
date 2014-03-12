@@ -10,6 +10,21 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: GlobalDictionaryWord
+  properties:
+  - name: timestamp
+  - name: word
+
+- kind: GlobalDictionaryWord
+  properties:
+  - name: word
+  - name: D
+
+- kind: GlobalDictionaryWord
+  properties:
+  - name: word
+  - name: tags
+
 - kind: UserDictionaryWord
   properties:
   - name: owner
