@@ -33,7 +33,6 @@ class WordsAddHandler(AdminRequestHandler):
             if in_base is None:
                 to_add.append(word)
         taskqueue.add(url='/admin/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
-        self.redirect('/')
 
 
 class TaskQueueAddWords(ServiceRequestHandler):
