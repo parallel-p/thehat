@@ -33,6 +33,7 @@ class WordsAddHandler(AdminRequestHandler):
             if in_base is None:
                 to_add.append(word)
         taskqueue.add(url='/admin/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
+        self.redirect('/')
 
 
 class TaskQueueAddWords(ServiceRequestHandler):
@@ -121,10 +122,10 @@ global_dictionary_word_routes = [
     webapp2.Route(r'/admin/global_dictionary/update_json/task_queue',
                   handler=TaskQueueUpdateJson,
                   name='update json task queue'),
-    webapp2.Route(r'/admin/global_dictionary/update_json',
+        webapp2.Route(r'/admin/global_dictionary/update_json',
                   handler=UpdateJsonHandler,
                   name='update json'),
-    webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
+        webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
                   handler=GlobalDictionaryGetWordsHandler,
                   name='get words')
 ]

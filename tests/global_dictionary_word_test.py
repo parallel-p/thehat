@@ -8,6 +8,7 @@ from tests.base_functions import *
 import unittest2
 
 import main
+import json
 
 
 class GlobalDictionaryWordTest(unittest2.TestCase):
@@ -20,39 +21,32 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.testbed.init_user_stub()
 
     def test_add(self):
-        version = GlobalDictionaryVersion.get_server_version()
-        request = make_request("/json_updater","POST", True, "data=ff%0D%0Afff")
+        request = make_request("/admin/global_dictionary/add_words/task_queue", "POST", True, 'json=["a", "b", "c"]')
         response = request.get_response(main.app)
-
-        version2 = GlobalDictionaryVersion.get_server_version()
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(version, version2 - 1)
-        self.assertEqual(GlobalDictionaryWord.query().count(), 2)
+        self.assertEqual(GlobalDictionaryWord.query().count(), 3)
 
     def test_get(self):
-        request = make_request("/json_updater", "POST", True, "data=ff%0D%0Afff")
+        request = make_request("/admin/global_dictionary/add_words/task_queue", "POST", True, 'json=["a", "b", "c"]')
         request.get_response(main.app)
 
-        request = make_request("/get_all_words/0", "GET", False)
+        request = make_request("/admin/global_dictionary/update_json/task_queue", "POST", True, 'timestamp=0')
+        response = request.get_response(main.app)
+        request = make_request("/api/global_dictionary/get_words/0", "GET", False)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body.count("E"), 2)
+        self.assertEqual(response.body.count("tags"), 3)
+        ts = json.loads(response.body)["timestamp"]
 
-        request = make_request("/get_all_words/1", "GET", False)
-        response = request.get_response(main.app)
-        self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body.count("E"), 0)
-
-        request = make_request("/json_updater", "POST", True, "data=ffa%0D%0Afff")
+        request = make_request("/admin/global_dictionary/add_words/task_queue", "POST", True, 'json=["aa", "vb", "cv"]')
         request.get_response(main.app)
-        request = make_request("/get_all_words/0", "GET", False)
+        request = make_request("/admin/global_dictionary/update_json/task_queue", "POST", True, 'timestamp={0}'.format(ts))
+        request.get_response(main.app)
+        request = make_request("/api/global_dictionary/get_words/0", "GET", False)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body.count("E"), 3)
+        self.assertEqual(response.body.count("tags"), 6)
 
-        request = make_request("/get_all_words/1", "GET", False)
-        self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.body.count("E"), 3)
 
     def tearDown(self):
         self.testbed.deactivate()

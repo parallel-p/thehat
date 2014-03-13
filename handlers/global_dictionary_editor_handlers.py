@@ -15,6 +15,7 @@ class GlobalDictionaryWordList(AdminRequestHandler):
         super(GlobalDictionaryWordList, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
+        #TODO : add normal editor
         template = JINJA_ENVIRONMENT.get_template('templates/global_word_editor.html')
         curr_json = GlobalDictionaryJson.get_by_key_name('json')
         render_data = {'words':[]}
@@ -44,10 +45,7 @@ class GlobalDictionaryDeleteWord(AdminRequestHandler):
         entity = GlobalDictionaryWord.get_by_id(word_to_delete)
         if entity is not None and entity.tags.find("-deleted") == -1:
             entity.tags += "-deleted"
-        entity.put()
-        #TODO: i think we must date Json one or two times a day.
-        time.sleep(1)
-        GlobalDictionaryJson.update_json()
+            entity.put()
 
 
 

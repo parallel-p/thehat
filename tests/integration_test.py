@@ -20,8 +20,3 @@ class IntegrationTest(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-
-    def test_get_empty_words(self):
-        request = IntegrationTest.create_request('/get_all_words/0', "GET")
-        response = request.get_response(main.app)
-        self.assertEqual(response.body, "{}")

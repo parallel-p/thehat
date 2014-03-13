@@ -51,6 +51,20 @@
             var url = "/admin/global_dictionary/update_json";
             post(url, "");
         }
+        function send_words()
+        {
+            var url = "/admin/global_dictionary/add_words";
+            var text = document.getElementById("words").value;
+            var re = new RegExp('\n', 'g');
+            text = text.replace(re, ' ');
+            var words = text.split(' ').filter(is_good);
+            var len = words.length;
+            for(var i = 0; i < (len / 1000) + 1; ++i)
+            {
+                var json = JSON.stringify(words.slice(1000 * i, 1000 * (i + 1)));
+                post(url, json);
+            }
+        }
 
 </script>
 <body>
