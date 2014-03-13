@@ -16,6 +16,11 @@ class RecalcRatingTest(unittest.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.testbed.setup_env(
+            USER_EMAIL='test@example.com',
+            USER_ID='123',
+            USER_IS_ADMIN='1',
+            overwrite=True)
 
     def test_game(self):
         game_words = []
