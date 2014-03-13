@@ -1,7 +1,6 @@
 {% extends "templates/base.html" %}
-{% block title %}Редактирование личного словаря :: Шляпа{% endblock %}
-{% block head %}<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>{% endblock %}
-{% block contentheader %}Личный словарь{% endblock %}
+{% block title %}Редактирование личного словаря{% endblock %}
+{% block header %}Личный словарь{% endblock %}
 
 {% block content %}
 <script type="application/javascript">
@@ -30,7 +29,6 @@ function add_word()
 }
 </script>
 <strong> Вы можете редактировать Ваш личный словарь.</strong>
-<input type="hidden" name="user" value="{{ USER }}">
 <ol id="word_list">
 {%  for word in words %}
 <li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
