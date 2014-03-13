@@ -17,7 +17,7 @@ class AssignDeviceTestCase(unittest.TestCase):
         self.testbed.setup_env(
             USER_EMAIL='test@example.com',
             USER_ID='123',
-            USER_IS_ADMIN='0',
+            USER_IS_ADMIN='1',
             overwrite=True)
         self.testbed.init_user_stub()
         self.device = Device(device_id='123').put()
