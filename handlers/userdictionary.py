@@ -41,7 +41,7 @@ class DrawWebpage(WebRequestHandler):
 
     def get(self):
         word_list = filter(lambda x: (x.status == "ok"), UserDictionaryWord.query(self.user_key).fetch())
-        self.draw_page('editpersonaldictionary', word=word_list)
+        self.draw_page('editpersonaldictionary', words=word_list)
 
 
 class ProcWebpage(WebRequestHandler):

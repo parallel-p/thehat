@@ -2,39 +2,64 @@
 {% block title %}Редактирование личного словаря{% endblock %}
 {% block header %}Личный словарь{% endblock %}
 
+{% block head %}
+    <script type="application/javascript">
+    function submit()
+    {
+        var removed = [];
+        $.each($(".word"), function(i, el) {
+            if (!$(el).prop("checked"))
+                removed[removed.length] = $(el).attr("data-word");
+        });
+        var added = [];
+        $.each($(".new-word"), function(i, el) {
+            if ($(el).prop("checked"))
+                added[added.length] = $(el).attr("data-word");
+        });
+        $.post("/html/udict/proc", {"added": added, "removed": removed}).done(function (d) {
+        location.reload(true);
+        });
+    }
+    function add_word()
+    {
+        inp = $("#inp");
+        if (inp.val() == "" || inp.val().contains(' '))
+            return;
+        $("#word_list").append('<li><input type="checkbox" checked class="new-word" data-word="'+inp.val()+'">'+inp.val()+'</li>');
+        inp.val("")
+    }
+    function validate()
+    {
+        inp = $("#inp");
+        if (inp.val().contains(' '))
+        {
+            $("#inp-group").addClass('has-error');
+            $("#add-btn").attr('disabled', 'disabled');
+        }
+        else
+        {
+            $("#inp-group").removeClass('has-error');
+            $("#add-btn").removeAttr('disabled');
+        }
+    }
+    </script>
+{% endblock %}
 {% block content %}
-<script type="application/javascript">
-function submit()
-{
-    var removed = [];
-    $.each($(".word"), function(i, el) {
-        if (!$(el).prop("checked"))
-            removed[removed.length] = $(el).attr("data-word");
-    });
-    var added = [];
-    $.each($(".new-word"), function(i, el) {
-        added[added.length] = $(el).attr("data-word");
-    });
-    $.post("/html/udict/proc", {"added": added, "removed": removed}).done(function (d) {
-    location.reload(true);
-    });
-}
-function add_word()
-{
-    inp = $("#inp");
-    if (inp.val() == "")
-        return;
-    $("#word_list").append('<li class="new-word" data-word="'+inp.val()+'">'+inp.val()+'</li>');
-    inp.val("")
-}
-</script>
-<strong> Вы можете редактировать Ваш личный словарь.</strong>
-<ol id="word_list">
-{%  for word in words %}
-<li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
-{% endfor %}
-</ol>
-<input type="text" id="inp"><button onclick="add_word()">+</button>
-<br/>
-<button onclick="submit()">Готово</button>
+    <div class="row">
+         <div class="col-md-4 col-md-offset-4">
+            <ol id="word_list">
+            {%  for word in words %}
+            <li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
+            {% endfor %}
+            </ol>
+            <div class="input-group" id="inp-group">
+                <input type="text" id="inp" onkeyup="validate()" onchange="add_word()" class="form-control">
+                <span class="input-group-btn"><button id="add-btn" class="btn btn-primary" onclick="add_word()">
+                    <b>+</b>
+                </button></span>
+            </div>
+            <br/>
+            <button onclick="submit()" class="form-control btn btn-success">Готово</button>
+         </div>
+    </div>
 {% endblock %}
