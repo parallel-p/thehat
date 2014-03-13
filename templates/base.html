@@ -1,26 +1,56 @@
 <!DOCTYPE HTML PUBLIC>
 {% autoescape true %}
-    <html>
-    <p align="right"><a href = {{ logout_link }}> Logout </a> </p>
-    <head>
-        <meta charset='utf-8'>
-        <title>{% block title %}{% endblock %}</title>
-        {% block head %}{% endblock %}
-    </head>
-    <body>
-    <div id="header">
-        {% block header %}
-            <h1 class="header_header" align="center">Шляпа</h1>
-        {% endblock %}
-    </div>
-    <div id="content">
-        <h2 class="content_header" align="center">{% block contentheader %}{% endblock %}</h2>
-        {% block content %}{% endblock %}
-    </div>
+<html>
 
-    <div id="footer">
-        {% block footer %}{% endblock %}
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        body {
+            padding-top: 50px;
+            padding-bottom: 20px;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Шляпа</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a href="/admin">Admin</a>
+                </li>
+            </ul>
+            {% if user_email %}
+            <a href="{{ logout_link|safe }}" class="btn btn-default navbar-btn navbar-right">
+                <span class="glyphicon glyphicon-user"></span> {{ user_email }} (Выйти)
+            </a>
+            {% endif %}
+        </div>
     </div>
-    </body>
-    </html>
+</div>
+<div class="jumbotron">
+    <div class="container">
+        <h1>{% block header %}{% endblock %}</h1>
+    </div>
+</div>
+<div class="container">
+    {% block content %}{% endblock %}
+    <hr>
+    <footer>
+        <p>&copy; Company 2013</p>
+    </footer>
+</div>
+</body>
+</html>
 {% endautoescape %}

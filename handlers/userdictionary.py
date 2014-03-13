@@ -1,11 +1,8 @@
 import json
 
-from environment import JINJA_ENVIRONMENT
-
 from objects.user_dictionary_word import UserDictionaryWord
 from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 from base_handlers.web_request_handler import WebRequestHandler
-from google.appengine.api import users
 
 
 class UserDictionaryHandler(AuthorizedAPIRequestHandler):
@@ -43,10 +40,8 @@ class DrawWebpage(WebRequestHandler):
         super(DrawWebpage, self).__init__(*args, **kwargs)
 
     def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/editpersonaldictionary.html')
-        wordlist = filter(lambda x: (x.status == "ok"), UserDictionaryWord.query(self.user_key).fetch())
-        render_data = {"words": wordlist, "USER": self.user.user_id()}
-        self.response.write(template.render(render_data))
+        word_list = filter(lambda x: (x.status == "ok"), UserDictionaryWord.query(self.user_key).fetch())
+        self.draw_page('editpersonaldictionary', words=word_list)
 
 
 class ProcWebpage(WebRequestHandler):
