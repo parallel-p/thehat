@@ -35,10 +35,7 @@ class WordsAddHandler(AdminRequestHandler):
         taskqueue.add(url='/admin/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
 
 
-class TaskQueueAddWords(ServiceRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(TaskQueueAddWords, self).__init__(*args, **kwargs)
+class TaskQueueAddWords(webapp2.RequestHandler):
 
     def post(self):
         new_words = json.loads(self.request.get("json"))
@@ -47,10 +44,7 @@ class TaskQueueAddWords(ServiceRequestHandler):
                                  timestamp=make_timestamp()).put()
 
 
-class TaskQueueUpdateJson(ServiceRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(TaskQueueUpdateJson, self).__init__(*args, **kwargs)
+class TaskQueueUpdateJson(webapp2.RequestHandler):
 
     def post(self):
         timestamp = int(self.request.get("timestamp"))
@@ -64,7 +58,7 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
         GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
 
 
-class UpdateJsonHandler(AdminRequestHandler):
+class UpdateJsonHandler(APIRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super(UpdateJsonHandler, self).__init__(*args, **kwargs)
