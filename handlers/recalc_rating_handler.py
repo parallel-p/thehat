@@ -29,11 +29,12 @@ class RecalcRatingHandler(ServiceRequestHandler):
                 continue
             words_db.append(word_db)
             ratings.append((TRUESKILL_ENVIRONMENT.create_rating(mu=word_db.E, sigma=word_db.D), ))
-        rated = TRUESKILL_ENVIRONMENT.rate(ratings)
-        for i in xrange(len(rated)):
-            words_db[i].E = rated[i][0].mu
-            words_db[i].D = rated[i][0].sigma
-            words_db[i].put()
+        if len(ratings) > 1:
+            rated = TRUESKILL_ENVIRONMENT.rate(ratings)
+            for i in xrange(len(rated)):
+                words_db[i].E = rated[i][0].mu
+                words_db[i].D = rated[i][0].sigma
+                words_db[i].put()
         self.response.set_status(200)
 
 
