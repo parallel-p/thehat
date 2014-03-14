@@ -27,12 +27,14 @@ class RecalcRatingHandler(ServiceRequestHandler):
         for word in words:
             word_db = ndb.Key(GlobalDictionaryWord, word).get()
             if word_db is None:
+                logging.warning("There is no word '{}' in our dictionary".format(word))
                 continue
             words_db.append(word_db)
             ratings.append((TRUESKILL_ENVIRONMENT.create_rating(mu=word_db.E, sigma=word_db.D), ))
         if len(ratings) > 1:
             rated = TRUESKILL_ENVIRONMENT.rate(ratings)
             for i in xrange(len(rated)):
+                logging.info("Updated rating of word '{}'".format(words_db[i].word))
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
                 words_db[i].put()
@@ -64,8 +66,9 @@ class AddGameHandler(ServiceRequestHandler):
             time_word = {}
             words_by_players_pair = {}
             i = 0
-            while events[i]['type'] != 'round_start':
-                logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
+            while i < len(events) and events[i]['type'] != 'round_start':
+                if events[i]['type'] != 'start_game':
+                    logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
                 i += 1
             while i < len(events):
                 current_pair = (events[i]['from'], events[i]['to'])
@@ -84,7 +87,8 @@ class AddGameHandler(ServiceRequestHandler):
                             raise BadGameError()
                         words_current[event['word']] = event['outcome']
                     else:
-                        logging.warning("Event of unknown type {}".format(event['type']))
+                        if event['type'] not in ('finish_round', 'end_game'):
+                            logging.warning("Event of unknown type {}".format(event['type']))
                     i += 1
                 for word in words_current.keys():
                     if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
@@ -103,15 +107,15 @@ class AddGameHandler(ServiceRequestHandler):
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
                     words = sorted(words, key=lambda w: -w['time'])
-                to_recalc = [w['word'] for w in words]
-                taskqueue.add(url='/internal/recalc_rating_after_game',
-                              params={'json': json.dumps(to_recalc)})
+                    to_recalc = [w['word'] for w in words]
+                    taskqueue.add(url='/internal/recalc_rating_after_game',
+                                  params={'json': json.dumps(to_recalc)})
         except BadGameError:
             self.abort(200)
 
 
 class RecalcAllLogs(ServiceRequestHandler):
     def post(self):
-        logs = GameLog.query().get(keys_only=True)
+        logs = GameLog.query().fetch(keys_only=True)
         for el in logs:
-            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el}, countdown=5)
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
