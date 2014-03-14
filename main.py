@@ -134,7 +134,7 @@ routes = [
     webapp2.Route(r'/admin/streams/packages/<package_id:[-\w]+>/words',
                   handler=handlers.dictionaries_packages_admin_handlers.ChangeWordsHandler,
                   name='change_words'),
-    webapp2.Route(r'/<device_id:[-\w]+>/game_log/<game_id:[-\w]+>', handler=handlers.log_n_res_handlers.GameLogHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/game_log', handler=handlers.log_n_res_handlers.GameLogHandler,
                   name='upload_log'),
     webapp2.Route(r'/<device_id:[-\w]+>/game_results/<game_id:[-\w]+>',
                   handler=handlers.log_n_res_handlers.GameResultsHandler,

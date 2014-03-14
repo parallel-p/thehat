@@ -19,7 +19,8 @@ class GameLogHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GameLogHandler, self).__init__(*args, **kwargs)
 
-    def put(self, game_id, **kwargs):
+    def put(self, **kwargs):
+        game_id = json.loads(self.request.body)['setup']['meta']['game.id']
         game_key = ndb.Key(GameLog, game_id).get()
         if game_key is not None:
             self.abort(409)
