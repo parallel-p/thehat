@@ -136,6 +136,9 @@ routes = [
                   name='change_words'),
     webapp2.Route(r'/<device_id:[-\w]+>/game_log', handler=handlers.log_n_res_handlers.GameLogHandler,
                   name='upload_log'),
+    #migration route: to be removed
+    webapp2.Route(r'/<device_id:[-\w]+>/game_log/<game_id:[-\w]+>',
+                  handler=handlers.log_n_res_handlers.GameLogHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/game_results/<game_id:[-\w]+>',
                   handler=handlers.log_n_res_handlers.GameResultsHandler,
                   name='upload_results'),
