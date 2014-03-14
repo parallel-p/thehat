@@ -50,6 +50,9 @@ class AddGameHandler(ServiceRequestHandler):
             self.abort(404)
         try:
             log = json.loads(log_db.json)
+            #TODO: solve problem with free-play games
+            if log['setup']['meta']['game.type'] == "free-play":
+                raise BadGameError()
             events = log['events']
             words_orig = log['setup']['words']
             words_seen = []
