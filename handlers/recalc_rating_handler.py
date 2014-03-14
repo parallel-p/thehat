@@ -1,6 +1,7 @@
 __author__ = 'nikolay'
 
 import json
+import logging
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -35,6 +36,8 @@ class RecalcRatingHandler(ServiceRequestHandler):
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
                 words_db[i].put()
+        else:
+            logging.warning("No word from pair is in our dictionary")
         self.response.set_status(200)
 
 
@@ -45,13 +48,14 @@ MIN_TIME = 3 * 1000  # 3 seconds
 class AddGameHandler(ServiceRequestHandler):
     def post(self):
         game_id = self.request.get('game_id')
+        logging.info("Handling log of game {}".format(game_id))
         log_db = ndb.Key(GameLog, game_id).get()
         if log_db is None:
             self.abort(404)
         try:
             log = json.loads(log_db.json)
             #TODO: solve problem with free-play games
-            if log['setup']['meta']['game.type'] == "free-play":
+            if log['setup']['type'] == "free-play":
                 raise BadGameError()
             events = log['events']
             words_orig = log['setup']['words']
@@ -59,25 +63,28 @@ class AddGameHandler(ServiceRequestHandler):
             words_current = {}
             time_word = {}
             words_by_players_pair = {}
-            if events[0]['type'] != 'round_start':
-                raise BadGameError()
             i = 0
+            while events[i]['type'] != 'round_start':
+                logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
+                i += 1
             while i < len(events):
                 current_pair = (events[i]['from'], events[i]['to'])
                 if current_pair not in words_by_players_pair.keys():
                     words_by_players_pair[current_pair] = []
                 i += 1
-                while events[i]['type'] != 'round_start':
+                while i < len(events) and events[i]['type'] != 'round_start':
                     event = events[i]
                     if event['type'] == 'pick_stripe':
                         words_seen.append(event['word'])
-                    if event['type'] == 'stripe_outcome':
+                    elif event['type'] == 'stripe_outcome':
                         words_current[event['word']] = event['outcome']
                         time_word[event['word']] = event['time'] + event['timeExtra']
                     elif event['type'] == 'outcome_override':
                         if not event['word'] in words_current:
-                            raise BadGameError
+                            raise BadGameError()
                         words_current[event['word']] = event['outcome']
+                    else:
+                        logging.warning("Event of unknown type {}".format(event['type']))
                     i += 1
                 for word in words_current.keys():
                     if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
@@ -92,7 +99,7 @@ class AddGameHandler(ServiceRequestHandler):
                             'word': words_orig[word]['word'],
                             'time': MAX_TIME
                         })
-                    words_current.clear()
+                words_current.clear()
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
                     words = sorted(words, key=lambda w: -w['time'])
