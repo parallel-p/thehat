@@ -9,7 +9,5 @@ class ServiceRequestHandler(GenericHandler):
         super(ServiceRequestHandler, self).__init__(*args, **kwargs)
 
     def dispatch(self):
-        if not users.is_current_user_admin():
-            self.abort(403)
         super(ServiceRequestHandler, self).dispatch()
 
