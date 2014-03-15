@@ -112,6 +112,11 @@ class AddGameHandler(ServiceRequestHandler):
                 elif words_outcome[i] == 'failed':
                     word_db.failed_times += 1
                 word_db.total_explanation_time += seen_words_time[i] // 1000
+                pos = seen_words_time[i] // 5000
+                l = word_db.counts_by_expl_time
+                while pos >= len(l):
+                    l.append(0)
+                l[pos] += 1
                 word_db.put()
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:

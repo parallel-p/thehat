@@ -274,110 +274,44 @@
 </div>
 </div>
 <div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
-    <script type="text/javascript">
-    var gist_chartData = [{
-        "game": 1,
-        "difficulty": 422
-    }, {
-        "game": 2,
-        "difficulty": 188
-    }, {
-        "game":3,
-        "difficulty": 189
-    }, {
-        "game": 4,
-        "difficulty": 122
-    }, {
-        "game": 5,
-        "difficulty": 112
-    }, {
-        "game": 6,
-        "difficulty": 114
-    }, {
-        "game": 7,
-        "difficulty": 94
-    }, {
-        "game": 8,
-        "difficulty": 71
-    }, {
-        "game": 9,
-        "difficulty": 65
-    }, {
-        "game": 10,
-        "difficulty": 50
-    }, {
-        "game": 11,
-        "difficulty": 43
-    }, {
-        "game": 12,
-        "difficulty": 41
-    }, {
-        "game": 13,
-        "difficulty": 35
-    }, {
-        "game": 14,
-        "difficulty": 36
-    }, {
-        "game": 15,
-        "difficulty": 34
-    }, {
-        "game": 16,
-        "difficulty": 33
-    }, {
-        "game": 17,
-        "difficulty": 32
-    }];
-    AmCharts.ready(function () {
-
-        gist_chart = new AmCharts.AmSerialChart();
-        gist_chart.addTitle("Гистограмма");
-        gist_chart.dataProvider = gist_chartData;
-        gist_chart.startDuration = 1;
-
-        // AXES
-        // category
-        var gist_categoryAxis = chart.categoryAxis;
-        gist_categoryAxis.labelRotation = 90;
-        gist_categoryAxis.gridPosition = "start";
-
-        // value
-        // in case you don't want to change default settings of value axis,
-        // you don't need to create it, as one value axis is created automatically.
-        // value
-        var gist_valueAxis = new AmCharts.ValueAxis();
-        gist_valueAxis.axisAlpha = 2;
-        gist_valueAxis.dashLength = 1;
-        gist_chart.addValueAxis(gist_valueAxis);
-
-        // GRAPH
-       var gist_graph = new AmCharts.AmGraph();
-        gist_graph.title = "red line";
-        gist_graph.valueField = "difficulty";
-        gist_graph.bullet = "round";
-        gist_graph.type = "column";
-        gist_graph.bulletBorderColor = "#FFFFFF";
-        gist_graph.bulletBorderThickness = 2;
-        gist_graph.bulletBorderAlpha = 1;
-        gist_graph.lineThickness = 2;
-        gist_graph.lineColor = "#b5030d";
-        gist_graph.negativeLineColor = "#0352b5";
-        gist_graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
-        gist_graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-        gist_chart.addGraph(gist_graph);
-
-        // CURSOR
-        var gist_chartCursor = new AmCharts.ChartCursor();
-        gist_chartCursor.cursorAlpha = 0;
-        gist_chartCursor.zoomable = true;
-        gist_chartCursor.categoryBalloonEnabled = false;
-        gist_chart.addChartCursor(gist_chartCursor);
-
-        gist_chart.creditsPosition = "top-left";
-
-        gist_chart.write("gist_chartdiv");
-    });
-
-    </script>
+<script type="text/javascript">
+var chart = AmCharts.makeChart("gist_chartdiv", {
+    "type": "serial",
+    "theme": "none",
+    "dataProvider": [
+        {% for i in word_entity.counts_by_expl_time %}
+            {
+                "time": "{{ (loop.index - 1) * 5 }} - {{ loop.index * 5}} сек",
+                "games": {{ i }}
+            },
+        {% endfor %}
+     ],
+    "valueAxes": [{
+        "gridColor":"#FFFFFF",
+		"gridAlpha": 0.2,
+		"dashLength": 0
+    }],
+    "gridAboveGraphs": true,
+    "startDuration": 1,
+    "graphs": [{
+        "balloonText": "[[category]]: <b>[[value]] раз</b>",
+        "fillAlphas": 0.8,
+        "lineAlpha": 0.2,
+        "type": "column",
+        "valueField": "games"
+    }],
+    "chartCursor": {
+        "categoryBalloonEnabled": false,
+        "cursorAlpha": 0,
+        "zoomable": false
+    },
+    "categoryField": "time",
+    "categoryAxis": {
+        "gridPosition": "start",
+        "gridAlpha": 0
+    }
+});
+</script>
 </div>
 {% endif %}
 {% endblock %}
