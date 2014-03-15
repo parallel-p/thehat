@@ -89,7 +89,7 @@ class AddGameHandler(ServiceRequestHandler):
                         if event['type'] not in ('finish_round', 'end_game', 'pick_stripe'):
                             logging.warning("Event of unknown type {}".format(event['type']))
                     i += 1
-                for word in words_outcome.keys():
+                for word in current_words_time.keys():
                     if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
                         words_outcome[word] = 'removed'
                     elif words_outcome[word] in ('guessed', 'failed'):
