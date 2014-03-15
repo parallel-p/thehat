@@ -2,6 +2,7 @@ __author__ = 'nikolay'
 
 import json
 import logging
+from collections import defaultdict
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
@@ -44,7 +45,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
 
 
 MAX_TIME = 5 * 60 * 1000  # 5 minutes
-MIN_TIME = 3 * 1000  # 3 seconds
+MIN_TIME = 500  # 0.5 second
 
 
 class AddGameHandler(ServiceRequestHandler):
@@ -61,9 +62,9 @@ class AddGameHandler(ServiceRequestHandler):
                 raise BadGameError()
             events = log['events']
             words_orig = log['setup']['words']
-            words_seen = []
-            words_current = {}
-            time_word = {}
+            seen_words_time = defaultdict(lambda: 0)
+            words_outcome = {}
+            current_words_time = {}
             words_by_players_pair = {}
             i = 0
             while i < len(events) and events[i]['type'] != 'round_start':
@@ -72,38 +73,45 @@ class AddGameHandler(ServiceRequestHandler):
                 i += 1
             while i < len(events):
                 current_pair = (events[i]['from'], events[i]['to'])
-                if current_pair not in words_by_players_pair.keys():
+                if current_pair not in words_by_players_pair:
                     words_by_players_pair[current_pair] = []
                 i += 1
                 while i < len(events) and events[i]['type'] != 'round_start':
                     event = events[i]
-                    if event['type'] == 'pick_stripe':
-                        words_seen.append(event['word'])
-                    elif event['type'] == 'stripe_outcome':
-                        words_current[event['word']] = event['outcome']
-                        time_word[event['word']] = event['time'] + event['timeExtra']
+                    if event['type'] == 'stripe_outcome':
+                        words_outcome[event['word']] = event['outcome']
+                        current_words_time[event['word']] = event['time'] + event['timeExtra']
                     elif event['type'] == 'outcome_override':
-                        if not event['word'] in words_current:
+                        if not event['word'] in words_outcome:
                             raise BadGameError()
-                        words_current[event['word']] = event['outcome']
+                        words_outcome[event['word']] = event['outcome']
                     else:
-                        if event['type'] not in ('finish_round', 'end_game'):
+                        if event['type'] not in ('finish_round', 'end_game', 'pick_stripe'):
                             logging.warning("Event of unknown type {}".format(event['type']))
                     i += 1
-                for word in words_current.keys():
-                    if time_word[word] > MAX_TIME or time_word[word] < MIN_TIME:
-                        words_current[word] = 'removed'
-                    if words_current[word] == 'guessed':
-                        words_by_players_pair[current_pair].append({
-                            'word': words_orig[word]['word'],
-                            'time': time_word[word]
-                        })
-                    if words_current[word] == 'failed':
-                        words_by_players_pair[current_pair].append({
-                            'word': words_orig[word]['word'],
-                            'time': MAX_TIME
-                        })
-                words_current.clear()
+                for word in words_outcome.keys():
+                    if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
+                        words_outcome[word] = 'removed'
+                    elif words_outcome[word] in ('guessed', 'failed'):
+                        if not word in seen_words_time:
+                            words_by_players_pair[current_pair].append({
+                                'word': words_orig[word]['word'],
+                                'time': current_words_time[word] if words_outcome[word] == 'guessed' else MAX_TIME
+                            })
+                    seen_words_time[word] += current_words_time[word]
+            for i in range(len(words_orig)):
+                if i not in seen_words_time:
+                    continue
+                word_db = ndb.Key(GlobalDictionaryWord, words_orig[i]['word']).get()
+                if not word_db:
+                    continue
+                word_db.used_times += 1
+                if words_outcome[i] == 'guessed':
+                    word_db.guessed_times += 1
+                elif words_outcome[i] == 'failed':
+                    word_db.failed_times += 1
+                word_db.total_explanation_time += seen_words_time[i] // 1000
+                word_db.put()
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
                     words = sorted(words, key=lambda w: -w['time'])

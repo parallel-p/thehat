@@ -115,19 +115,15 @@
     <tbody>
       <tr>
         <td><p class="text-info">Общее количество попыток</p></td>
-        <td>300</td>
-      </tr>
-      <tr>
-        <td><p class="text-info">Среднее количество попыток</p></td>
-        <td>10</td>
+        <td>{{ word_entity.used_times }}</td>
       </tr>
       <tr>
         <td><p class="text-info">Суммарное время отгадывания</p></td>
-        <td>3000</td>
+        <td>{{ word_entity.total_explanation_time}} сек</td>
       </tr>
       <tr>
         <td><p class="text-info">Среднее время отгадывания</p></td>
-        <td>10</td>
+        <td>{{ word_entity.total_explanation_time // word_entity.guessed_times}} сек</td>
       </tr>
 
     </tbody>
@@ -248,14 +244,14 @@
     var legend2;
 
     var chartData2 = [{
-        type: "Ok",
-        games: 301.90
+        type: "Отгадано",
+        games: {{ word_entity.guessed_times }}
     }, {
-        type: "Fail",
-        games: 201.10
+        type: "Объяснено с ошибкой",
+        games: {{ word_entity.failed_times }}
     }, {
-        type: "not played",
-        games: 165.80
+        type: "Не отгадано",
+        games: {{ word_entity.used_times - word_entity.guessed_times - word_entity.failed_times}}
     }];
 
     AmCharts.ready(function () {
