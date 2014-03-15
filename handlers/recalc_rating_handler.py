@@ -99,6 +99,7 @@ class AddGameHandler(ServiceRequestHandler):
                                 'time': current_words_time[word] if words_outcome[word] == 'guessed' else MAX_TIME
                             })
                     seen_words_time[word] += current_words_time[word]
+                current_words_time.clear()
             for i in range(len(words_orig)):
                 if i not in seen_words_time:
                     continue
