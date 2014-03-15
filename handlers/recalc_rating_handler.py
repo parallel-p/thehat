@@ -27,14 +27,14 @@ class RecalcRatingHandler(ServiceRequestHandler):
         for word in words:
             word_db = ndb.Key(GlobalDictionaryWord, word).get()
             if word_db is None:
-                logging.warning("There is no word '{}' in our dictionary".format(word))
+                logging.warning(u"There is no word '{}' in our dictionary".format(word))
                 continue
             words_db.append(word_db)
             ratings.append((TRUESKILL_ENVIRONMENT.create_rating(mu=word_db.E, sigma=word_db.D), ))
         if len(ratings) > 1:
             rated = TRUESKILL_ENVIRONMENT.rate(ratings)
             for i in xrange(len(rated)):
-                logging.info("Updated rating of word '{}'".format(words_db[i].word))
+                logging.info(u"Updated rating of word '{}'".format(words_db[i].word))
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
                 words_db[i].put()
