@@ -16,6 +16,10 @@ handlers:
 - url: /js
   static_dir: js
 
+- url: /internal/.*
+  script: main.app
+  login: admin
+
 - url: .*
   script: main.app
 

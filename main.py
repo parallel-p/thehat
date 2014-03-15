@@ -35,21 +35,17 @@ from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.global_dictionary_editor_handlers
+from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
-class MainPage(webapp2.RequestHandler):
+class MainPage(WebRequestHandler):
     def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/index.html')
-        if users.get_current_user():
-            self.response.write(template.render(
-                {"logout_link": users.create_logout_url('/')}))
-        else:
-            self.response.write(template.render({"login_link": users.create_login_url('/')}))
+        self.draw_page('index')
 
 
 routes = [
     webapp2.Route(
-        r'/stat/<word:[-\w]+>',
+        r'/word_statistics',
         handler=handlers.statistics.word_statistics_handler.WordStatisticsHandler,
         name='stats'),
     (r'/', MainPage),
@@ -134,8 +130,11 @@ routes = [
     webapp2.Route(r'/admin/streams/packages/<package_id:[-\w]+>/words',
                   handler=handlers.dictionaries_packages_admin_handlers.ChangeWordsHandler,
                   name='change_words'),
-    webapp2.Route(r'/<device_id:[-\w]+>/game_log/<game_id:[-\w]+>', handler=handlers.log_n_res_handlers.GameLogHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/game_log', handler=handlers.log_n_res_handlers.GameLogHandler,
                   name='upload_log'),
+    #migration route: to be removed
+    webapp2.Route(r'/<device_id:[-\w]+>/game_log/<game_id:[-\w]+>',
+                  handler=handlers.log_n_res_handlers.GameLogHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/game_results/<game_id:[-\w]+>',
                   handler=handlers.log_n_res_handlers.GameResultsHandler,
                   name='upload_results'),
