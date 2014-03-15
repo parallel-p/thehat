@@ -121,11 +121,12 @@
         <td><p class="text-info">Суммарное время отгадывания</p></td>
         <td>{{ word_entity.total_explanation_time}} сек</td>
       </tr>
+      {% if word_entity.guessed_times > 0 %}
       <tr>
         <td><p class="text-info">Среднее время отгадывания</p></td>
         <td>{{ word_entity.total_explanation_time // word_entity.guessed_times}} сек</td>
       </tr>
-
+      {% endif %}
     </tbody>
   </table>
 </div>
