@@ -1,391 +1,386 @@
+{% extends "templates/base.html" %}
+{% block title %}Cтатистика по слову "{{ word }}"{% endblock %}
+{% block header %}Статистика{% endblock %}
+{% block head %}
+<!--amcharts imports-->
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
+<!--amcharts import end-->
+<script type="application/javascript">
 
-<!doctype html>
-<html>
-   <head>
-      <title>Stat</title>
-      <meta name="viewport" content="width=device-width">
-      <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-      <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-      <!--amcharts imports-->
-      <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
-		<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
-		<script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
-		<script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
-      <!--amcharts import end-->
-      
-   </head>
-   <script type="application/javascript">
-
-        function _getRequest() {
-            var request;
-            if (window.XMLHttpRequest) {
-                // IE7+, Firefox, Chrome, Opera, Safari
-                request = new XMLHttpRequest();
-            } else {
-                // code for IE6, IE5
-                request = new ActiveXObject('Microsoft.XMLHTTP');
-            }
-            return request;
+    function _getRequest() {
+        var request;
+        if (window.XMLHttpRequest) {
+            // IE7+, Firefox, Chrome, Opera, Safari
+            request = new XMLHttpRequest();
+        } else {
+            // code for IE6, IE5
+            request = new ActiveXObject('Microsoft.XMLHTTP');
         }
-        function get_request(url) {
-            var request = _getRequest();
-            request.open('GET', url, false);
-            request.send();
-            return request.responseText;
-        }
-   </script>
-
-   <body>
-      <div class="navbar navbar-default">
-         <div class="container">
-            <div class="navbar-header">
-               <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-               <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-               </button>
-               <a class="navbar-brand" href="#">Project name</a>
-            </div>
-            <div class="navbar-collapse collapse">
-               <ul class="nav navbar-nav">
-                  <li class="active">
-                     <a href="#">Home</a>
-                  </li>
-               </ul>
-               <form class="navbar-form navbar-right">
-                  <div class="form-group"></div>
-                  <div class="form-group"></div>
-                  <button type="submit" class="btn btn-success">Sign in</button>
-               </form>
-            </div>
-         </div>
-      </div>
-      <div class="container">
-	  <center><h1>{{ word.word }}</h1></center>
-          
-      <div class="row">
-      	<div class="col-md-6">
-      		<script type="text/javascript">
-            var diff_chart;
-            var diff_arrow;
-            var diff_axis;
-            
-            AmCharts.ready(function () {
-                // create angular gauge
-                diff_chart = new AmCharts.AmAngularGauge();
-                diff_chart.addTitle("Сложность");
-            
-                // create axis
-                diff_axis = new AmCharts.GaugeAxis();
-                diff_axis.startValue = 0;
-			    diff_axis.axisThickness = 1;
-                diff_axis.endValue = 220;
-                // color bands
-                var diff_band1 = new AmCharts.GaugeBand();
-                diff_band1.startValue = 0;
-                diff_band1.endValue = 90;
-                diff_band1.color = "#00CC00";
-                
-                var diff_band2 = new AmCharts.GaugeBand();
-                diff_band2.startValue = 90;
-                diff_band2.endValue = 130;
-                diff_band2.color = "#ffac29";
-                
-                var diff_band3 = new AmCharts.GaugeBand();
-                diff_band3.startValue = 130;
-                diff_band3.endValue = 220;
-                diff_band3.color = "#ea3838";
-                diff_band3.innerRadius = "95%";
-                
-                diff_axis.bands = [diff_band1, diff_band2, diff_band3];
-                
-                // bottom text
-                diff_axis.bottomTextYOffset = -20;
-                diff_axis.setBottomText("{{ word.E }}");
-                diff_chart.addAxis(diff_axis);
-            
-                // gauge arrow
-                diff_arrow = new AmCharts.GaugeArrow();
-                diff_chart.addArrow(diff_arrow);
-                diff_arrow.setValue("{{ word.E }}");
-            
-                diff_chart.write("diff_chartdiv");
-            });					
-        </script>
-        <div id="diff_chartdiv" style="height:250px;"></div>
-      	</div>
-      	<div class="col-md-6">
-      	<br>
-      	 <table class="table">
-            <tbody>
-              <tr>
-                <td><p class="text-info">Общее количество попыток</p></td>
-                <td>300</td>
-              </tr>
-              <tr>
-                <td><p class="text-info">Среднее количество попыток</p></td>
-                <td>10</td>
-              </tr>
-              <tr>
-                <td><p class="text-info">Суммарное время отгадывания</p></td>
-                <td>3000</td>
-              </tr>
-              <tr>
-                <td><p class="text-info">Среднее время отгадывания</p></td>
-                <td>10</td>
-              </tr>
-					
-            </tbody>
-          </table>
-      </div>
-      </div>
-      <div class="row">      
-      
-        <div class="col-md-6">
-        	<div id="chartdiv" style="width: 100%; height: 400px;"></div>
-    		<script type="text/javascript">	
-			var chartData = [{
-				"game": 1,
-				"difficulty": 422
-			}, {
-				"game": 2,
-				"difficulty": 188
-			}, {
-				"game":3,
-				"difficulty": 189
-			}, {
-				"game": 4,
-				"difficulty": 122
-			}, {
-				"game": 5,
-				"difficulty": 112
-			}, {
-				"game": 6,
-				"difficulty": 114
-			}, {
-				"game": 7,
-				"difficulty": 94
-			}, {
-				"game": 8,
-				"difficulty": 71
-			}, {
-				"game": 9,
-				"difficulty": 65
-			}, {
-				"game": 10,
-				"difficulty": 50
-			}, {
-				"game": 11,
-				"difficulty": 43
-			}, {
-				"game": 12,
-				"difficulty": 41
-			}, {
-				"game": 13,
-				"difficulty": 35
-			}, {
-				"game": 14,
-				"difficulty": 36
-			}, {
-				"game": 15,
-				"difficulty": 34
-			}, {
-				"game": 16,
-				"difficulty": 33
-			}, {
-				"game": 17,
-				"difficulty": 32
-			}];
-			AmCharts.ready(function () {
-					
-                chart = new AmCharts.AmSerialChart();
-                chart.addTitle("изменение сложности");
-                chart.dataProvider = chartData;
-                chart.startDuration = 1;
-
-                // AXES
-                // category
-                var categoryAxis = chart.categoryAxis;
-                categoryAxis.labelRotation = 90;
-                categoryAxis.gridPosition = "start";
-
-                // value
-                // in case you don't want to change default settings of value axis,
-                // you don't need to create it, as one value axis is created automatically.
-                // value
-                var valueAxis = new AmCharts.ValueAxis();
-                valueAxis.axisAlpha = 2;
-                valueAxis.dashLength = 1;
-                chart.addValueAxis(valueAxis);
-
-                // GRAPH
-               var graph = new AmCharts.AmGraph();
-                graph.title = "red line";
-                graph.valueField = "difficulty";
-                graph.bullet = "round";
-                graph.bulletBorderColor = "#FFFFFF";
-                graph.bulletBorderThickness = 2;
-                graph.bulletBorderAlpha = 1;
-                graph.lineThickness = 2;
-                graph.lineColor = "#b5030d";
-                graph.negativeLineColor = "#0352b5";
-                graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
-                graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-                chart.addGraph(graph);
-
-                // CURSOR
-                var chartCursor = new AmCharts.ChartCursor();
-                chartCursor.cursorAlpha = 0;
-                chartCursor.zoomable = true;
-                chartCursor.categoryBalloonEnabled = false;
-                chart.addChartCursor(chartCursor);
-
-                chart.creditsPosition = "top-left";
-
-                chart.write("chartdiv");
-            });
-		
-			</script>
+        return request;
+    }
+    function get_request(url) {
+        var request = _getRequest();
+        request.open('GET', url, false);
+        request.send();
+        return request.responseText;
+    }
+</script>
+{% endblock %}
+{% block content %}
+{% if not word_entity %}
+{% if word %}
+<div class="alert alert-danger">К сожалению, в нашем словаре нет слова "{{ word }}"</div>
+{% endif %}
+<h2>Выберите, статистику по какому слову вы хотите посмотреть:</h2>
+<form style="margin-left: 30px" class="form-inline" method="get" action="/word_statistics">
+    <div class="form-group">
+        <input type="search" class="form-control" name="word" placeholder="Слово">
+    </div>
+    <button type="submit" class="btn btn-primary">
+        <span class="glyphicon glyphicon-search"></span>Найти
+    </button>
+</form>
+{% else %}
+<div class="container">
+<div class="row">
+<div class="col-md-6"><p class="lead">Показана статистика по слову "{{ word_entity.word }}"</p></div>
+<div class="col-md-6">
+    <form class="form-inline" method="get" action="/word_statistics">
+        <div class="form-group">
+            <input type="search" class="form-control" name="word" placeholder="Слово">
         </div>
-        <div class="col-md-6">
-        <script type="text/javascript">
-            var chart2;
-            var legend2;
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-search"></span>Найти
+        </button>
+    </form>
+</div>
+</div>
+<div class="row">
+<div class="col-md-6">
+    <script type="text/javascript">
+    var diff_chart;
+    var diff_arrow;
+    var diff_axis;
 
-            var chartData2 = [{
-                type: "Ok",
-                games: 301.90
-            }, {
-                type: "Fail",
-                games: 201.10
-            }, {
-                type: "not played",
-                games: 165.80
-            }];
+    AmCharts.ready(function () {
+        // create angular gauge
+        diff_chart = new AmCharts.AmAngularGauge();
+        diff_chart.addTitle("Сложность");
 
-            AmCharts.ready(function () {
-                // PIE CHART
-                chart2 = new AmCharts.AmPieChart();
-						chart2.addTitle("Попытки");
-                chart2.dataProvider = chartData2;
-                chart2.titleField = "type";
-                chart2.valueField = "games";
-                chart2.outlineColor = "#FFFFFF";
-                chart2.outlineAlpha = 0.8;
-                chart2.outlineThickness = 2;
+        // create axis
+        diff_axis = new AmCharts.GaugeAxis();
+        diff_axis.startValue = 0;
+        diff_axis.axisThickness = 1;
+        diff_axis.endValue = 100;
+        // color bands
+        var diff_band1 = new AmCharts.GaugeBand();
+        diff_band1.startValue = 0;
+        diff_band1.endValue = 30;
+        diff_band1.color = "#00CC00";
 
-                // WRITE
-                chart2.write("chartdiv2");
-            });
-        </script>
-        <div id="chartdiv2" style="width: 100%; height: 400px;"></div>
-        </div>
-      </div>
-    	<div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
-    		<script type="text/javascript">	
-			var gist_chartData = [{
-				"game": 1,
-				"difficulty": 422
-			}, {
-				"game": 2,
-				"difficulty": 188
-			}, {
-				"game":3,
-				"difficulty": 189
-			}, {
-				"game": 4,
-				"difficulty": 122
-			}, {
-				"game": 5,
-				"difficulty": 112
-			}, {
-				"game": 6,
-				"difficulty": 114
-			}, {
-				"game": 7,
-				"difficulty": 94
-			}, {
-				"game": 8,
-				"difficulty": 71
-			}, {
-				"game": 9,
-				"difficulty": 65
-			}, {
-				"game": 10,
-				"difficulty": 50
-			}, {
-				"game": 11,
-				"difficulty": 43
-			}, {
-				"game": 12,
-				"difficulty": 41
-			}, {
-				"game": 13,
-				"difficulty": 35
-			}, {
-				"game": 14,
-				"difficulty": 36
-			}, {
-				"game": 15,
-				"difficulty": 34
-			}, {
-				"game": 16,
-				"difficulty": 33
-			}, {
-				"game": 17,
-				"difficulty": 32
-			}];
-			AmCharts.ready(function () {
-					
-                gist_chart = new AmCharts.AmSerialChart();
-                gist_chart.addTitle("Гистограмма");
-                gist_chart.dataProvider = gist_chartData;
-                gist_chart.startDuration = 1;
+        var diff_band2 = new AmCharts.GaugeBand();
+        diff_band2.startValue = 30;
+        diff_band2.endValue = 70;
+        diff_band2.color = "#ffac29";
 
-                // AXES
-                // category
-                var gist_categoryAxis = chart.categoryAxis;
-                gist_categoryAxis.labelRotation = 90;
-                gist_categoryAxis.gridPosition = "start";
+        var diff_band3 = new AmCharts.GaugeBand();
+        diff_band3.startValue = 70;
+        diff_band3.endValue = 100;
+        diff_band3.color = "#ea3838";
+        diff_band3.innerRadius = "95%";
 
-                // value
-                // in case you don't want to change default settings of value axis,
-                // you don't need to create it, as one value axis is created automatically.
-                // value
-                var gist_valueAxis = new AmCharts.ValueAxis();
-                gist_valueAxis.axisAlpha = 2;
-                gist_valueAxis.dashLength = 1;
-                gist_chart.addValueAxis(gist_valueAxis);
+        diff_axis.bands = [diff_band1, diff_band2, diff_band3];
 
-                // GRAPH
-               var gist_graph = new AmCharts.AmGraph();
-                gist_graph.title = "red line";
-                gist_graph.valueField = "difficulty";
-                gist_graph.bullet = "round";
-                gist_graph.type = "column";
-                gist_graph.bulletBorderColor = "#FFFFFF";
-                gist_graph.bulletBorderThickness = 2;
-                gist_graph.bulletBorderAlpha = 1;
-                gist_graph.lineThickness = 2;
-                gist_graph.lineColor = "#b5030d";
-                gist_graph.negativeLineColor = "#0352b5";
-                gist_graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
-                gist_graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-                gist_chart.addGraph(gist_graph);
+        // bottom text
+        diff_axis.bottomTextYOffset = -20;
+        diff_axis.setBottomText("{{ word_entity.E | round(1) }}");
+        diff_chart.addAxis(diff_axis);
 
-                // CURSOR
-                var gist_chartCursor = new AmCharts.ChartCursor();
-                gist_chartCursor.cursorAlpha = 0;
-                gist_chartCursor.zoomable = true;
-                gist_chartCursor.categoryBalloonEnabled = false;
-                gist_chart.addChartCursor(gist_chartCursor);
+        // gauge arrow
+        diff_arrow = new AmCharts.GaugeArrow();
+        diff_chart.addArrow(diff_arrow);
+        diff_arrow.setValue("{{ word_entity.E }}");
 
-                gist_chart.creditsPosition = "top-left";
+        diff_chart.write("diff_chartdiv");
+    });
+</script>
+<div id="diff_chartdiv" style="height:250px;"></div>
+</div>
+<div class="col-md-6">
+<br>
+ <table class="table">
+    <tbody>
+      <tr>
+        <td><p class="text-info">Общее количество попыток</p></td>
+        <td>300</td>
+      </tr>
+      <tr>
+        <td><p class="text-info">Среднее количество попыток</p></td>
+        <td>10</td>
+      </tr>
+      <tr>
+        <td><p class="text-info">Суммарное время отгадывания</p></td>
+        <td>3000</td>
+      </tr>
+      <tr>
+        <td><p class="text-info">Среднее время отгадывания</p></td>
+        <td>10</td>
+      </tr>
 
-                gist_chart.write("gist_chartdiv");
-            });
-		
-			</script>
-        </div>
-		</div>
-   </body>
-</html>
+    </tbody>
+  </table>
+</div>
+</div>
+<div class="row">
+
+<div class="col-md-6">
+    <div id="chartdiv" style="width: 100%; height: 400px;"></div>
+    <script type="text/javascript">
+    var chartData = [{
+        "game": 1,
+        "difficulty": 422
+    }, {
+        "game": 2,
+        "difficulty": 188
+    }, {
+        "game":3,
+        "difficulty": 189
+    }, {
+        "game": 4,
+        "difficulty": 122
+    }, {
+        "game": 5,
+        "difficulty": 112
+    }, {
+        "game": 6,
+        "difficulty": 114
+    }, {
+        "game": 7,
+        "difficulty": 94
+    }, {
+        "game": 8,
+        "difficulty": 71
+    }, {
+        "game": 9,
+        "difficulty": 65
+    }, {
+        "game": 10,
+        "difficulty": 50
+    }, {
+        "game": 11,
+        "difficulty": 43
+    }, {
+        "game": 12,
+        "difficulty": 41
+    }, {
+        "game": 13,
+        "difficulty": 35
+    }, {
+        "game": 14,
+        "difficulty": 36
+    }, {
+        "game": 15,
+        "difficulty": 34
+    }, {
+        "game": 16,
+        "difficulty": 33
+    }, {
+        "game": 17,
+        "difficulty": 32
+    }];
+    AmCharts.ready(function () {
+
+        chart = new AmCharts.AmSerialChart();
+        chart.addTitle("изменение сложности");
+        chart.dataProvider = chartData;
+        chart.startDuration = 1;
+
+        // AXES
+        // category
+        var categoryAxis = chart.categoryAxis;
+        categoryAxis.labelRotation = 90;
+        categoryAxis.gridPosition = "start";
+
+        // value
+        // in case you don't want to change default settings of value axis,
+        // you don't need to create it, as one value axis is created automatically.
+        // value
+        var valueAxis = new AmCharts.ValueAxis();
+        valueAxis.axisAlpha = 2;
+        valueAxis.dashLength = 1;
+        chart.addValueAxis(valueAxis);
+
+        // GRAPH
+       var graph = new AmCharts.AmGraph();
+        graph.title = "red line";
+        graph.valueField = "difficulty";
+        graph.bullet = "round";
+        graph.bulletBorderColor = "#FFFFFF";
+        graph.bulletBorderThickness = 2;
+        graph.bulletBorderAlpha = 1;
+        graph.lineThickness = 2;
+        graph.lineColor = "#b5030d";
+        graph.negativeLineColor = "#0352b5";
+        graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
+        graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
+        chart.addGraph(graph);
+
+        // CURSOR
+        var chartCursor = new AmCharts.ChartCursor();
+        chartCursor.cursorAlpha = 0;
+        chartCursor.zoomable = true;
+        chartCursor.categoryBalloonEnabled = false;
+        chart.addChartCursor(chartCursor);
+
+        chart.creditsPosition = "top-left";
+
+        chart.write("chartdiv");
+    });
+
+    </script>
+</div>
+<div class="col-md-6">
+<script type="text/javascript">
+    var chart2;
+    var legend2;
+
+    var chartData2 = [{
+        type: "Ok",
+        games: 301.90
+    }, {
+        type: "Fail",
+        games: 201.10
+    }, {
+        type: "not played",
+        games: 165.80
+    }];
+
+    AmCharts.ready(function () {
+        // PIE CHART
+        chart2 = new AmCharts.AmPieChart();
+                chart2.addTitle("Попытки");
+        chart2.dataProvider = chartData2;
+        chart2.titleField = "type";
+        chart2.valueField = "games";
+        chart2.outlineColor = "#FFFFFF";
+        chart2.outlineAlpha = 0.8;
+        chart2.outlineThickness = 2;
+
+        // WRITE
+        chart2.write("chartdiv2");
+    });
+</script>
+<div id="chartdiv2" style="width: 100%; height: 400px;"></div>
+</div>
+</div>
+<div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
+    <script type="text/javascript">
+    var gist_chartData = [{
+        "game": 1,
+        "difficulty": 422
+    }, {
+        "game": 2,
+        "difficulty": 188
+    }, {
+        "game":3,
+        "difficulty": 189
+    }, {
+        "game": 4,
+        "difficulty": 122
+    }, {
+        "game": 5,
+        "difficulty": 112
+    }, {
+        "game": 6,
+        "difficulty": 114
+    }, {
+        "game": 7,
+        "difficulty": 94
+    }, {
+        "game": 8,
+        "difficulty": 71
+    }, {
+        "game": 9,
+        "difficulty": 65
+    }, {
+        "game": 10,
+        "difficulty": 50
+    }, {
+        "game": 11,
+        "difficulty": 43
+    }, {
+        "game": 12,
+        "difficulty": 41
+    }, {
+        "game": 13,
+        "difficulty": 35
+    }, {
+        "game": 14,
+        "difficulty": 36
+    }, {
+        "game": 15,
+        "difficulty": 34
+    }, {
+        "game": 16,
+        "difficulty": 33
+    }, {
+        "game": 17,
+        "difficulty": 32
+    }];
+    AmCharts.ready(function () {
+
+        gist_chart = new AmCharts.AmSerialChart();
+        gist_chart.addTitle("Гистограмма");
+        gist_chart.dataProvider = gist_chartData;
+        gist_chart.startDuration = 1;
+
+        // AXES
+        // category
+        var gist_categoryAxis = chart.categoryAxis;
+        gist_categoryAxis.labelRotation = 90;
+        gist_categoryAxis.gridPosition = "start";
+
+        // value
+        // in case you don't want to change default settings of value axis,
+        // you don't need to create it, as one value axis is created automatically.
+        // value
+        var gist_valueAxis = new AmCharts.ValueAxis();
+        gist_valueAxis.axisAlpha = 2;
+        gist_valueAxis.dashLength = 1;
+        gist_chart.addValueAxis(gist_valueAxis);
+
+        // GRAPH
+       var gist_graph = new AmCharts.AmGraph();
+        gist_graph.title = "red line";
+        gist_graph.valueField = "difficulty";
+        gist_graph.bullet = "round";
+        gist_graph.type = "column";
+        gist_graph.bulletBorderColor = "#FFFFFF";
+        gist_graph.bulletBorderThickness = 2;
+        gist_graph.bulletBorderAlpha = 1;
+        gist_graph.lineThickness = 2;
+        gist_graph.lineColor = "#b5030d";
+        gist_graph.negativeLineColor = "#0352b5";
+        gist_graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
+        gist_graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
+        gist_chart.addGraph(gist_graph);
+
+        // CURSOR
+        var gist_chartCursor = new AmCharts.ChartCursor();
+        gist_chartCursor.cursorAlpha = 0;
+        gist_chartCursor.zoomable = true;
+        gist_chartCursor.categoryBalloonEnabled = false;
+        gist_chart.addChartCursor(gist_chartCursor);
+
+        gist_chart.creditsPosition = "top-left";
+
+        gist_chart.write("gist_chartdiv");
+    });
+
+    </script>
+</div>
+{% endif %}
+{% endblock %}

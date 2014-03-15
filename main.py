@@ -35,21 +35,17 @@ from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.global_dictionary_editor_handlers
+from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
-class MainPage(webapp2.RequestHandler):
+class MainPage(WebRequestHandler):
     def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/index.html')
-        if users.get_current_user():
-            self.response.write(template.render(
-                {"logout_link": users.create_logout_url('/')}))
-        else:
-            self.response.write(template.render({"login_link": users.create_login_url('/')}))
+        self.draw_page('index')
 
 
 routes = [
     webapp2.Route(
-        r'/stat/<word:[-\w]+>',
+        r'/word_statistics',
         handler=handlers.statistics.word_statistics_handler.WordStatisticsHandler,
         name='stats'),
     (r'/', MainPage),
