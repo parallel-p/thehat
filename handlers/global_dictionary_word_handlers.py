@@ -19,6 +19,8 @@ from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 def make_timestamp():
     return int(1000 * time.time())
 
+StrategyTypeChooseConstant = 200
+
 
 class WordsAddHandler(AdminRequestHandler):
 
@@ -28,14 +30,23 @@ class WordsAddHandler(AdminRequestHandler):
     def post(self, *args, **kwargs):
         words = json.loads(self.request.get("json"))
         to_add = []
-        for word in words:
-            in_base = ndb.gql(u"SELECT D FROM GlobalDictionaryWord WHERE word = '{0}'".format(word)).get()
-            if in_base is None:
-                to_add.append(word)
-        taskqueue.add(url='/internal/global_dictionary/add_words', params={"json": json.dumps(to_add)})
+        if len(words) > StrategyTypeChooseConstant:
+            server = set([word.word for word in ndb.gql(u"SELECT word FROM GlobalDictionaryWord")])
+            for i in words:
+                if not i in server:
+                    to_add.append(i)
+        else:
+            for word in words:
+                in_base = ndb.Key(GlobalDictionaryWord, word).get()
+                if in_base is None:
+                    to_add.append(word)
+        taskqueue.add(url='/internal/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
 
 
-class TaskQueueAddWords(webapp2.RequestHandler):
+class TaskQueueAddWords(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskQueueAddWords, self).__init__(*args, **kwargs)
 
     def post(self):
         new_words = json.loads(self.request.get("json"))
@@ -44,7 +55,10 @@ class TaskQueueAddWords(webapp2.RequestHandler):
                                  timestamp=make_timestamp()).put()
 
 
-class TaskQueueUpdateJson(webapp2.RequestHandler):
+class TaskQueueUpdateJson(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(TaskQueueUpdateJson, self).__init__(*args, **kwargs)
 
     def post(self):
         timestamp = int(self.request.get("timestamp"))
@@ -68,7 +82,7 @@ class UpdateJsonHandler(APIRequestHandler):
         for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
             if json.timestamp > max_timestamp:
                 max_timestamp = json.timestamp
-        taskqueue.add(url='/internal/global_dictionary/update_json', params={"timestamp":max_timestamp})
+        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp":max_timestamp})
 
 
 class GlobalDictionaryGetWordsHandler(APIRequestHandler):
@@ -109,10 +123,10 @@ global_dictionary_word_routes = [
     webapp2.Route(r'/admin/global_dictionary/add_words',
                   handler=WordsAddHandler,
                   name='add words to global'),
-    webapp2.Route(r'/internal/global_dictionary/add_words',
+    webapp2.Route(r'/internal/global_dictionary/add_words/task_queue',
                   handler=TaskQueueAddWords,
                   name='add words to global task queue'),
-    webapp2.Route(r'/internal/global_dictionary/update_json',
+    webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
                   handler=TaskQueueUpdateJson,
                   name='update json task queue'),
         webapp2.Route(r'/admin/global_dictionary/update_json',
