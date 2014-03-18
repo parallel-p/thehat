@@ -1,16 +1,17 @@
 __author__ = 'ivan'
 
 import time
-
-from google.appengine.api import taskqueue
-from google.appengine.api import users
 import webapp2
 import json
 
-from objects.global_dictionary_word import GlobalDictionaryWord
-from environment import *
-from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+from google.appengine.api import taskqueue
+from google.appengine.api import users
 from google.appengine.ext import ndb
+
+from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+
+from environment import *
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
@@ -129,10 +130,10 @@ global_dictionary_word_routes = [
     webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
                   handler=TaskQueueUpdateJson,
                   name='update json task queue'),
-        webapp2.Route(r'/admin/global_dictionary/update_json',
+    webapp2.Route(r'/admin/global_dictionary/update_json',
                   handler=UpdateJsonHandler,
                   name='update json'),
-        webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
+    webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
                   handler=GlobalDictionaryGetWordsHandler,
                   name='get words')
 ]

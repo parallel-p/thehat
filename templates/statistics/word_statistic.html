@@ -39,7 +39,7 @@
     <div class="form-group">
         <input type="search" class="form-control" name="word" placeholder="Слово">
     </div>
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary btn-bloc   k">
         <span class="glyphicon glyphicon-search"></span>Найти
     </button>
 </form>
@@ -59,7 +59,7 @@
 </div>
 </div>
 <div class="row">
-<div class="col-md-6">
+<div class="col-md-4">
     <script type="text/javascript">
     var diff_chart;
     var diff_arrow;
@@ -109,137 +109,7 @@
 </script>
 <div id="diff_chartdiv" style="height:250px;"></div>
 </div>
-<div class="col-md-6">
-<br>
- <table class="table">
-    <tbody>
-      <tr>
-        <td><p class="text-info">Общее количество попыток</p></td>
-        <td>{{ word_entity.used_times }}</td>
-      </tr>
-      <tr>
-        <td><p class="text-info">Суммарное время отгадывания</p></td>
-        <td>{{ word_entity.total_explanation_time}} сек</td>
-      </tr>
-      {% if word_entity.guessed_times > 0 %}
-      <tr>
-        <td><p class="text-info">Среднее время отгадывания</p></td>
-        <td>{{ word_entity.total_explanation_time // word_entity.guessed_times}} сек</td>
-      </tr>
-      {% endif %}
-    </tbody>
-  </table>
-</div>
-</div>
-<div class="row">
-
-<div class="col-md-6">
-    <div id="chartdiv" style="width: 100%; height: 400px;"></div>
-    <script type="text/javascript">
-    var chartData = [{
-        "game": 1,
-        "difficulty": 422
-    }, {
-        "game": 2,
-        "difficulty": 188
-    }, {
-        "game":3,
-        "difficulty": 189
-    }, {
-        "game": 4,
-        "difficulty": 122
-    }, {
-        "game": 5,
-        "difficulty": 112
-    }, {
-        "game": 6,
-        "difficulty": 114
-    }, {
-        "game": 7,
-        "difficulty": 94
-    }, {
-        "game": 8,
-        "difficulty": 71
-    }, {
-        "game": 9,
-        "difficulty": 65
-    }, {
-        "game": 10,
-        "difficulty": 50
-    }, {
-        "game": 11,
-        "difficulty": 43
-    }, {
-        "game": 12,
-        "difficulty": 41
-    }, {
-        "game": 13,
-        "difficulty": 35
-    }, {
-        "game": 14,
-        "difficulty": 36
-    }, {
-        "game": 15,
-        "difficulty": 34
-    }, {
-        "game": 16,
-        "difficulty": 33
-    }, {
-        "game": 17,
-        "difficulty": 32
-    }];
-    AmCharts.ready(function () {
-
-        chart = new AmCharts.AmSerialChart();
-        chart.addTitle("изменение сложности");
-        chart.dataProvider = chartData;
-        chart.startDuration = 1;
-
-        // AXES
-        // category
-        var categoryAxis = chart.categoryAxis;
-        categoryAxis.labelRotation = 90;
-        categoryAxis.gridPosition = "start";
-
-        // value
-        // in case you don't want to change default settings of value axis,
-        // you don't need to create it, as one value axis is created automatically.
-        // value
-        var valueAxis = new AmCharts.ValueAxis();
-        valueAxis.axisAlpha = 2;
-        valueAxis.dashLength = 1;
-        chart.addValueAxis(valueAxis);
-
-        // GRAPH
-       var graph = new AmCharts.AmGraph();
-        graph.title = "red line";
-        graph.valueField = "difficulty";
-        graph.bullet = "round";
-        graph.bulletBorderColor = "#FFFFFF";
-        graph.bulletBorderThickness = 2;
-        graph.bulletBorderAlpha = 1;
-        graph.lineThickness = 2;
-        graph.lineColor = "#b5030d";
-        graph.negativeLineColor = "#0352b5";
-        graph.balloonText = "[[category]]<br><b><span style='font-size:14px;'>сложность: [[value]]</span></b>";
-        graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-        chart.addGraph(graph);
-
-        // CURSOR
-        var chartCursor = new AmCharts.ChartCursor();
-        chartCursor.cursorAlpha = 0;
-        chartCursor.zoomable = true;
-        chartCursor.categoryBalloonEnabled = false;
-        chart.addChartCursor(chartCursor);
-
-        chart.creditsPosition = "top-left";
-
-        chart.write("chartdiv");
-    });
-
-    </script>
-</div>
-<div class="col-md-6">
+<div class="col-md-4">
 <script type="text/javascript">
     var chart2;
     var legend2;
@@ -272,7 +142,29 @@
 </script>
 <div id="chartdiv2" style="width: 100%; height: 400px;"></div>
 </div>
+<div class="col-md-4">
+<br>
+ <table class="table">
+    <tbody>
+      <tr>
+        <td><p class="text-info">Общее количество попыток</p></td>
+        <td>{{ word_entity.used_times }}</td>
+      </tr>
+      <tr>
+        <td><p class="text-info">Суммарное время отгадывания</p></td>
+        <td>{{ word_entity.total_explanation_time}} сек</td>
+      </tr>
+      {% if word_entity.guessed_times > 0 %}
+      <tr>
+        <td><p class="text-info">Среднее время отгадывания</p></td>
+        <td>{{ word_entity.total_explanation_time // word_entity.guessed_times}} сек</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
 </div>
+</div>
+
 <div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
 <script type="text/javascript">
 var chart = AmCharts.makeChart("gist_chartdiv", {
