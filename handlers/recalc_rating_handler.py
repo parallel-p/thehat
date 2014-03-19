@@ -39,7 +39,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
                 words_db[i].put()
-            logging.info(u"Updated rating of words: {}".format(", ".join([el.word for el in words_db])))
+            logging.info(u"Updated rating of {} word".format(len(ratings)))
         else:
             logging.warning("No word from pair is in our dictionary")
         self.response.set_status(200)
