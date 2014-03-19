@@ -7,7 +7,8 @@ from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from google.appengine.ext import ndb
-
+from google.appengine.api import memcache
+from random import randint
 
 class WordStatisticsHandler(WebRequestHandler):
 
@@ -16,8 +17,26 @@ class WordStatisticsHandler(WebRequestHandler):
 
     def get(self, *args, **kwargs):
         word = self.request.get('word', None)
-        entity = None
+        entity, top, bottom, rand = None, None, None, None
         if word:
             entity = ndb.Key(GlobalDictionaryWord, word).get()
-        self.draw_page('statistics/word_statistic', word=word, word_entity=(entity if entity else None))
+        if not entity:
+            top = memcache.get("words_top")
+            if not top:
+                top = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
+                    order(-GlobalDictionaryWord.E).fetch(limit=10)
+                memcache.set("words_top", top)
+            bottom = memcache.get("words_bottom")
+            if not bottom:
+                bottom = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
+                    order(GlobalDictionaryWord.E).fetch(limit=10)
+                memcache.set("words_bottom", bottom)
+            q = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
+                filter(GlobalDictionaryWord.used_times > 0)
+            c = memcache.get("used_words_count")
+            if not c:
+                c = q.count()
+                memcache.set("used_words_count", c)
+            rand = q.fetch(limit=10, offset=randint(0, c-10))
+        self.draw_page('statistics/word_statistic', word=word, word_entity=entity, top=top, bottom=bottom, rand=rand)
 
