@@ -10,6 +10,7 @@ from google.appengine.ext import ndb
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
+from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 
 
@@ -38,7 +39,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
                 words_db[i].put()
-            logging.info(u"Updated rating of words: {}".format(", ".join([el.word for el in words_db])))
+            logging.info(u"Updated rating of {} word".format(len(ratings)))
         else:
             logging.warning("No word from pair is in our dictionary")
         self.response.set_status(200)
@@ -54,7 +55,8 @@ class AddGameHandler(ServiceRequestHandler):
         logging.info("Handling log of game {}".format(game_id))
         log_db = ndb.Key(GameLog, game_id).get()
         if log_db is None:
-            self.abort(404)
+            logging.error("Can't find game log")
+            self.abort(200)
         try:
             log = json.loads(log_db.json)
             #TODO: solve problem with free-play games
@@ -135,6 +137,7 @@ class AddGameHandler(ServiceRequestHandler):
 
 class RecalcAllLogs(ServiceRequestHandler):
     def post(self):
-        logs = GameLog.query().fetch(keys_only=True)
-        for el in logs:
-            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
+        GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
+                                                          params={'game_id': k.id()}), keys_only=True)
+        GameHistory.query().map(lambda k: taskqueue.add(url='/internal/add_legacy_game',
+                                                              params={'game_id': k.id()}), keys_only=True)

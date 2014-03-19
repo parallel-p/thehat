@@ -1,4 +1,20 @@
 {% extends "templates/base.html" %}
+{% macro word_table(list) %}
+<table class="table">
+    <tr>
+        <th>#</th>
+        <th>Слово</th>
+        <th>Сложность</th>
+    </tr>
+    {% for word in list %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td><a href="/word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
+            <td>{{ word.E|round(1) }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{% endmacro %}
 {% block title %}Cтатистика по слову "{{ word }}"{% endblock %}
 {% block header %}Статистика{% endblock %}
 {% block head %}
@@ -8,26 +24,6 @@
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
 <!--amcharts import end-->
-<script type="application/javascript">
-
-    function _getRequest() {
-        var request;
-        if (window.XMLHttpRequest) {
-            // IE7+, Firefox, Chrome, Opera, Safari
-            request = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            request = new ActiveXObject('Microsoft.XMLHTTP');
-        }
-        return request;
-    }
-    function get_request(url) {
-        var request = _getRequest();
-        request.open('GET', url, false);
-        request.send();
-        return request.responseText;
-    }
-</script>
 {% endblock %}
 {% block content %}
 {% if not word_entity %}
@@ -43,6 +39,20 @@
         <span class="glyphicon glyphicon-search"></span>Найти
     </button>
 </form>
+<div class="row">
+<div class="col-md-4">
+<p class="lead">Самые сложные слова</p>
+{{ word_table(top) }}
+</div>
+<div class="col-md-4">
+<p class="lead">Самые простые слова</p>
+{{ word_table(bottom) }}
+</div>
+<div class="col-md-4">
+<p class="lead">Случайные слова</p>
+{{ word_table(rand) }}
+</div>
+</div>
 {% else %}
 <div class="container">
 <div class="row">

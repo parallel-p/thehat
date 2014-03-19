@@ -30,6 +30,7 @@ import handlers.recalc_rating_handler
 import handlers.web_game_creation_handler
 import handlers.link_device
 import handlers.statistics.word_statistics_handler
+import handlers.legacy_game_history_handler
 
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
@@ -180,6 +181,9 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/internal/recalc_all_logs',
                   handler=handlers.recalc_rating_handler.RecalcAllLogs),
+    webapp2.Route(r'/internal/add_legacy_game',
+                  handler=handlers.legacy_game_history_handler.LegacyStatisticsHandler,
+                  name='add_game_Statistic'),
     webapp2.Route(r'/user/create_game',
                   handler=handlers.web_game_creation_handler.WebGameCreationHandler,
                   name='create_game')
