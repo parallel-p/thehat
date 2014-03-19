@@ -55,7 +55,8 @@ class AddGameHandler(ServiceRequestHandler):
         logging.info("Handling log of game {}".format(game_id))
         log_db = ndb.Key(GameLog, game_id).get()
         if log_db is None:
-            self.abort(404)
+            logging.error("Can't find game log")
+            self.abort(200)
         try:
             log = json.loads(log_db.json)
             #TODO: solve problem with free-play games
@@ -136,9 +137,9 @@ class AddGameHandler(ServiceRequestHandler):
 
 class RecalcAllLogs(ServiceRequestHandler):
     def post(self):
-        logs = GameLog.query().fetch(keys_only=True)
-        for el in logs:
-            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
+        #logs = GameLog.query().fetch(keys_only=True)
+        #for el in logs:
+        #    taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
         hist = GameHistory.query().fetch(keys_only=True)
         for el in hist:
             taskqueue.add(url='/internal/add_legacy_game', params={'game_id': el.id()})

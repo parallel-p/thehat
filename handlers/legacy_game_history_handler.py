@@ -77,12 +77,6 @@ class GameHistory(ndb.Model):
         'ONE_WORD': ONE_WORD
         }
 
-    str_repr_type = {
-        HAT_STANDART: u'шляпа',
-        CROCODILE: u'крокодил',
-        ONE_WORD: u'одно слово'
-        }
-
     players = ndb.StringProperty(repeated=True, indexed=False)
     rounds = ndb.StructuredProperty(Round, repeated=True, indexed=False)
     guess_results = ndb.StructuredProperty(WordGuessResult,
@@ -107,13 +101,18 @@ class GameHistory(ndb.Model):
 
 
 class LegacyStatisticsHandler(ServiceRequestHandler):
+
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Handling legacy history with key {}".format(game_id))
-        hist = ndb.Key(GameHistory, game_id).get()
+        hist = ndb.Key(GameHistory, int(game_id)).get()
+        if hist is None:
+            logging.error("Can't find game history")
+            self.abort(200)
         if hist.game_type is None:
             hist.game_type = GameHistory.HAT_STANDART
         if hist.game_type != GameHistory.HAT_STANDART:
+            logging.info("Do not handle history of non-original-hat game")
             self.abort(200)
         words_by_players_pair = {}
         seen_words_time = defaultdict(lambda: 0)
@@ -124,12 +123,12 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
                 if not res.word in seen_words_time:
                     if not (r.player_explain, r.player_guess) in words_by_players_pair:
                         words_by_players_pair[(r.player_explain, r.player_guess)] = []
-                    words_by_players_pair[(r.player_explain, r.player_guess)].append(r)
+                    words_by_players_pair[(r.player_explain, r.player_guess)].append(res)
                     if res.result == 1:
                         res.time_sec = 5 * 60
-            seen_words_time[res.word] += seen_words_time
+            seen_words_time[res.word] += int(res.time_sec)
             word_outcome[res.word] = res.result
-        for i in range(hist.words):
+        for i in range(len(hist.words)):
             if i not in seen_words_time:
                 continue
             word_db = ndb.Key(GlobalDictionaryWord, hist.words[i].text).get()
