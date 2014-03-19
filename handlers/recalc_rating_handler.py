@@ -10,6 +10,7 @@ from google.appengine.ext import ndb
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
+from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 
 
@@ -138,3 +139,6 @@ class RecalcAllLogs(ServiceRequestHandler):
         logs = GameLog.query().fetch(keys_only=True)
         for el in logs:
             taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
+        hist = GameHistory.query().fetch(keys_only=True)
+        for el in hist:
+            taskqueue.add(url='/internal/add_legacy_game', params={'game_id': el.id()})
