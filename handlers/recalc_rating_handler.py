@@ -137,9 +137,9 @@ class AddGameHandler(ServiceRequestHandler):
 
 class RecalcAllLogs(ServiceRequestHandler):
     def post(self):
-        #logs = GameLog.query().fetch(keys_only=True)
-        #for el in logs:
-        #    taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
+        logs = GameLog.query().fetch(keys_only=True)
+        for el in logs:
+            taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': el.id()}, countdown=5)
         hist = GameHistory.query().fetch(keys_only=True)
         for el in hist:
             taskqueue.add(url='/internal/add_legacy_game', params={'game_id': el.id()})
