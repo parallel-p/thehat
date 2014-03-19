@@ -50,7 +50,9 @@
         {
             var url = "/admin/global_dictionary/update_json";
             post(url, "");
+            $('#update_myModal').modal({show:true})
         }
+
         function send_words()
         {
             var url = "/admin/global_dictionary/add_words";
@@ -64,9 +66,45 @@
                 var json = JSON.stringify(words.slice(1000 * i, 1000 * (i + 1)));
                 post(url, json);
             }
+            $('#myModal').modal({show:true})
         }
-
 </script>
+
+<div class="modal" id="myModal">
+	<div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Добавление слов</h4>
+        </div>
+        <div class="modal-body">
+          Слова отправлены на обработку
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add'"> Close </button>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<div class="modal" id="update_myModal">
+	<div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Обновление словаря</h4>
+        </div>
+        <div class="modal-body">
+          Обновление словаря запушено.
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add'"> Close </button>
+        </div>
+      </div>
+    </div>
+</div>
+
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -107,7 +145,6 @@
           <h1 align="center">Добавление слов</h1>
         </div>
     <div class="container">
-
    <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
         нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
     <center>
@@ -120,7 +157,6 @@
             <span class="glyphicon glyphicon-plus"></span> Добавить
         </button>
         </div>
-        <input type="submit" value="Cancel" onclick="window.location='/'; return false;"/>
     </center>
     {% if error is defined %}
         <p>
