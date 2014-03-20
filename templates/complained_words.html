@@ -1,71 +1,7 @@
-<!doctype html>
-
-<html>
-
-  <head>
-    <title>Сомнительные слова</title>
-    <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-    <style type="text/css">
-      body {
-        padding-top: 50px;
-        padding-bottom: 20px;
-      }
-    </style>
-  </head>
- <!---   <form method="post"
-          action="/cN08Yh3CNWaIVe0OAeBDflxw79hQP44CvEtGe4doGyVUgaNMgRKrazdGPcobgugxGAwV2Z2fP1vBD8sa5qO89ZVLX41x4t91XnFV">
-        Delete from complained: <br/> <input type="text" name="word"/>
-        <td><input type="submit" value="Delete"/></td>
-    </form>
-    <form method="post"
-          action="/pYDpUoXspsJTVhqBai7hrV7uKs5MN0VUhE80ksWGGuQhazGbVPUhcPSzpztdboY34yFstsL56GMHkOI3SWUtF5Cwml23NDt6Yuou">
-        Delete from global: <br/> <input type="text" name="word"/>
-        <td><input type="submit" value="Delete"/></td>
-    </form> -->
-
-<body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="/">Sombrero</a>
-        </div>
-        <div class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-              <li>
-              <a href="/admin">Admin</a>
-            </li>
-            <li>
-              <a href="/admin/global_dictionary/add">Добавление слов</a>
-            </li>
-            <li>
-              <a href="/admin/global_dictionary/edit/0">Редактирование словаря</a>
-            </li>
-            <li>
-              <a href="/admin/streams">Потоки слов</a>
-            </li>
-             <li>
-              <a href="/admin/complain/list">Жалобы на слова</a>
-            </li>
-          </ul>
-          <form class="navbar-form navbar-right">
-            <div class="form-group"></div>
-            <div class="form-group"></div>
-            <button type="submit" class="btn btn-success">Sign in</button>
-          </form>
-        </div>
-        <!--/.navbar-collapse -->
-      </div>
-
-    </div>
-        <div class="container">
-          <h1 align="center">Жалобы на слова</h1>
-        </div>
+{% extends "templates/base.html" %}
+{% block title %}Сомнительные слова - Шляпа{% endblock %}
+{% block contentheader %}Сомнительные слова{% endblock %}
+{% block content %}
     <script type="application/javascript">
 
         function getXmlHttp() {
@@ -150,10 +86,6 @@
         {% endfor %}
         </tbody>
     </table>
-  </body>
-
-</html>
-
-
-
-
+        </div>
+    </div>
+{% endblock %}

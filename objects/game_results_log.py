@@ -20,5 +20,4 @@ class SavedGame(ndb.Model):
 
 class GameLog(ndb.Model):
     json = ndb.StringProperty(indexed=False)
-    game_id = ndb.StringProperty()
     last_statistic = ndb.IntegerProperty()

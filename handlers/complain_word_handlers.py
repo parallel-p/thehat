@@ -38,19 +38,15 @@ class ShowComplainedWords(AdminRequestHandler):
     def get(self, *args, **kwargs):
         template = JINJA_ENVIRONMENT.get_template('templates/complained_words.html')
         cnt = 0
-        render_data = {constants.render_data_name: []}
+        words = []
         for word in ComplainedWord.query():
             word_render = word
             word_render.cnt = cnt
             if word.replacement_word is None:
                 word_render.replacement_word = ''
-            render_data[constants.render_data_name].append(word_render)
+            words.append(word_render)
             cnt += 1
-
-        render_data["quantity"] = len(render_data[constants.render_data_name])
-        if users.get_current_user():
-            render_data["logout_link"] = users.create_logout_url('/')
-        self.response.write(template.render(render_data))
+        self.draw_page('complained_words', quantity=len(words), words=words)
 
 
 class DeleteComplainedWords(AdminRequestHandler):

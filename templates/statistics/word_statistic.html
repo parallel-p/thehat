@@ -69,7 +69,8 @@
 </div>
 </div>
 <div class="row">
-<div class="col-md-4">
+<div class="col-md-6" id="difficulty_gauge" style="height: 200px;">
+</div>
     <script type="text/javascript">
     var diff_chart;
     var diff_arrow;
@@ -114,12 +115,11 @@
         diff_chart.addArrow(diff_arrow);
         diff_arrow.setValue("{{ word_entity.E }}");
 
-        diff_chart.write("diff_chartdiv");
+        diff_chart.write("difficulty_gauge");
     });
 </script>
-<div id="diff_chartdiv" style="height:250px;"></div>
+<div class="col-md-6" id="pie_chart" style="height: 200px;">
 </div>
-<div class="col-md-4">
 <script type="text/javascript">
     var chart2;
     var legend2;
@@ -138,21 +138,20 @@
     AmCharts.ready(function () {
         // PIE CHART
         chart2 = new AmCharts.AmPieChart();
-                chart2.addTitle("Попытки");
+        chart2.addTitle("Попытки");
         chart2.dataProvider = chartData2;
         chart2.titleField = "type";
         chart2.valueField = "games";
         chart2.outlineColor = "#FFFFFF";
         chart2.outlineAlpha = 0.8;
-        chart2.outlineThickness = 2;
+        chart2.outlineThickness = 0;
+        chart2.balloonText = "[[title]] [[value]] раз"
 
         // WRITE
-        chart2.write("chartdiv2");
+        chart2.write("pie_chart");
     });
 </script>
-<div id="chartdiv2" style="width: 100%; height: 400px;"></div>
-</div>
-<div class="col-md-4">
+<div class="col-md-6">
 <br>
  <table class="table">
     <tbody>
@@ -173,9 +172,7 @@
     </tbody>
   </table>
 </div>
-</div>
-
-<div id="gist_chartdiv" style="width: 100%; height: 400px;"></div>
+<div class="col-md-6" id="gist_chartdiv" style="height: 200px;"></div>
 <script type="text/javascript">
 var chart = AmCharts.makeChart("gist_chartdiv", {
     "type": "serial",
@@ -183,7 +180,8 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
     "dataProvider": [
         {% for i in word_entity.counts_by_expl_time %}
             {
-                "time": "{{ (loop.index - 1) * 5 }} - {{ loop.index * 5}} сек",
+                "lower-bound": "{{ (loop.index - 1) * 5 }}",
+                "upper-bound": "{{ loop.index * 5 }}",
                 "games": {{ i }}
             },
         {% endfor %}
@@ -196,7 +194,7 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
     "gridAboveGraphs": true,
     "startDuration": 1,
     "graphs": [{
-        "balloonText": "[[category]]: <b>[[value]] раз</b>",
+        "balloonText": "[[lower-bound]] - [[upper-bound]] сек: <b>[[value]] раз</b>",
         "fillAlphas": 0.8,
         "lineAlpha": 0.2,
         "type": "column",
@@ -207,13 +205,14 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
         "cursorAlpha": 0,
         "zoomable": false
     },
-    "categoryField": "time",
+    "categoryField": "upper-bound",
     "categoryAxis": {
         "gridPosition": "start",
         "gridAlpha": 0
     }
 });
 </script>
+</div>
 </div>
 {% endif %}
 {% endblock %}

@@ -12,6 +12,7 @@ from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
 from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
+from math import sqrt
 
 
 class BadGameError(Exception):
