@@ -12,16 +12,6 @@ class Word(ndb.Model):
     text = ndb.StringProperty(indexed=False)
     owner = ndb.IntegerProperty(indexed=False)
 
-    def __hash__(self):
-        return hash(self.text + str(self.owner))
-
-    def __eq__(self, second):
-        return self.text == second.text and self.owner == second.owner
-    """ stores word info
-    text: (ndb.StringProperty()) - which word is it
-    owner: (ndb.IntegerProperty()) - index of who had written this word
-    """
-
 
 class WordGuessResult(ndb.Model):
     GUESS, FAIL, PUT_BACK, TIME_OUT = range(4)
@@ -75,7 +65,7 @@ class GameHistory(ndb.Model):
         'HAT_STANDART': HAT_STANDART,
         'CROCODILE': CROCODILE,
         'ONE_WORD': ONE_WORD
-        }
+    }
 
     players = ndb.StringProperty(repeated=True, indexed=False)
     rounds = ndb.StructuredProperty(Round, repeated=True, indexed=False)
@@ -117,16 +107,21 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
         words_by_players_pair = {}
         seen_words_time = defaultdict(lambda: 0)
         word_outcome = {}
+        pick_time = 0
+        cur_round = 0
         for res in hist.guess_results:
             if res.result in [0, 1]:
+                if cur_round != res.round_:
+                    pick_time = 0
                 r = hist.rounds[res.round_]
                 if not res.word in seen_words_time:
                     if not (r.player_explain, r.player_guess) in words_by_players_pair:
                         words_by_players_pair[(r.player_explain, r.player_guess)] = []
                     words_by_players_pair[(r.player_explain, r.player_guess)].append(res)
+                    res.time_sec, pick_time = res.time_sec - pick_time, res.time_sec
                     if res.result == 1:
                         res.time_sec = 5 * 60
-            seen_words_time[res.word] += int(res.time_sec)
+            seen_words_time[res.word] += int(round(res.time_sec))
             word_outcome[res.word] = res.result
         for i in range(len(hist.words)):
             if i not in seen_words_time:
@@ -140,20 +135,23 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
             elif word_outcome[i] == 1:
                 word_db.failed_times += 1
             word_db.total_explanation_time += seen_words_time[i]
-            pos = seen_words_time[i]
-            l = word_db.counts_by_expl_time
-            while pos >= len(l):
-                l.append(0)
-            l[pos] += 1
+            if word_outcome[i] == 0:
+                pos = seen_words_time[i] // 5
+                l = word_db.counts_by_expl_time
+                while pos >= len(l):
+                    l.append(0)
+                l[pos] += 1
             word_db.put()
         words = [hist.words[w].text for w in sorted(filter(lambda w: word_outcome[w] == 0,
                                                            seen_words_time.keys()),
                                                     key=lambda w: -seen_words_time[w])]
         taskqueue.add(url='/internal/recalc_rating_after_game',
-                      params={'json': json.dumps(words)})
+                      params={'json': json.dumps(words)},
+                      queue_name='rating_calculation')
         for players_pair, words in words_by_players_pair.items():
             if len(words) > 1:
                 words = sorted(words, key=lambda w: -w.time_sec)
                 to_recalc = [hist.words[w.word].text for w in words]
                 taskqueue.add(url='/internal/recalc_rating_after_game',
-                              params={'json': json.dumps(to_recalc)})
+                              params={'json': json.dumps(to_recalc)},
+                              queue_name='rating_calculation')

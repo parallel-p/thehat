@@ -114,31 +114,49 @@ class AddGameHandler(ServiceRequestHandler):
                     word_db.guessed_times += 1
                 elif words_outcome[i] == 'failed':
                     word_db.failed_times += 1
-                word_db.total_explanation_time += seen_words_time[i] // 1000
-                pos = seen_words_time[i] // 5000
-                l = word_db.counts_by_expl_time
-                while pos >= len(l):
-                    l.append(0)
-                l[pos] += 1
+                time_sec = int(round(seen_words_time[i] / 1000))
+                word_db.total_explanation_time += time_sec
+                if words_outcome[i] == 'guessed':
+                    pos = time_sec // 5
+                    l = word_db.counts_by_expl_time
+                    while pos >= len(l):
+                        l.append(0)
+                    l[pos] += 1
                 word_db.put()
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                          seen_words_time.keys()),
+                                                           seen_words_time.keys()),
                                                    key=lambda w: -seen_words_time[w])]
             taskqueue.add(url='/internal/recalc_rating_after_game',
-                          params={'json': json.dumps(words)})
+                          params={'json': json.dumps(words)},
+                          queue_name='rating_calculation')
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
                     words = sorted(words, key=lambda w: -w['time'])
                     to_recalc = [w['word'] for w in words]
                     taskqueue.add(url='/internal/recalc_rating_after_game',
-                                  params={'json': json.dumps(to_recalc)})
+                                  params={'json': json.dumps(to_recalc)},
+                                  queue_name='rating_calculation')
         except BadGameError:
             self.abort(200)
 
 
 class RecalcAllLogs(ServiceRequestHandler):
+    @staticmethod
+    def reset_word(word):
+        word.E = 50.0
+        word.D = 50.0/3
+        word.used_times = 0
+        word.guessed_times = 0
+        word.failed_times = 0
+        word.total_explanation_time = 0
+        word.counts_by_expl_time = []
+        word.put()
+
     def post(self):
+        GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map(RecalcAllLogs.reset_word)
         GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
-                                                          params={'game_id': k.id()}), keys_only=True)
+                                                    params={'game_id': k.id()},
+                                                    queue_name='logs_processing'), keys_only=True)
         GameHistory.query().map(lambda k: taskqueue.add(url='/internal/add_legacy_game',
-                                                              params={'game_id': k.id()}), keys_only=True)
+                                                        params={'game_id': k.id()},
+                                                        queue_name='logs_processing'), keys_only=True)
