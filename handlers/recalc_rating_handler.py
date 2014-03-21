@@ -12,7 +12,8 @@ from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
 from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
-from math import sqrt
+from base_handlers.admin_request_handler import AdminRequestHandler
+from random import randint
 
 
 class BadGameError(Exception):
@@ -128,14 +129,14 @@ class AddGameHandler(ServiceRequestHandler):
                                                    key=lambda w: -seen_words_time[w])]
             taskqueue.add(url='/internal/recalc_rating_after_game',
                           params={'json': json.dumps(words)},
-                          queue_name='rating_calculation')
+                          queue_name='rating-calculation')
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
                     words = sorted(words, key=lambda w: -w['time'])
                     to_recalc = [w['word'] for w in words]
                     taskqueue.add(url='/internal/recalc_rating_after_game',
                                   params={'json': json.dumps(to_recalc)},
-                                  queue_name='rating_calculation')
+                                  queue_name='rating-calculation')
         except BadGameError:
             self.abort(200)
 
@@ -156,7 +157,27 @@ class RecalcAllLogs(ServiceRequestHandler):
         GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map(RecalcAllLogs.reset_word)
         GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
                                                     params={'game_id': k.id()},
-                                                    queue_name='logs_processing'), keys_only=True)
+                                                    queue_name='logs-processing'), keys_only=True)
         GameHistory.query().map(lambda k: taskqueue.add(url='/internal/add_legacy_game',
                                                         params={'game_id': k.id()},
-                                                        queue_name='logs_processing'), keys_only=True)
+                                                        queue_name='logs-processing'), keys_only=True)
+
+
+class LogsAdminPage(AdminRequestHandler):
+    def post(self):
+        code = self.request.get('code')
+        message = 0
+        if code:
+            if code == self.request.get('ans'):
+                taskqueue.add(url='/internal/recalc_all_logs')
+                message = 1
+            else:
+                message = 2
+        a = randint(10, 99)
+        b = randint(10, 99)
+        self.draw_page('logs_administration', message=message, a=a, b=b)
+
+    def get(self):
+        a = randint(10, 99)
+        b = randint(10, 99)
+        self.draw_page('logs_administration', message=0, a=a, b=b)

@@ -184,6 +184,8 @@ routes = [
     webapp2.Route(r'/internal/add_legacy_game',
                   handler=handlers.legacy_game_history_handler.LegacyStatisticsHandler,
                   name='add_game_Statistic'),
+    webapp2.Route(r'/admin/logs_processing',
+                  handler=handlers.recalc_rating_handler.LogsAdminPage),
     webapp2.Route(r'/user/create_game',
                   handler=handlers.web_game_creation_handler.WebGameCreationHandler,
                   name='create_game')

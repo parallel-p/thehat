@@ -147,11 +147,11 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
                                                     key=lambda w: -seen_words_time[w])]
         taskqueue.add(url='/internal/recalc_rating_after_game',
                       params={'json': json.dumps(words)},
-                      queue_name='rating_calculation')
+                      queue_name='rating-calculation')
         for players_pair, words in words_by_players_pair.items():
             if len(words) > 1:
                 words = sorted(words, key=lambda w: -w.time_sec)
                 to_recalc = [hist.words[w.word].text for w in words]
                 taskqueue.add(url='/internal/recalc_rating_after_game',
                               params={'json': json.dumps(to_recalc)},
-                              queue_name='rating_calculation')
+                              queue_name='rating-calculation')
