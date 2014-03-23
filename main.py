@@ -36,6 +36,7 @@ from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.global_dictionary_editor_handlers
+import handlers.statistics.total_statistics_handler
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -189,6 +190,9 @@ routes = [
     webapp2.Route(r'/user/create_game',
                   handler=handlers.web_game_creation_handler.WebGameCreationHandler,
                   name='create_game')
-] + handlers.assign_device_handler.assign_device_routes + handlers.global_dictionary_word_handlers.global_dictionary_word_routes
+] + handlers.assign_device_handler.assign_device_routes + \
+         handlers.global_dictionary_word_handlers.global_dictionary_word_routes + \
+         handlers.statistics.total_statistics_handler.total_statistics_routes +\
+         handlers.recalc_rating_handler.recalc_rating_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)

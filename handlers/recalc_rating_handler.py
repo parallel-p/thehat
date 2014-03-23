@@ -14,6 +14,9 @@ from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from random import randint
+from objects.total_statistics_object import TotalStatisticsObject
+import datetime
+import webapp2
 
 
 class BadGameError(Exception):
@@ -51,6 +54,77 @@ MAX_TIME = 5 * 60 * 1000  # 5 minutes
 MIN_TIME = 500  # 0.5 second
 
 
+def get_time(curr_json):
+    for i in curr_json["events"]:
+        if i["type"] == "start_game":
+            return datetime.datetime.fromtimestamp(int(i["time"]) / 1000).strftime('%Y-%m-%d')
+
+
+
+class RecalcTotalStatisticHandler(ServiceRequestHandler):
+
+    def post(self):
+        game_id = self.request.get('game_id')
+        logging.info("Recalc statistics of game {}".format(game_id))
+        log_db = ndb.Key(GameLog, game_id).get()
+        if log_db is None:
+            logging.error("Can't find game log")
+            self.abort(200)
+        try:
+            log_json = json.loads(log_db.json)
+            json_time_normal = get_time(log_json)
+            current_statistics = ndb.Key(TotalStatisticsObject, "stats").get()
+            if current_statistics is None:
+                curr_count_for_date_json, curr_time_for_date_json, curr_average_time_json = {}, {}, {}
+            else:
+                curr_count_for_date_json = current_statistics.count_for_date_json
+                curr_time_for_date_json = current_statistics.time_for_date_json
+                curr_average_time_json = current_statistics.average_time_json
+            used_words_list = log_json["setup"]["words"]
+
+            if json_time_normal not in curr_count_for_date_json:
+                curr_count_for_date_json[json_time_normal] = 0
+                curr_time_for_date_json[json_time_normal] = 0
+                curr_average_time_json[json_time_normal] = {}
+
+            word_outcome_type = {}
+            word_outcome_time = {}
+            word_seen_time = defaultdict(lambda: 0)
+
+            curr_count_for_date_json[json_time_normal] += len(used_words_list)
+
+            events_json = log_json["events"]
+            for event in events_json:
+                if event["type"] == "stripe_outcome":
+                    time_in_this_round = event["time"] + event["timeExtra"]
+                    current_word = event["word"]
+                    word_seen_time[current_word] += time_in_this_round
+                    if event["outcome"] in ("guessed", "failed"):
+                        word_outcome_time[current_word] = word_seen_time[current_word]
+                    word_outcome_type[current_word] = event["outcome"]
+
+            for word in word_outcome_type.keys():
+                curr_time_for_date_json[json_time_normal] += word_outcome_time[word]
+                if word_outcome_type[word] == "guessed":
+                    cutted_time_sec = word_outcome_time[word] / 1000 - (word_outcome_time[word] / 1000) % 5
+                    if cutted_time_sec not in curr_average_time_json[json_time_normal]:
+                        curr_average_time_json[json_time_normal][cutted_time_sec] = 0
+                    curr_average_time_json[json_time_normal][cutted_time_sec] += 1
+
+            if current_statistics is None:
+                current_statistics = TotalStatisticsObject(count_for_date_json=curr_count_for_date_json,
+                                                           time_for_date_json=curr_time_for_date_json,
+                                                           average_time_json=curr_average_time_json, id="stats")
+            else:
+                current_statistics.count_for_date_json = curr_count_for_date_json
+                current_statistics.time_for_date_json = curr_time_for_date_json
+                current_statistics.average_time_json = curr_average_time_json
+            current_statistics.put()
+
+        except BadGameError:
+            self.abort(200)
+
+
 class AddGameHandler(ServiceRequestHandler):
     def post(self):
         game_id = self.request.get('game_id')
@@ -61,6 +135,7 @@ class AddGameHandler(ServiceRequestHandler):
             self.abort(200)
         try:
             log = json.loads(log_db.json)
+
             #TODO: solve problem with free-play games
             if log['setup']['type'] == "freeplay":
                 raise BadGameError()
@@ -125,9 +200,10 @@ class AddGameHandler(ServiceRequestHandler):
                     l[pos] += 1
                 word_db.used_games.append(game_id)
                 word_db.put()
+
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                           seen_words_time.keys()),
-                                                   key=lambda w: -seen_words_time[w])]
+                                                                     seen_words_time.keys()),
+                                                           key=lambda w: -seen_words_time[w])]
             taskqueue.add(url='/internal/recalc_rating_after_game',
                           params={'json': json.dumps(words)},
                           queue_name='rating-calculation')
@@ -146,7 +222,7 @@ class RecalcAllLogs(ServiceRequestHandler):
     @staticmethod
     def reset_word(word):
         word.E = 50.0
-        word.D = 50.0/3
+        word.D = 50.0 / 3
         word.used_times = 0
         word.guessed_times = 0
         word.failed_times = 0
@@ -154,8 +230,19 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.counts_by_expl_time = []
         word.put()
 
+    @staticmethod
+    def reset_stat(stat):
+        stat.count_for_date_json = {}
+        stat.time_for_date_json = {}
+        stat.average_time_json = {}
+        stat.put()
+
     def post(self):
+        TotalStatisticsObject.query().map(RecalcAllLogs.reset_stat)
         GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map(RecalcAllLogs.reset_word)
+        GameLog.query().map(lambda k: taskqueue.add(url='/internal/calculate_total_statistics',
+                                                    params={'game_id': k.id()},
+                                                    queue_name='statistic-calculation'), keys_only=True)
         GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
                                                     params={'game_id': k.id()},
                                                     queue_name='logs-processing'), keys_only=True)
@@ -182,3 +269,9 @@ class LogsAdminPage(AdminRequestHandler):
         a = randint(10, 99)
         b = randint(10, 99)
         self.draw_page('logs_administration', message=0, a=a, b=b)
+
+recalc_rating_routes = [
+    webapp2.Route('/internal/calculate_total_statistics',
+                  handler=RecalcTotalStatisticHandler,
+                  name="recalc total stat")
+]

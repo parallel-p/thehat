@@ -21,13 +21,13 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         self.testbed.init_user_stub()
 
     def test_add(self):
-        request = make_request("/internal/global_dictionary/add_words", "POST", True, 'json=["a", "b", "c"]')
+        request = make_request("/internal/global_dictionary/add_words/task_queue", "POST", True, 'json=["a", "b", "c"]')
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         self.assertEqual(GlobalDictionaryWord.query().count(), 3)
 
     def test_get(self):
-        request = make_request("/internal/global_dictionary/add_words", "POST", True, 'json=["a", "b", "c"]')
+        request = make_request("/internal/global_dictionary/add_words/task_queue", "POST", True, 'json=["a", "b", "c"]')
         request.get_response(main.app)
 
         request = make_request("/internal/global_dictionary/update_json", "POST", True, 'timestamp=0')

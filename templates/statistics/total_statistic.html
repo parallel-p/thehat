@@ -1,0 +1,238 @@
+{% extends "templates/base.html" %}
+{% block title %}Общая статистика{% endblock %}
+{% block header %}Статистика{% endblock %}
+{% block head %}
+<!--amcharts imports-->
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
+    <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/none.js"></script>
+
+
+<script type="application/javascript" >
+	function make_serial_chart(chart_data, category_field, title) {
+		chart = new AmCharts.AmSerialChart();
+        chart.addTitle(title);
+		chart.dataProvider = chart_data;
+        chart.categoryField = category_field;
+        return chart;
+	}
+    function make_category_axis(chart, parse_dates, min_period){
+        var categoryAxis = chart.categoryAxis;
+        categoryAxis.parseDates = parse_dates; // as our data is date-based, we set parseDates to true
+        if(parse_dates)
+            categoryAxis.minPeriod = min_period; // our data is daily, so we set minPeriod to DD
+        categoryAxis.dashLength = 1;
+        categoryAxis.gridAlpha = 0.15;
+        categoryAxis.minorGridEnabled = true;
+        categoryAxis.axisColor = "#DADADA";
+    }
+    function create_value_axis(axis_alpha, axis_length){
+        var valueAxis = new AmCharts.ValueAxis();
+        valueAxis.axisAlpha = axis_alpha;
+        valueAxis.dashLength = axis_length;
+        return valueAxis;
+    }
+    function make_graph(title, valueField, balloonText){
+        var graph = new AmCharts.AmGraph();
+        graph.valueField = valueField;
+        graph.bullet = "round";
+        graph.bulletBorderColor = "#FFFFFF";
+        graph.bulletBorderThickness = 2;
+        graph.bulletBorderAlpha = 1;
+        graph.lineThickness = 2;
+        graph.lineColor = "#b5030d";
+        graph.negativeLineColor = "#0352b5";
+        graph.balloonText = balloonText;
+        graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
+        return graph;
+    }
+    function create_cursor()
+    {
+        chartCursor = new AmCharts.ChartCursor();
+        chartCursor.cursorPosition = "mouse";
+        return chartCursor;
+    }
+    function create_scrollbar(graph){
+        var chartScrollbar = new AmCharts.ChartScrollbar();
+        chartScrollbar.graph = graph;
+        chartScrollbar.scrollbarHeight = 40;
+        chartScrollbar.color = "#FFFFFF";
+        chartScrollbar.autoGridCount = true;
+        return chartScrollbar;
+    }
+</script>
+
+<script type="text/javascript">
+    var word_count_data= [
+        {% for i in count_for_date.keys() %}
+            {
+                "date": "{{i}}",
+                "count": "{{count_for_date[i]}}"
+            },
+        {% endfor %}
+     ]
+
+    var explanation_time_data= [
+        {% for i in time_for_date.keys() %}
+            {
+                "date": "{{i}}",
+                "count": "{{time_for_date[i]}}"
+            },
+        {% endfor %}
+     ]
+
+    AmCharts.ready(function () {
+        var count_word_chart = make_serial_chart(word_count_data, "date", "Попытки");
+        make_category_axis(count_word_chart);
+        count_word_chart.addValueAxis(create_value_axis(0.2, 1));
+        var graph = make_graph("Количество слов в играх", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+        count_word_chart.addGraph(graph)
+        count_word_chart.addChartCursor(create_cursor());
+        count_word_chart.write(" count_word_chartdiv");
+	});
+    AmCharts.ready(function () {
+        var count_word_chart = make_serial_chart(explanation_time_data, "date", "Время объяснения");
+        make_category_axis(count_word_chart);
+        count_word_chart.addValueAxis(create_value_axis(0.2, 1));
+        var graph = make_graph("Время, потраченное на объясние", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+        count_word_chart.addGraph(graph)
+        count_word_chart.addChartCursor(create_cursor());
+        count_word_chart.write("time_for_date_chartdiv");
+	});
+///////////////////////////////////
+    var chart = AmCharts.makeChart("average_time_chartdiv", {
+   "type": "serial",
+	"theme": "none",
+    "legend": {
+        "horizontalGap": 10,
+        "maxColumns": 1,
+        "position": "right",
+		"useGraphSettings": true,
+		"markerSize": 10
+    },
+    "dataProvider": [{
+        "year": 2003,
+        "europe": 2.5,
+        "namerica": 2.5,
+        "asia": 2.1,
+        "lamerica": 0.3,
+        "meast": 0.2,
+        "africa": 0.1
+    }, {
+        "year": 2004,
+        "europe": 2.6,
+        "namerica": 2.7,
+        "asia": 2.2,
+        "lamerica": 0.3,
+        "meast": 0.3,
+        "africa": 0.1
+    }, {
+        "year": 2005,
+        "europe": 2.8,
+        "namerica": 2.9,
+        "asia": 2.4,
+        "lamerica": 0.3,
+        "meast": 0.3,
+        "africa": 0.1
+    }],
+    "valueAxes": [{
+        "stackType": "regular",
+        "axisAlpha": 0.3,
+        "gridAlpha": 0
+    }],
+    "graphs": [{
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Europe",
+        "type": "column",
+		"color": "#000000",
+        "valueField": "europe"
+    }, {
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "North America",
+        "type": "column",
+		  "color": "#000000",
+        "valueField": "namerica"
+    }, {
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Asia-Pacific",
+        "type": "column",
+		  "color": "#000000",
+        "valueField": "asia"
+    }, {
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Latin America",
+        "type": "column",
+		  "color": "#000000",
+        "valueField": "lamerica"
+    }, {
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Middle-East",
+        "type": "column",
+		  "color": "#000000",
+        "valueField": "meast"
+    }, {
+        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
+        "fillAlphas": 0.8,
+        "labelText": "[[value]]",
+        "lineAlpha": 0.3,
+        "title": "Africa",
+        "type": "column",
+		  "color": "#000000",
+        "valueField": "africa"
+    }],
+    "depth3D": 40,
+	"angle": 30,
+    "categoryField": "year",
+    "categoryAxis": {
+        "gridPosition": "start",
+        "axisAlpha": 0,
+        "gridAlpha": 0,
+        "position": "left"
+    },
+	"exportConfig":{
+		"menuTop":"20px",
+        "menuRight":"20px",
+        "menuItems": [{
+        "format": 'png'
+        }]
+    }
+});
+////////////////////////////////////
+</script>
+
+<!--amcharts import end-->
+{% endblock %}
+{% block content %}
+	<div class="container">
+		<div class="row">
+			<div class="col-md-6">
+         	    <div id=" count_word_chartdiv" style="width: 100%; height: 400px;"></div>
+    		</div> <!-- end col-md-4-->
+            <div class="col-md-6">
+                <div id="time_for_date_chartdiv" style="width: 100%; height: 400px;"></div>
+            </div> <!-- end col-md-6>
+		</div> <!-- end row -->
+        <div id="average_time_chartdiv"  style="width: 100%; height: 400px;"></div>
+	</div> <!-- end container -->
+{% endblock %}

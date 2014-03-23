@@ -10,6 +10,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from random import randint
 
+
 class WordStatisticsHandler(WebRequestHandler):
 
     def __init__(self, *args, **kwargs):
