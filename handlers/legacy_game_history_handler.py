@@ -110,17 +110,19 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
         pick_time = 0
         cur_round = 0
         for res in hist.guess_results:
+            if cur_round != res.round_:
+                pick_time = 0
+                cur_round = res.round_
+            res.time_sec -= pick_time
+            pick_time += res.time_sec
             if res.result in [0, 1]:
-                if cur_round != res.round_:
-                    pick_time = 0
                 r = hist.rounds[res.round_]
                 if not res.word in seen_words_time:
                     if not (r.player_explain, r.player_guess) in words_by_players_pair:
                         words_by_players_pair[(r.player_explain, r.player_guess)] = []
-                    words_by_players_pair[(r.player_explain, r.player_guess)].append(res)
-                    res.time_sec, pick_time = res.time_sec - pick_time, res.time_sec
-                    if res.result == 1:
-                        res.time_sec = 5 * 60
+                    words_by_players_pair[(r.player_explain, r.player_guess)].append(
+                        (res.time_sec if res.result == 0 else 5*60, hist.words[res.word].text)
+                    )
             seen_words_time[res.word] += int(round(res.time_sec))
             word_outcome[res.word] = res.result
         for i in range(len(hist.words)):
@@ -150,8 +152,8 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
                       queue_name='rating-calculation')
         for players_pair, words in words_by_players_pair.items():
             if len(words) > 1:
-                words = sorted(words, key=lambda w: -w.time_sec)
-                to_recalc = [hist.words[w.word].text for w in words]
+                words = sorted(words, key=lambda w: -w[0])
+                to_recalc = [w[1] for w in words]
                 taskqueue.add(url='/internal/recalc_rating_after_game',
                               params={'json': json.dumps(to_recalc)},
                               queue_name='rating-calculation')
