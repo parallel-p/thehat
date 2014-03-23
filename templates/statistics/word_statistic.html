@@ -213,6 +213,19 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
 });
 </script>
 </div>
+
+{% if is_admin %}
+<div class="row">
+<div class="col-md-6">
+Слово использовано в следующих играх:
+<ol>
+    {%  for g in games %}
+        <li><a href="https://appengine.google.com/datastore/edit?app_id=s~the-hat-dev&key={{ g }}">{{ g }}</a></li>
+    {%  endfor %}
+</ol>
+</div>
+</div>
+{% endif %}
 </div>
 {% endif %}
 {% endblock %}

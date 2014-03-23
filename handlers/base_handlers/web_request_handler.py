@@ -26,6 +26,7 @@ class WebRequestHandler(GenericHandler):
         template = JINJA_ENVIRONMENT.get_template('templates/{}.html'.format(template_name))
         render_data['logout_link'] = users.create_logout_url('/')
         render_data['user_email'] = users.get_current_user().email()
+        render_data['is_admin'] = users.is_current_user_admin()
         self.response.write(template.render(render_data))
 
 

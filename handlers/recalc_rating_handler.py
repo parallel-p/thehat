@@ -123,6 +123,7 @@ class AddGameHandler(ServiceRequestHandler):
                     while pos >= len(l):
                         l.append(0)
                     l[pos] += 1
+                word_db.used_games.append(game_id)
                 word_db.put()
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
                                                            seen_words_time.keys()),

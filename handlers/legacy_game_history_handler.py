@@ -93,9 +93,9 @@ class GameHistory(ndb.Model):
 class LegacyStatisticsHandler(ServiceRequestHandler):
 
     def post(self):
-        game_id = self.request.get('game_id')
+        game_id = int(self.request.get('game_id'))
         logging.info("Handling legacy history with key {}".format(game_id))
-        hist = ndb.Key(GameHistory, int(game_id)).get()
+        hist = ndb.Key(GameHistory, game_id).get()
         if hist is None:
             logging.error("Can't find game history")
             self.abort(200)
@@ -143,6 +143,7 @@ class LegacyStatisticsHandler(ServiceRequestHandler):
                 while pos >= len(l):
                     l.append(0)
                 l[pos] += 1
+            word_db.used_legacy_games.append(game_id)
             word_db.put()
         words = [hist.words[w].text for w in sorted(filter(lambda w: word_outcome[w] == 0,
                                                            seen_words_time.keys()),

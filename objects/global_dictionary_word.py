@@ -14,4 +14,6 @@ class GlobalDictionaryWord(ndb.Model):
     failed_times = ndb.IntegerProperty(default=0)
     total_explanation_time = ndb.IntegerProperty(default=0)
     counts_by_expl_time = ndb.JsonProperty(default=[])
+    used_games = ndb.StringProperty(indexed=False, repeated=True)
+    used_legacy_games = ndb.IntegerProperty(indexed=False, repeated=True)
     tags = ndb.StringProperty(indexed=False)
