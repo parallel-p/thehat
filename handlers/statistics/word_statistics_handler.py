@@ -23,7 +23,7 @@ class WordStatisticsHandler(WebRequestHandler):
             games = []
             for id in entity.used_games:
                 games.append(ndb.Key('GameLog', id).urlsafe())
-            for id in entity.used_games:
+            for id in entity.used_legacy_games:
                 games.append(ndb.Key('GameHistory', id).urlsafe())
 
         if not entity:
