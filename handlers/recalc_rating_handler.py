@@ -57,7 +57,8 @@ MIN_TIME = 500  # 0.5 second
 def get_time(curr_json):
     for i in curr_json["events"]:
         if i["type"] == "start_game":
-            return datetime.datetime.fromtimestamp(int(i["time"]) / 1000).strftime('%Y-%m-%d')
+            time = int(int(i["time"]) / 1000)
+            return time - time % (60 * 60 * 24)
 
 
 
@@ -87,8 +88,8 @@ class RecalcTotalStatisticHandler(ServiceRequestHandler):
                 curr_time_for_date_json[json_time_normal] = 0
                 curr_average_time_json[json_time_normal] = {}
 
-            word_outcome_type = {}
-            word_outcome_time = {}
+            word_outcome_type = defaultdict(lambda: 0)
+            word_outcome_time = defaultdict(lambda: 0)
             word_seen_time = defaultdict(lambda: 0)
 
             curr_count_for_date_json[json_time_normal] += len(used_words_list)

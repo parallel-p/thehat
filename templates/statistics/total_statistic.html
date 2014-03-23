@@ -18,6 +18,7 @@
         chart.addTitle(title);
 		chart.dataProvider = chart_data;
         chart.categoryField = category_field;
+        chart.dataDateFormat = "YYYY-MM-DD";
         return chart;
 	}
     function make_category_axis(chart, parse_dates, min_period){
@@ -68,26 +69,26 @@
 
 <script type="text/javascript">
     var word_count_data= [
-        {% for i in count_for_date.keys() %}
+        {% for i, j in count_for_date %}
             {
                 "date": "{{i}}",
-                "count": "{{count_for_date[i]}}"
+                "count": "{{j}}"
             },
         {% endfor %}
      ]
 
     var explanation_time_data= [
-        {% for i in time_for_date.keys() %}
+        {% for i, j in time_for_date %}
             {
                 "date": "{{i}}",
-                "count": "{{time_for_date[i]}}"
+                "count": "{{j}}"
             },
         {% endfor %}
      ]
 
     AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(word_count_data, "date", "Попытки");
-        make_category_axis(count_word_chart);
+        var count_word_chart = make_serial_chart(word_count_data, "date", "Количество слов в играх");
+        make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
         var graph = make_graph("Количество слов в играх", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
@@ -97,7 +98,7 @@
 	});
     AmCharts.ready(function () {
         var count_word_chart = make_serial_chart(explanation_time_data, "date", "Время объяснения");
-        make_category_axis(count_word_chart);
+        make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
         var graph = make_graph("Время, потраченное на объясние", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
@@ -107,7 +108,7 @@
 	});
 ///////////////////////////////////
     var chart = AmCharts.makeChart("average_time_chartdiv", {
-   "type": "serial",
+    "type": "serial",
 	"theme": "none",
     "legend": {
         "horizontalGap": 10,
@@ -116,31 +117,16 @@
 		"useGraphSettings": true,
 		"markerSize": 10
     },
-    "dataProvider": [{
-        "year": 2003,
-        "europe": 2.5,
-        "namerica": 2.5,
-        "asia": 2.1,
-        "lamerica": 0.3,
-        "meast": 0.2,
-        "africa": 0.1
-    }, {
-        "year": 2004,
-        "europe": 2.6,
-        "namerica": 2.7,
-        "asia": 2.2,
-        "lamerica": 0.3,
-        "meast": 0.3,
-        "africa": 0.1
-    }, {
-        "year": 2005,
-        "europe": 2.8,
-        "namerica": 2.9,
-        "asia": 2.4,
-        "lamerica": 0.3,
-        "meast": 0.3,
-        "africa": 0.1
-    }],
+    "dataProvider":[
+        {% for i, j in average_time %}
+            {
+                "year": "{{ i }}",
+                {% for time in j %}
+                    "{{ time }}" : {{j[time]}},
+                {% endfor %}
+            },
+        {% endfor %}
+    ],
     "valueAxes": [{
         "stackType": "regular",
         "axisAlpha": 0.3,
@@ -151,60 +137,64 @@
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "Europe",
+        "title": "0-5",
         "type": "column",
 		"color": "#000000",
-        "valueField": "europe"
+        "valueField": "0"
     }, {
         "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "North America",
+        "title": "5-10",
         "type": "column",
 		  "color": "#000000",
-        "valueField": "namerica"
+        "valueField": "5"
     }, {
         "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "Asia-Pacific",
+        "title": "10-15",
         "type": "column",
 		  "color": "#000000",
-        "valueField": "asia"
+        "valueField": "10"
     }, {
         "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "Latin America",
+        "title": "15-20",
         "type": "column",
 		  "color": "#000000",
-        "valueField": "lamerica"
+        "valueField": "15"
     }, {
         "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "Middle-East",
+        "title": "20-25",
         "type": "column",
 		  "color": "#000000",
-        "valueField": "meast"
+        "valueField": "20"
     }, {
         "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
         "fillAlphas": 0.8,
         "labelText": "[[value]]",
         "lineAlpha": 0.3,
-        "title": "Africa",
+        "title": "25-30",
         "type": "column",
 		  "color": "#000000",
-        "valueField": "africa"
+        "valueField": "25"
     }],
+    "title": "Время отгадывания",
     "depth3D": 40,
 	"angle": 30,
+    "dataDateFormat" : "YYYY-MM-DD",
     "categoryField": "year",
     "categoryAxis": {
+        "parseDates": true,
+        "minPeriod": "DD",
         "gridPosition": "start",
         "axisAlpha": 0,
         "gridAlpha": 0,
@@ -233,6 +223,6 @@
                 <div id="time_for_date_chartdiv" style="width: 100%; height: 400px;"></div>
             </div> <!-- end col-md-6>
 		</div> <!-- end row -->
-        <div id="average_time_chartdiv"  style="width: 100%; height: 400px;"></div>
+        <div id="average_time_chartdiv"  style="width: 100%; height: 700px;"></div>
 	</div> <!-- end container -->
 {% endblock %}
