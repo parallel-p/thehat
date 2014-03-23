@@ -115,7 +115,7 @@ class AddGameHandler(ServiceRequestHandler):
                     word_db.guessed_times += 1
                 elif words_outcome[i] == 'failed':
                     word_db.failed_times += 1
-                time_sec = int(round(seen_words_time[i] / 1000))
+                time_sec = int(round(seen_words_time[i] / 1000.0))
                 word_db.total_explanation_time += time_sec
                 if words_outcome[i] == 'guessed':
                     pos = time_sec // 5
