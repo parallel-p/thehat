@@ -229,6 +229,8 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.failed_times = 0
         word.total_explanation_time = 0
         word.counts_by_expl_time = []
+        word.used_games = []
+        word.used_legacy_games = []
         word.put()
 
     @staticmethod
