@@ -3,6 +3,7 @@ __author__ = 'ivan'
 import time
 import webapp2
 import json
+from datetime import datetime
 
 from google.appengine.api import taskqueue
 from google.appengine.api import users
@@ -52,8 +53,7 @@ class TaskQueueAddWords(ServiceRequestHandler):
     def post(self):
         new_words = json.loads(self.request.get("json"))
         for word in new_words:
-            GlobalDictionaryWord(id=word, word=word, E=50.0, D=50.0/3, tags="",
-                                 timestamp=make_timestamp()).put()
+            GlobalDictionaryWord(id=word, word=word, E=50.0, D=50.0/3, tags="").put()
 
 
 class TaskQueueUpdateJson(ServiceRequestHandler):
@@ -66,8 +66,9 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
         max_timestamp = 0
         word_list = []
         for word in ndb.gql(u"SELECT word, timestamp FROM GlobalDictionaryWord"):
-            if word.timestamp > timestamp:
-                max_timestamp = max(max_timestamp, word.timestamp)
+            word_time = int(time.mktime(word    .timestamp.timetuple()) * 1000)
+            if word_time > timestamp:
+                max_timestamp = max(max_timestamp, word_time)
                 downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
                 word_list.append({"word": word.word, "E": downloaded_word.E, "D": downloaded_word.D, "U": downloaded_word.used_times, "tags": downloaded_word.tags})
         GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()

@@ -5,7 +5,7 @@ from google.appengine.ext import ndb
 
 class GlobalDictionaryWord(ndb.Model):
     cnt = ndb.IntegerProperty()
-    timestamp = ndb.IntegerProperty()
+    timestamp = ndb.DateTimeProperty(auto_now=True)
     word = ndb.StringProperty(indexed=True)
     E = ndb.FloatProperty(default=50.0)
     D = ndb.FloatProperty(default=50.0/3)
