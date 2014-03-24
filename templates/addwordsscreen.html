@@ -52,6 +52,12 @@
             post(url, "");
             $('#update_myModal').modal({show:true})
         }
+        function update_all_json()
+        {
+            var url = "/admin/global_dictionary/update_all_jsons";
+            post(url, "");
+            $('#update_myModal').modal({show:true})
+        }
 
         function send_words()
         {
@@ -105,6 +111,7 @@
     </div>
 </div>
 
+
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
@@ -153,9 +160,7 @@
         </div>
         <div id="sendbutton">
         <div id="alertion"></div>
-        <button type="button" class="btn btn-success btn-lg btn-block" onclick="send_words()">
-            <span class="glyphicon glyphicon-plus"></span> Добавить
-        </button>
+
         </div>
     </center>
     {% if error is defined %}
@@ -164,10 +169,22 @@
         </p>
     {% endif %}
     </td>
-
-    <button type="button" class="btn btn-success btn-lg btn-block" onclick="update_json()">
-             Обновить
+    <div class="row">
+        <div class="col-md-4">
+        <button type="button" class="btn btn-success btn-lg btn-block" onclick="send_words()">
+            <span class="glyphicon glyphicon-plus"></span> Добавить
         </button>
+            </div>
+		<div class="col-md-4">
+                <button type="button" class="btn btn-success btn-lg btn-block" onclick="update_json()">
+                Обновить
+            </button>
+        </div> <!-- end col-md-4-->
+            <div class="col-md-4">
+             <button type="button" class="btn btn-danger btn-lg btn-block" onclick="update_all_json()">
+                Обновить все
+             </button>
+        </div>
     </div>
     <center>
         <td width="34%" align="center">Обратите внимание, что каждое слово должно быть на своей отдельной строке <br>

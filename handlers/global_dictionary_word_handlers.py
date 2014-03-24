@@ -73,7 +73,18 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
         GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
 
 
-class UpdateJsonHandler(APIRequestHandler):
+class UpdateAllJsonsHandler(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateAllJsonsHandler, self).__init__(*args, **kwargs)
+
+    def post(self):
+        for this_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
+            this_json.key.delete()
+        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp":0})
+
+
+class UpdateJsonHandler(AdminRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super(UpdateJsonHandler, self).__init__(*args, **kwargs)
@@ -135,5 +146,8 @@ global_dictionary_word_routes = [
                   name='update json'),
     webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
                   handler=GlobalDictionaryGetWordsHandler,
-                  name='get words')
+                  name='get words'),
+    webapp2.Route(r'/admin/global_dictionary/update_all_jsons',
+                  handler=UpdateAllJsonsHandler,
+                  name="update all jsons")
 ]
