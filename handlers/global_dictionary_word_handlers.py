@@ -69,7 +69,7 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
             if word.timestamp > timestamp:
                 max_timestamp = max(max_timestamp, word.timestamp)
                 downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
-                word_list.append({"word": word.word, "E": downloaded_word.E, "D": downloaded_word.D, "tags": downloaded_word.tags})
+                word_list.append({"word": word.word, "E": downloaded_word.E, "D": downloaded_word.D, "U": downloaded_word.used_times, "tags": downloaded_word.tags})
         GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
 
 
