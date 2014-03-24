@@ -74,7 +74,7 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
 
     def post(self, *args, **kwargs):
         data = self.request.get(constants.complained_word)
-        word = GlobalDictionaryWord.get_by_key_name(data)
+        word = GlobalDictionaryWord.get_by_id(data)
         if word is not None:
             if word.tags.find("-deleted") != -1:
                 word.tags += "-deleted"

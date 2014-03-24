@@ -94,7 +94,7 @@ class UpdateJsonHandler(AdminRequestHandler):
         for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
             if json.timestamp > max_timestamp:
                 max_timestamp = json.timestamp
-        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp":max_timestamp})
+        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": max_timestamp})
 
 
 class GlobalDictionaryGetWordsHandler(APIRequestHandler):
