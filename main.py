@@ -195,3 +195,5 @@ routes = [
          handlers.statistics.total_statistics_handler.total_statistics_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)
+from google.appengine.ext.appstats import recording
+app = recording.appstats_wsgi_middleware(app)
