@@ -69,19 +69,37 @@
 
 <script type="text/javascript">
     var word_count_data= [
-        {% for i, j in count_for_date %}
+        {% for i, j in word_count_for_date %}
             {
-                "date": "{{i}}",
-                "count": "{{j}}"
+                "count": "{{i}}",
+                "date": "{{j}}"
             },
         {% endfor %}
      ]
 
-    var explanation_time_data= [
-        {% for i, j in time_for_date %}
+    var game_count_data= [
+        {% for i, j in game_count_for_date %}
             {
-                "date": "{{i}}",
-                "count": "{{j}}"
+                "count": "{{i}}",
+                "date": "{{j}}"
+            },
+        {% endfor %}
+     ]
+
+    var player_count_data= [
+        {% for i, j in player_count_for_date %}
+            {
+                "count": "{{i}}",
+                "date": "{{j}}"
+            },
+        {% endfor %}
+     ]
+
+    var average_game_time_data= [
+        {% for i, j in average_game_time %}
+            {
+                "count": "{{i}}",
+                "date": "{{j}}"
             },
         {% endfor %}
      ]
@@ -90,125 +108,82 @@
         var count_word_chart = make_serial_chart(word_count_data, "date", "Количество слов в играх");
         make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
-        var graph = make_graph("Количество слов в играх", "count",
+        var word_graph = make_graph("Количество слов в играх", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
-        count_word_chart.addGraph(graph)
+        count_word_chart.addGraph(word_graph)
         count_word_chart.addChartCursor(create_cursor());
-        count_word_chart.write(" count_word_chartdiv");
+        count_word_chart.write("word_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(explanation_time_data, "date", "Время объяснения");
-        make_category_axis(count_word_chart, true, "DD");
-        count_word_chart.addValueAxis(create_value_axis(0.2, 1));
-        var graph = make_graph("Время, потраченное на объясние", "count",
+        var count_game_chart = make_serial_chart(game_count_data, "date", "Количество игр   ");
+        make_category_axis(count_game_chart, true, "DD");
+        count_game_chart.addValueAxis(create_value_axis(0.2, 1));
+        var count_game_graph = make_graph("Количество игр", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
-        count_word_chart.addGraph(graph)
-        count_word_chart.addChartCursor(create_cursor());
-        count_word_chart.write("time_for_date_chartdiv");
+        count_game_chart.addGraph(count_game_graph)
+        count_game_chart.addChartCursor(create_cursor());
+        count_game_chart.write("game_count_chartdiv");
 	});
-///////////////////////////////////
-    var chart = AmCharts.makeChart("average_time_chartdiv", {
+    AmCharts.ready(function () {
+        var count_player_chart = make_serial_chart(player_count_data, "date", "Количество игроков ");
+        make_category_axis(count_player_chart, true, "DD");
+        count_player_chart.addValueAxis(create_value_axis(0.2, 1));
+        var player_graph = make_graph("Количество игроков", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+        count_player_chart.addGraph(player_graph)
+        count_player_chart.addChartCursor(create_cursor());
+        count_player_chart.write("player_count_chartdiv");
+	});
+    AmCharts.ready(function () {
+        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игр ");
+        make_category_axis(average_game_time_chart, true, "DD");
+        average_game_time_chart.addValueAxis(create_value_axis(0.2, 1));
+        var average_game_time_graph = make_graph("Средняя продолжительность игр", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+        average_game_time_chart.addGraph(average_game_time_graph)
+        average_game_time_chart.addChartCursor(create_cursor());
+        average_game_time_chart.write("average_game_time_chartdiv");
+	});
+///////////
+    var chart = AmCharts.makeChart("game_for_time_chartdiv", {
+    "title": "dddd",
+    "theme": "none",
     "type": "serial",
-	"theme": "none",
-    "legend": {
-        "horizontalGap": 10,
-        "maxColumns": 1,
-        "position": "right",
-		"useGraphSettings": true,
-		"markerSize": 10
-    },
-    "dataProvider":[
-        {% for i, j in average_time %}
+	"startDuration": 2,
+    "dataProvider": [
+        {%for i, j in games_for_time %}
             {
-                "year": "{{ i }}",
-                {% for time in j %}
-                    "{{ time }}" : {{j[time]}},
-                {% endfor %}
+                "count": "{{ i }}",
+                "time": "{{ j }}"
             },
         {% endfor %}
     ],
     "valueAxes": [{
-        "stackType": "regular",
-        "axisAlpha": 0.3,
-        "gridAlpha": 0
+        "position": "left",
+        "title": "Игры"
     }],
     "graphs": [{
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "0-5",
+        "balloonText": "[[category]]: <b>[[value]]</b>",
+        "colorField": "color",
+        "fillAlphas": 1,
+        "lineAlpha": 0.1,
         "type": "column",
-		"color": "#000000",
-        "valueField": "0"
-    }, {
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "5-10",
-        "type": "column",
-		  "color": "#000000",
-        "valueField": "5"
-    }, {
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "10-15",
-        "type": "column",
-		  "color": "#000000",
-        "valueField": "10"
-    }, {
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "15-20",
-        "type": "column",
-		  "color": "#000000",
-        "valueField": "15"
-    }, {
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "20-25",
-        "type": "column",
-		  "color": "#000000",
-        "valueField": "20"
-    }, {
-        "balloonText": "<b>[[title]]</b><br><span style='font-size:14px'>[[category]]: <b>[[value]]</b></span>",
-        "fillAlphas": 0.8,
-        "labelText": "[[value]]",
-        "lineAlpha": 0.3,
-        "title": "25-30",
-        "type": "column",
-		  "color": "#000000",
-        "valueField": "25"
+        "valueField": "count"
     }],
-    "title": "Время отгадывания",
-    "depth3D": 40,
+    "depth3D": 20,
 	"angle": 30,
-    "dataDateFormat" : "YYYY-MM-DD",
-    "categoryField": "year",
-    "categoryAxis": {
-        "parseDates": true,
-        "minPeriod": "DD",
-        "gridPosition": "start",
-        "axisAlpha": 0,
-        "gridAlpha": 0,
-        "position": "left"
+    "chartCursor": {
+        "categoryBalloonEnabled": false,
+        "cursorAlpha": 0,
+        "zoomable": false
     },
-	"exportConfig":{
-		"menuTop":"20px",
-        "menuRight":"20px",
-        "menuItems": [{
-        "format": 'png'
-        }]
+    "categoryField": "time",
+    "categoryAxis": {
+        "gridPosition": "start",
+        "labelRotation": 90
     }
 });
-////////////////////////////////////
+//////////
 </script>
 
 <!--amcharts import end-->
@@ -217,12 +192,21 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-6">
-         	    <div id=" count_word_chartdiv" style="width: 100%; height: 400px;"></div>
+         	    <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
     		</div> <!-- end col-md-4-->
             <div class="col-md-6">
-                <div id="time_for_date_chartdiv" style="width: 100%; height: 400px;"></div>
+                <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
             </div> <!-- end col-md-6>
 		</div> <!-- end row -->
-        <div id="average_time_chartdiv"  style="width: 100%; height: 700px;"></div>
+        <div class="row">
+			<div class="col-md-6">
+         	    <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
+    		</div> <!-- end col-md-4-->
+            <div class="col-md-6">
+                <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
+            </div> <!-- end col-md-6>
+		</div> <!-- end row -->
+         <center><b>Распределние игр по времени суток<b></center>
+        <div id="game_for_time_chartdiv" style="width: 100%; height: 400px;"></div>
 	</div> <!-- end container -->
 {% endblock %}

@@ -66,7 +66,7 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
         max_timestamp = 0
         word_list = []
         for word in ndb.gql(u"SELECT word, timestamp FROM GlobalDictionaryWord"):
-            word_time = int(time.mktime(word    .timestamp.timetuple()) * 1000)
+            word_time = int(time.mktime(word.timestamp.timetuple()) * 1000)
             if word_time > timestamp:
                 max_timestamp = max(max_timestamp, word_time)
                 downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
@@ -82,7 +82,7 @@ class UpdateAllJsonsHandler(AdminRequestHandler):
     def post(self):
         for this_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
             this_json.key.delete()
-        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp":0})
+        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": 0})
 
 
 class UpdateJsonHandler(AdminRequestHandler):

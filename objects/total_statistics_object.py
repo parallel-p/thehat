@@ -3,8 +3,36 @@ __author__ = 'ivan'
 from google.appengine.ext import ndb
 
 
-class TotalStatisticsObject(ndb.Model):
+class WordCountObject(ndb.Model):
+    count = ndb.IntegerProperty()
+    date = ndb.DateProperty()
 
-    count_for_date_json = ndb.JsonProperty()
-    time_for_date_json = ndb.JsonProperty()
-    average_time_json = ndb.JsonProperty()
+
+class PlayerCountObject(ndb.Model):
+    count = ndb.IntegerProperty()
+    date = ndb.DateProperty()
+
+
+class GameCountObject(ndb.Model):
+    count = ndb.IntegerProperty()
+    date = ndb.DateProperty()
+
+
+class GameLenObject(ndb.Model):
+    time = ndb.IntegerProperty()
+    date = ndb.DateProperty()
+
+
+class GamesForTimeObject(ndb.Model):
+    count = ndb.IntegerProperty()
+    time = ndb.IntegerProperty()
+
+
+class GameTimeForPlayersObject(ndb.Model):
+    time = ndb.IntegerProperty()
+    player_count = ndb.IntegerProperty()
+
+
+class GameCountForPlayersObject(ndb.Model):
+    count = ndb.IntegerProperty()
+    player_count = ndb.IntegerProperty()

@@ -14,9 +14,10 @@ from legacy_game_history_handler import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from random import randint
-from objects.total_statistics_object import TotalStatisticsObject
+from objects.total_statistics_object import *
 import datetime
 import webapp2
+import time
 
 
 class BadGameError(Exception):
@@ -58,75 +59,81 @@ def get_time(curr_json):
     for i in curr_json["events"]:
         if i["type"] == "start_game":
             time = int(int(i["time"]) / 1000)
-            return time - time % (60 * 60 * 24)
+            return time
 
 
-
-class RecalcTotalStatisticHandler(ServiceRequestHandler):
-
-    def post(self):
-        game_id = self.request.get('game_id')
-        logging.info("Recalc statistics of game {}".format(game_id))
-        log_db = ndb.Key(GameLog, game_id).get()
-        if log_db is None:
-            logging.error("Can't find game log")
-            self.abort(200)
-        try:
-            log_json = json.loads(log_db.json)
-            json_time_normal = get_time(log_json)
-            current_statistics = ndb.Key(TotalStatisticsObject, "stats").get()
-            if current_statistics is None:
-                curr_count_for_date_json, curr_time_for_date_json, curr_average_time_json = {}, {}, {}
-            else:
-                curr_count_for_date_json = current_statistics.count_for_date_json
-                curr_time_for_date_json = current_statistics.time_for_date_json
-                curr_average_time_json = current_statistics.average_time_json
-            used_words_list = log_json["setup"]["words"]
-
-            if json_time_normal not in curr_count_for_date_json:
-                curr_count_for_date_json[json_time_normal] = 0
-                curr_time_for_date_json[json_time_normal] = 0
-                curr_average_time_json[json_time_normal] = {}
-
-            word_outcome_type = defaultdict(lambda: 0)
-            word_outcome_time = defaultdict(lambda: 0)
-            word_seen_time = defaultdict(lambda: 0)
-
-            curr_count_for_date_json[json_time_normal] += len(used_words_list)
-
-            events_json = log_json["events"]
-            for event in events_json:
-                if event["type"] == "stripe_outcome":
-                    time_in_this_round = event["time"] + event["timeExtra"]
-                    current_word = event["word"]
-                    word_seen_time[current_word] += time_in_this_round
-                    if event["outcome"] in ("guessed", "failed"):
-                        word_outcome_time[current_word] = word_seen_time[current_word]
-                    word_outcome_type[current_word] = event["outcome"]
-
-            for word in word_outcome_type.keys():
-                curr_time_for_date_json[json_time_normal] += word_outcome_time[word]
-                if word_outcome_type[word] == "guessed":
-                    cutted_time_sec = word_outcome_time[word] / 1000 - (word_outcome_time[word] / 1000) % 5
-                    if cutted_time_sec not in curr_average_time_json[json_time_normal]:
-                        curr_average_time_json[json_time_normal][cutted_time_sec] = 0
-                    curr_average_time_json[json_time_normal][cutted_time_sec] += 1
-
-            if current_statistics is None:
-                current_statistics = TotalStatisticsObject(count_for_date_json=curr_count_for_date_json,
-                                                           time_for_date_json=curr_time_for_date_json,
-                                                           average_time_json=curr_average_time_json, id="stats")
-            else:
-                current_statistics.count_for_date_json = curr_count_for_date_json
-                current_statistics.time_for_date_json = curr_time_for_date_json
-                current_statistics.average_time_json = curr_average_time_json
-            current_statistics.put()
-
-        except BadGameError:
-            self.abort(200)
+def get_date(time):
+    return time - time % (60 * 60 * 24)
 
 
 class AddGameHandler(ServiceRequestHandler):
+
+    @staticmethod
+    def push_word_count(count, gamelog_date):
+        word_count_object = ndb.Key(WordCountObject, gamelog_date).get()
+        if word_count_object is None:
+            WordCountObject(count=count, date=datetime.datetime.fromtimestamp(gamelog_date),
+                            id=gamelog_date).put()
+        else:
+            word_count_object.count += count
+            word_count_object.put()
+
+    @staticmethod
+    def push_players_count(count, gamelog_date):
+        player_count_object = ndb.Key(PlayerCountObject, gamelog_date).get()
+        if player_count_object is None:
+            PlayerCountObject(count=count, date=datetime.datetime.fromtimestamp(gamelog_date),
+                            id=gamelog_date).put()
+        else:
+            player_count_object.count += count
+            player_count_object.put()
+
+    @staticmethod
+    def push_game_count(gamelog_date):
+        game_count_object = ndb.Key(GameCountObject, gamelog_date).get()
+        if game_count_object is None:
+            GameCountObject(count=1, date=datetime.datetime.fromtimestamp(gamelog_date),
+                            id=gamelog_date).put()
+        else:
+            game_count_object.count += 1
+            game_count_object.put()
+
+    @staticmethod
+    def push_game_len(len, gamelog_date, player_count):
+        game_len_object = ndb.Key(GameLenObject, gamelog_date).get()
+        if game_len_object is None:
+            GameLenObject(time=len, date=datetime.datetime.fromtimestamp(gamelog_date),
+                          id=gamelog_date).put()
+        else:
+            game_len_object.time += len
+            game_len_object.put()
+
+        game_len_object = ndb.Key(GameCountForPlayersObject, player_count).get()
+        if game_len_object is None:
+            GameCountForPlayersObject(count=1, player_count=player_count,
+                                      id=player_count).put()
+        else:
+            game_len_object.count += 1
+            game_len_object.put()
+
+        game_count_object = ndb.Key(GameTimeForPlayersObject, player_count).get()
+        if game_count_object is None:
+            GameTimeForPlayersObject(time=len, player_count=player_count,
+                                     id=player_count).put()
+        else:
+            game_count_object.time += len
+            game_count_object.put()
+
+    @staticmethod
+    def push_games_for_time(curr_time):
+        time = (curr_time % (60 * 60 * 24) / (60 * 60))
+        object = ndb.Key(GamesForTimeObject, time).get()
+        if object is None:
+            GamesForTimeObject(count=1, time=time, id=time).put()
+        else:
+            object.count += 1
+            object.put()
+
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Handling log of game {}".format(game_id))
@@ -146,10 +153,27 @@ class AddGameHandler(ServiceRequestHandler):
             words_outcome = {}
             current_words_time = {}
             words_by_players_pair = {}
+
+            gamelog_time = get_time(log)
+            gamelog_date = get_date(gamelog_time)
+            players = log["setup"]["players"] if "players" in log["setup"] else []
+
+            AddGameHandler.push_word_count(len(words_orig), gamelog_date)
+            AddGameHandler.push_players_count(len(players), gamelog_date)
+            AddGameHandler.push_game_count(gamelog_date)
+            AddGameHandler.push_games_for_time(gamelog_time)
+
+            start_timestamp = 0
+            finish_timestamp = 0
+            for i in events:
+                if i["type"] == "end_game":
+                    finish_timestamp = i["time"]
             i = 0
             while i < len(events) and events[i]['type'] != 'round_start':
                 if events[i]['type'] != 'start_game':
                     logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
+                else:
+                    start_timestamp = events[i]["time"]
                 i += 1
             while i < len(events):
                 current_pair = (events[i]['from'], events[i]['to'])
@@ -180,6 +204,8 @@ class AddGameHandler(ServiceRequestHandler):
                             })
                     seen_words_time[word] += current_words_time[word]
                 current_words_time.clear()
+            AddGameHandler.push_game_len(max(0, finish_timestamp - start_timestamp), gamelog_date, len(players))
+
             for i in range(len(words_orig)):
                 if i not in seen_words_time:
                     continue
@@ -215,6 +241,7 @@ class AddGameHandler(ServiceRequestHandler):
                     taskqueue.add(url='/internal/recalc_rating_after_game',
                                   params={'json': json.dumps(to_recalc)},
                                   queue_name='rating-calculation')
+
         except BadGameError:
             self.abort(200)
 
@@ -234,18 +261,25 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.put()
 
     @staticmethod
-    def reset_stat(stat):
-        stat.count_for_date_json = {}
-        stat.time_for_date_json = {}
-        stat.average_time_json = {}
-        stat.put()
+    def delete_all_stat():
+        for i in ndb.gql("SELECT count FROM WordCountObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT count FROM PlayerCountObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT count FROM GameCountObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT time FROM GameLenObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT count FROM GamesForTimeObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT time FROM GameTimeForPlayersObject"):
+            i.key.delete()
+        for i in ndb.gql("SELECT count FROM GameCountForPlayersObject"):
+            i.key.delete()
 
     def post(self):
-        TotalStatisticsObject.query().map(RecalcAllLogs.reset_stat)
+        RecalcAllLogs.delete_all_stat()
         GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map(RecalcAllLogs.reset_word)
-        GameLog.query().map(lambda k: taskqueue.add(url='/internal/calculate_total_statistics',
-                                                    params={'game_id': k.id()},
-                                                    queue_name='statistic-calculation'), keys_only=True)
         GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
                                                     params={'game_id': k.id()},
                                                     queue_name='logs-processing'), keys_only=True)
@@ -272,9 +306,3 @@ class LogsAdminPage(AdminRequestHandler):
         a = randint(10, 99)
         b = randint(10, 99)
         self.draw_page('logs_administration', message=0, a=a, b=b)
-
-recalc_rating_routes = [
-    webapp2.Route('/internal/calculate_total_statistics',
-                  handler=RecalcTotalStatisticHandler,
-                  name="recalc total stat")
-]

@@ -192,7 +192,6 @@ routes = [
                   name='create_game')
 ] + handlers.assign_device_handler.assign_device_routes + \
          handlers.global_dictionary_word_handlers.global_dictionary_word_routes + \
-         handlers.statistics.total_statistics_handler.total_statistics_routes +\
-         handlers.recalc_rating_handler.recalc_rating_routes
+         handlers.statistics.total_statistics_handler.total_statistics_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)

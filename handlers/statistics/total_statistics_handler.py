@@ -16,25 +16,29 @@ class TotalStatisticsHandler(WebRequestHandler):
         super(TotalStatisticsHandler, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        current_statistics_object = ndb.gql("SELECT * FROM TotalStatisticsObject").get()
-        if current_statistics_object is None:
-            self.response.write("no stat")
-        else:
-            a, b, c = [], [], []
-            for i in sorted(current_statistics_object.count_for_date_json):
-                a.append((datetime.datetime.fromtimestamp(int(i)).strftime('%Y-%m-%d'), current_statistics_object.count_for_date_json[i]))
-            for i in sorted(current_statistics_object.time_for_date_json):
-                b.append((datetime.datetime.fromtimestamp(int(i)).strftime('%Y-%m-%d'), current_statistics_object.time_for_date_json[i]))
-            for i in sorted(current_statistics_object.average_time_json):
-                c.append((datetime.datetime.fromtimestamp(int(i)).strftime('%Y-%m-%d'), current_statistics_object.average_time_json[i]))
-            print(a, b, c)
-            self.draw_page("statistics/total_statistic",
-                           count_for_date=a
-                           if current_statistics_object else {},
-                           time_for_date=b
-                           if current_statistics_object else {},
-                           average_time=c
-                           if current_statistics_object else {})
+        WordCountObject= ndb.gql("SELECT * FROM WordCountObject ORDER BY date").fetch()
+        GameCountObject = ndb.gql("SELECT * FROM GameCountObject ORDER BY date").fetch()
+        PlayerCountObject = ndb.gql("SELECT * FROM PlayerCountObject ORDER BY date").fetch()
+        GameLenObject = ndb.gql("SELECT * FROM GameLenObject ORDER BY date").fetch()
+        GamesForTimeObject = ndb.gql("SELECT * FROM GamesForTimeObject ORDER BY time").fetch()
+        a, b, c, d, e = [], [], [], [], []
+        for i in WordCountObject:
+            a.append((i.count, i.date.strftime("%Y-%m-%d")))
+        for i in GameCountObject:
+            b.append((i.count, i.date.strftime("%Y-%m-%d")))
+        for i in PlayerCountObject:
+            c.append((i.count, i.date.strftime("%Y-%m-%d")))
+        for index, i in enumerate(GameCountObject):
+            d.append((GameLenObject[index].time / i.count, i.date.strftime("%Y-%m-%d")))
+        for i in GamesForTimeObject:
+            e.append((i.count, i.time))
+
+        self.draw_page("statistics/total_statistic",
+                       word_count_for_date=a,
+                       game_count_for_date=b,
+                       player_count_for_date=c,
+                       average_game_time=d,
+                       games_for_time=e)
 
 total_statistics_routes = [
     webapp2.Route('/statistics/total_statistics',
