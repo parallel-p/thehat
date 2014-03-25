@@ -220,8 +220,8 @@ class AddGameHandler(ServiceRequestHandler):
 
 
 class RecalcAllLogs(ServiceRequestHandler):
-    @staticmethod
-    def reset_word(word):
+    @ndb.tasklet
+    def reset_word(self, word):
         word.E = 50.0
         word.D = 50.0 / 3
         word.used_times = 0
@@ -231,27 +231,31 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.counts_by_expl_time = []
         word.used_games = []
         word.used_legacy_games = []
-        word.put()
+        yield word.put_async()
 
-    @staticmethod
-    def reset_stat(stat):
+    @ndb.tasklet
+    def reset_stat(self, stat):
         stat.count_for_date_json = {}
         stat.time_for_date_json = {}
         stat.average_time_json = {}
-        stat.put()
+        yield stat.put_async()
 
     def post(self):
-        TotalStatisticsObject.query().map(RecalcAllLogs.reset_stat)
-        GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map(RecalcAllLogs.reset_word)
-        GameLog.query().map(lambda k: taskqueue.add(url='/internal/calculate_total_statistics',
-                                                    params={'game_id': k.id()},
-                                                    queue_name='statistic-calculation'), keys_only=True)
-        GameLog.query().map(lambda k: taskqueue.add(url='/internal/add_game_to_statistic',
-                                                    params={'game_id': k.id()},
-                                                    queue_name='logs-processing'), keys_only=True)
-        GameHistory.query().map(lambda k: taskqueue.add(url='/internal/add_legacy_game',
-                                                        params={'game_id': k.id()},
-                                                        queue_name='logs-processing'), keys_only=True)
+        f1 = TotalStatisticsObject.query().map_async(self.reset_stat)
+        f2 = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map_async(self.reset_word)
+        f1.get_result()
+        f2.get_result()
+        q1 = taskqueue.Queue('statistic-calculation')
+        q2 = taskqueue.Queue('logs-processing')
+        f1 = GameLog.query().map_async(lambda k: q1.add_async(taskqueue.Task(url='/internal/calculate_total_statistics',
+                                                                             params={'game_id': k.id()})), keys_only=True)
+        f2 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
+                                                                             params={'game_id': k.id()})), keys_only=True)
+        f3 = GameHistory.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
+                                                                                 params={'game_id': k.id()})), keys_only=True)
+        f1.get_result()
+        f2.get_result()
+        f3.get_result()
 
 
 class LogsAdminPage(AdminRequestHandler):

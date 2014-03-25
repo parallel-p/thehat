@@ -196,3 +196,5 @@ routes = [
          handlers.recalc_rating_handler.recalc_rating_routes
 
 app = webapp2.WSGIApplication(routes, debug=True)
+from google.appengine.ext.appstats import recording
+app = recording.appstats_wsgi_middleware(app)
