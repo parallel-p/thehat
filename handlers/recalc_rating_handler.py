@@ -28,11 +28,11 @@ class RecalcRatingHandler(ServiceRequestHandler):
         super(RecalcRatingHandler, self).__init__(*args, **kwargs)
 
     def post(self):
-        words = json.loads(self.request.get("json"))
+        words = [ndb.Key(GlobalDictionaryWord, word) for word in json.loads(self.request.get("json"))]
         ratings = []
+        words = ndb.get_multi(words)
         words_db = []
-        for word in words:
-            word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        for word_db in words:
             if word_db is None:
                 logging.warning(u"There is no word '{}' in our dictionary".format(word))
                 continue
@@ -43,7 +43,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
             for i in xrange(len(rated)):
                 words_db[i].E = rated[i][0].mu
                 words_db[i].D = rated[i][0].sigma
-                words_db[i].put()
+            ndb.put_multi_async(words_db)
             logging.info(u"Updated rating of {} word".format(len(ratings)))
         else:
             logging.warning("No word from pair is in our dictionary")
@@ -127,6 +127,27 @@ class RecalcTotalStatisticHandler(ServiceRequestHandler):
 
 
 class AddGameHandler(ServiceRequestHandler):
+    @ndb.transactional_async()
+    def update_word(self, word, word_outcome, time, game_id):
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        if not word_db:
+            return
+        word_db.used_times += 1
+        if word_outcome == 'guessed':
+            word_db.guessed_times += 1
+        elif word_outcome == 'failed':
+            word_db.failed_times += 1
+        time_sec = int(round(time / 1000.0))
+        word_db.total_explanation_time += time_sec
+        if word_outcome == 'guessed':
+            pos = time_sec // 5
+            l = word_db.counts_by_expl_time
+            while pos >= len(l):
+                l.append(0)
+            l[pos] += 1
+        word_db.used_games.append(game_id)
+        word_db.put()
+
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Handling log of game {}".format(game_id))
@@ -183,24 +204,7 @@ class AddGameHandler(ServiceRequestHandler):
             for i in range(len(words_orig)):
                 if i not in seen_words_time:
                     continue
-                word_db = ndb.Key(GlobalDictionaryWord, words_orig[i]['word']).get()
-                if not word_db:
-                    continue
-                word_db.used_times += 1
-                if words_outcome[i] == 'guessed':
-                    word_db.guessed_times += 1
-                elif words_outcome[i] == 'failed':
-                    word_db.failed_times += 1
-                time_sec = int(round(seen_words_time[i] / 1000.0))
-                word_db.total_explanation_time += time_sec
-                if words_outcome[i] == 'guessed':
-                    pos = time_sec // 5
-                    l = word_db.counts_by_expl_time
-                    while pos >= len(l):
-                        l.append(0)
-                    l[pos] += 1
-                word_db.used_games.append(game_id)
-                word_db.put()
+                self.update_word(words_orig[i]['word'], words_outcome[i], seen_words_time[i], game_id)
 
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
                                                                      seen_words_time.keys()),
