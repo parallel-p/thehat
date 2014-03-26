@@ -27,6 +27,14 @@ class RecalcRatingHandler(ServiceRequestHandler):
     def __init__(self, *args, **kwargs):
         super(RecalcRatingHandler, self).__init__(*args, **kwargs)
 
+    @ndb.transactional_async()
+    def update_word(self, word, E, D):
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db.E = E
+        word_db.D = D
+        word_db.put()
+
+    @ndb.toplevel
     def post(self):
         words = [ndb.Key(GlobalDictionaryWord, word) for word in json.loads(self.request.get("json"))]
         ratings = []
@@ -41,9 +49,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
         if len(ratings) > 1:
             rated = TRUESKILL_ENVIRONMENT.rate(ratings)
             for i in xrange(len(rated)):
-                words_db[i].E = rated[i][0].mu
-                words_db[i].D = rated[i][0].sigma
-            ndb.put_multi_async(words_db)
+                self.update_word(words_db[i].word, rated[i][0].mu, rated[i][0].sigma)
             logging.info(u"Updated rating of {} word".format(len(ratings)))
         else:
             logging.warning("No word from pair is in our dictionary")
@@ -61,9 +67,7 @@ def get_time(curr_json):
             return time - time % (60 * 60 * 24)
 
 
-
 class RecalcTotalStatisticHandler(ServiceRequestHandler):
-
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Recalc statistics of game {}".format(game_id))
@@ -148,6 +152,7 @@ class AddGameHandler(ServiceRequestHandler):
         word_db.used_games.append(game_id)
         word_db.put()
 
+    @ndb.toplevel
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Handling log of game {}".format(game_id))
@@ -201,13 +206,13 @@ class AddGameHandler(ServiceRequestHandler):
                             })
                     seen_words_time[word] += current_words_time[word]
                 current_words_time.clear()
+
             for i in range(len(words_orig)):
-                if i not in seen_words_time:
-                    continue
-                self.update_word(words_orig[i]['word'], words_outcome[i], seen_words_time[i], game_id)
+                if i in seen_words_time:
+                    self.update_word(words_orig[i]['word'], words_outcome[i], seen_words_time[i], game_id)
 
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                                     seen_words_time.keys()),
+                                                                  seen_words_time.keys()),
                                                            key=lambda w: -seen_words_time[w])]
             taskqueue.add(url='/internal/recalc_rating_after_game',
                           params={'json': json.dumps(words)},

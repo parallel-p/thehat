@@ -14,6 +14,7 @@ queue:
 
 - name: logs-processing
   rate: 20/s
+  bucket_size: 40
   max_concurrent_requests: 5
   retry_parameters:
     task_retry_limit: 1
@@ -21,6 +22,7 @@ queue:
 - name: rating-calculation
   rate: 20/s
   max_concurrent_requests: 5
+  bucket_size: 40
   retry_parameters:
     task_retry_limit: 1
 
