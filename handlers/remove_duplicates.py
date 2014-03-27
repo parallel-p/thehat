@@ -35,7 +35,7 @@ class RemoveDuplicates(ServiceRequestHandler):
                 self.abort(200)
             self.game_id = n.game_id
             _RemoveDuplicatesHelper.query(_RemoveDuplicatesHelper.hash == n.hash).map(self.remove_game)
-        taskqueue.add(url='/remove_duplicates',
-                      params={'stage': 'reduce'},
-                      queue_name='fast')
+            taskqueue.add(url='/remove_duplicates',
+                          params={'stage': 'reduce'},
+                          queue_name='fast')
 
