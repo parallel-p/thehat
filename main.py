@@ -31,6 +31,7 @@ import handlers.web_game_creation_handler
 import handlers.link_device
 import handlers.statistics.word_statistics_handler
 import handlers.legacy_game_history_handler
+import handlers.remove_duplicates
 
 from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
@@ -185,6 +186,9 @@ routes = [
     webapp2.Route(r'/internal/add_legacy_game',
                   handler=handlers.legacy_game_history_handler.LegacyStatisticsHandler,
                   name='add_game_Statistic'),
+    webapp2.Route(r'/remove_duplicates',
+                  handler=handlers.remove_duplicates.RemoveDuplicates,
+                  name='remove_duplicates'),
     webapp2.Route(r'/admin/logs_processing',
                   handler=handlers.recalc_rating_handler.LogsAdminPage),
     webapp2.Route(r'/user/create_game',
