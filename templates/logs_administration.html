@@ -5,13 +5,19 @@
 {% block content %}
 <div class="alert alert-danger">Будьте осторожны! Пересчет статистики - чрезвычайно сложная и продолжительная операция</div>
 {% if message == 1 %}
-    <div class="alert alert-success">Пересчет запущен</div>
+    <div class="alert alert-success">Операция запущена</div>
 {% elif message == 2 %}
     <div class="alert alert-warning">Неправильный ответ на пример</div>
 {% endif %}
 <form class="form" role="form" method="POST">
     <div class="form-group"><label class="col-sm-2 control-label">{{ a }} + {{ b }} = </label><div class="col-md-2"><input type="text" class="form-control" name="code" placeholder="Введите ответ"></div></div>
     <input type="hidden" name="ans" value="{{ a+b }}">
-    <button type="submit" class="btn btn-danger">Запустить пересчет</button>
+    <div class="form-group"><select required name="action">
+        <option value="1">Пересчитать статистику</option>
+        <option value="2">Посчитать хэши старых игр</option>
+        <option value="3">Пометить дубликаты старых игр</option>
+        <option value="4">Удалить дубликаты старых игр</option>
+    </select></div>
+    <button type="submit" class="btn btn-danger">Выполнить действие</button>
 </form>
 {% endblock %}

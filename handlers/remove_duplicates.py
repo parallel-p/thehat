@@ -6,36 +6,39 @@ from handlers.legacy_game_history_handler import GameHistory
 import hashlib
 
 
-class _RemoveDuplicatesHelper(ndb.Model):
-    hash = ndb.StringProperty()
-    game_id = ndb.IntegerProperty()
-
-
 class RemoveDuplicates(ServiceRequestHandler):
     game_id = None
 
     def handle_game(self, game):
+        if game.hash is not None:
+            return
         hasher = hashlib.md5()
         hasher.update(game.json_string)
-        _RemoveDuplicatesHelper(hash=hasher.hexdigest(), game_id=game.key.id()).put_async()
-
-    def remove_game(self, helper):
-        if helper.game_id != self.game_id:
-            ndb.Key(GameHistory, helper.game_id).delete_async()
-        helper.key.delete_async()
+        game.hash = hasher.hexdigest()
+        game.put_async()
 
     @ndb.toplevel
     def post(self):
         stage = self.request.get('stage')
-        if stage in ('', 'map'):
+        if stage == 'hash':
             GameHistory.query().map(self.handle_game)
-        elif stage == 'reduce':
-            n = _RemoveDuplicatesHelper.query().get()
-            if n is None:
+        elif stage == 'mark':
+            c = ndb.Cursor(urlsafe=self.request.get('cursor'))
+            game, curs, more = GameHistory.query().fetch_page(1, start_cursor=c)
+            game = game[0]
+            if game is None:
                 self.abort(200)
-            self.game_id = n.game_id
-            _RemoveDuplicatesHelper.query(_RemoveDuplicatesHelper.hash == n.hash).map(self.remove_game)
-            taskqueue.add(url='/remove_duplicates',
-                          params={'stage': 'reduce'},
-                          queue_name='fast')
+            if not game.ignored or game.hash is None:
+                duplicates = GameHistory.query(GameHistory.hash == game.hash).fetch()
+                duplicates.sort(key=lambda el: el.key.id())
+                duplicates.pop()
+                for el in duplicates:
+                    el.ignored = True
+                ndb.put_multi(duplicates)
+            if more:
+                taskqueue.add(url='/remove_duplicates',
+                              params={'stage': 'mark', 'cursor': curs.urlsafe()},
+                              queue_name='fast')
+        elif stage == 'remove':
+            ndb.delete_multi(GameHistory.query(GameHistory.ignored == True).fetch(keys_only=True))
 

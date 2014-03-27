@@ -260,20 +260,25 @@ class RecalcAllLogs(ServiceRequestHandler):
                                                                              params={'game_id': k.id()})), keys_only=True)
         f2 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                                              params={'game_id': k.id()})), keys_only=True)
-        f3 = GameHistory.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
-                                                                                 params={'game_id': k.id()})), keys_only=True)
+        f3 = GameHistory.query(GameHistory.ignored == False).map_async(\
+            lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
+                                                  params={'game_id': k.id()})), keys_only=True)
         f1.get_result()
         f2.get_result()
         f3.get_result()
 
 
 class LogsAdminPage(AdminRequestHandler):
+    urls = ['/internal/recalc_all_logs', '/remove_duplicates',
+            '/remove_duplicates', '/remove_duplicates']
+    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'}]
     def post(self):
         code = self.request.get('code')
+        action = int(self.request.get('action'))
         message = 0
         if code:
             if code == self.request.get('ans'):
-                taskqueue.add(url='/internal/recalc_all_logs')
+                taskqueue.add(url=self.urls[action-1], params=self.params[action-1])
                 message = 1
             else:
                 message = 2
