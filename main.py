@@ -89,6 +89,10 @@ routes = [
     webapp2.Route(r'/user/create_game',
                   handler=handlers.web_game_creation_handler.WebGameCreationHandler,
                   name='create_game'),
+    webapp2.Route(r'/remove_duplicates',
+                  handler=handlers.remove_duplicates.RemoveDuplicates,
+                  name='remove_duplicates'),
+
 
     #Statistics web handlers
     webapp2.Route(r'/statistics/word_statistics',
