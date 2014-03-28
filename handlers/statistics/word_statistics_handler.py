@@ -21,13 +21,13 @@ class WordStatisticsHandler(WebRequestHandler):
         entity, games, top, bottom, rand = None, None, None, None, None
         if word:
             entity = ndb.Key(GlobalDictionaryWord, word).get()
+        if entity:
             games = []
             for id in entity.used_games:
                 games.append(ndb.Key('GameLog', id).urlsafe())
             for id in entity.used_legacy_games:
                 games.append(ndb.Key('GameHistory', id).urlsafe())
-
-        if not entity:
+        else:
             top = memcache.get("words_top")
             if not top:
                 top = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
@@ -46,6 +46,7 @@ class WordStatisticsHandler(WebRequestHandler):
                 memcache.set("used_words_count", c)
             if c >= 10:
                 rand = q.fetch(limit=10, offset=randint(0, c-10))
+
         self.draw_page('statistics/word_statistic', word=word, word_entity=entity, games=games,
                        top=top, bottom=bottom, rand=rand)
 

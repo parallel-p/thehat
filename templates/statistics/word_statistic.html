@@ -9,7 +9,7 @@
     {% for word in list %}
         <tr>
             <td>{{ loop.index }}</td>
-            <td><a href="statistics/word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
+            <td><a href="word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
             <td>{{ word.E|round(1) }}</td>
         </tr>
     {% endfor %}
@@ -31,7 +31,7 @@
 <div class="alert alert-danger">К сожалению, в нашем словаре нет слова "{{ word }}"</div>
 {% endif %}
 <h2>Выберите, статистику по какому слову вы хотите посмотреть:</h2>
-<form style="margin-left: 30px" class="form-inline" method="get" action="statistics/word_statistics">
+<form style="margin-left: 30px" class="form-inline" method="get" action="word_statistics">
     <div class="form-group">
         <input type="search" class="form-control" name="word" placeholder="Слово">
     </div>
@@ -58,7 +58,7 @@
 <div class="row">
 <div class="col-md-6"><p class="lead">Показана статистика по слову "{{ word_entity.word }}"</p></div>
 <div class="col-md-6">
-    <form class="form-inline" method="get" action="statistics/word_statistics">
+    <form class="form-inline" method="get" action="word_statistics">
         <div class="form-group">
             <input type="search" class="form-control" name="word" placeholder="Слово">
         </div>

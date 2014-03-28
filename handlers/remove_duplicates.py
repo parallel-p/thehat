@@ -17,13 +17,26 @@ class RemoveDuplicates(ServiceRequestHandler):
         game.hash = hasher.hexdigest()
         game.put_async()
 
+    def get(self):
+        GameHistory(json_string='a').put()
+        GameHistory(json_string='a').put()
+        GameHistory(json_string='b').put()
+        GameHistory(json_string='c').put()
+        GameHistory(json_string='c').put()
+        GameHistory(json_string='c').put()
+
     @ndb.toplevel
     def post(self):
         stage = self.request.get('stage')
+        c = ndb.Cursor(urlsafe=self.request.get('cursor'))
         if stage == 'hash':
-            GameHistory.query().map(self.handle_game)
+            games, curs, more = GameHistory.query().fetch_page(10, start_cursor=c)
+            map(self.handle_game, games)
+            if len(games) > 0 and more and curs:
+                taskqueue.add(url='/remove_duplicates',
+                              params={'stage': 'hash', 'cursor': curs.urlsafe()},
+                              queue_name='fast')
         elif stage == 'mark':
-            c = ndb.Cursor(urlsafe=self.request.get('cursor'))
             game, curs, more = GameHistory.query().fetch_page(1, start_cursor=c)
             game = game[0]
             if game is None:
@@ -35,7 +48,7 @@ class RemoveDuplicates(ServiceRequestHandler):
                 for el in duplicates:
                     el.ignored = True
                 ndb.put_multi(duplicates)
-            if more:
+            if more and curs:
                 taskqueue.add(url='/remove_duplicates',
                               params={'stage': 'mark', 'cursor': curs.urlsafe()},
                               queue_name='fast')
