@@ -17,7 +17,8 @@ class AuthorizedAPIRequestHandler(APIRequestHandler):
         self.user_key = None
 
     def dispatch(self):
-        self.device_id = self.request.route_kwargs.get('device_id', None)
+        self.device_id = (self.request.route_kwargs.get('device_id', None) or
+                          self.request.headers.get('TheHat-Device-Identity', None))
         if self.device_id is None:
             self.response.headers.add("WWW-Authenticate", "device-id")
             self.abort(401)

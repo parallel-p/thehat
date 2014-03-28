@@ -141,7 +141,7 @@ class AddGameHandler(ServiceRequestHandler):
             object.put()
 
     @ndb.transactional_async()
-    def update_word(self, word, word_outcome, time, game_id):
+    def update_word(self, word, word_outcome, explaination_time, game_id):
         word_db = ndb.Key(GlobalDictionaryWord, word).get()
         if not word_db:
             return
@@ -150,7 +150,7 @@ class AddGameHandler(ServiceRequestHandler):
             word_db.guessed_times += 1
         elif word_outcome == 'failed':
             word_db.failed_times += 1
-        time_sec = int(round(time / 1000.0))
+        time_sec = int(round(explaination_time / 1000.0))
         word_db.total_explanation_time += time_sec
         if word_outcome == 'guessed':
             pos = time_sec // 5
