@@ -8,6 +8,8 @@ from handlers.assign_device_handler import *
 
 
 class AssignDeviceTestCase(unittest.TestCase):
+    pin = None
+
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
@@ -27,7 +29,7 @@ class AssignDeviceTestCase(unittest.TestCase):
         def _render(x, pin):
             self.pin = pin
         GeneratePinHandler.render = _render
-        request = webapp2.Request.blank('/generate_pin')
+        request = webapp2.Request.blank('/assign_device/generate_pin')
         request.method = "GET"
         request.get_response(main.app)
         self.user = User.query(User.user_id == '123').get(keys_only=True)

@@ -176,7 +176,7 @@ class TestResults(unittest.TestCase):
         self.assertEqual(response.status_int, 404)  # not found
 
     def test_save_n_load_game(self):
-        request = webapp2.Request.blank('/savegame')
+        request = webapp2.Request.blank('/save_game')
         request.method = 'POST'
         request.body = "json=%s" % SOME_LOG
         response = request.get_response(main.app)
@@ -184,13 +184,13 @@ class TestResults(unittest.TestCase):
         pin = response.body
         self.assertTrue(pin.isdigit())
         self.assertGreaterEqual(len(pin), 8)
-        request = webapp2.Request.blank('/savegame/{}'.format(pin))
+        request = webapp2.Request.blank('/save_game/{}'.format(pin))
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.body, SOME_LOG)
 
-        request = webapp2.Request.blank('/savegame/bad_pin')
+        request = webapp2.Request.blank('/save_game/bad_pin')
         request.method = 'GET'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 404)

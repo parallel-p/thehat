@@ -140,8 +140,6 @@ class AddGameHandler(ServiceRequestHandler):
             object.count += 1
             object.put()
 
-
-class AddGameHandler(ServiceRequestHandler):
     @ndb.transactional_async()
     def update_word(self, word, word_outcome, time, game_id):
         word_db = ndb.Key(GlobalDictionaryWord, word).get()
@@ -298,7 +296,7 @@ class RecalcAllLogs(ServiceRequestHandler):
                                                                              params={'game_id': k.id()})), keys_only=True)
         f2 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                                              params={'game_id': k.id()})), keys_only=True)
-        f3 = GameHistory.query(GameHistory.ignored == False).map_async(\
+        f3 = GameHistory.query(GameHistory.ignored == False).map_async(
             lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
                                                   params={'game_id': k.id()})), keys_only=True)
         f1.get_result()

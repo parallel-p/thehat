@@ -121,7 +121,7 @@ routes = [
     webapp2.Route(r'/save_game',
                   handler=handlers.log_n_res_handlers.SaveGameHandler,
                   name='save_game'),
-    webapp2.Route(r'/load_game/<pin:[-\w]+>',
+    webapp2.Route(r'/save_game/<pin:[-\w]+>',
                   handler=handlers.log_n_res_handlers.SaveGameHandler,
                   name='load_game'),
 
@@ -250,5 +250,3 @@ routes = [
 ]
 
 app = webapp2.WSGIApplication(routes, debug=True)
-from google.appengine.ext.appstats import recording
-app = recording.appstats_wsgi_middleware(app)
