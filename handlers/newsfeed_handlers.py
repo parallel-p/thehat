@@ -5,10 +5,13 @@
 
 import os
 import time
+import webapp2
 
 from google.appengine.ext import db
 from webapp2_extras import json
-import webapp2
+from base_handlers.admin_request_handler import AdminRequestHandler
+from base_handlers.api_request_handlers import APIRequestHandler
+
 
 from environment import *
 
@@ -36,9 +39,7 @@ ADMIN_PASSWORD = '123456'  # Because there is no OpenID auth
 
 
 def doRender(handler, tname='index.html', values={}):
-    temp = os.path.join(
-        os.path.dirname(__file__),
-        'templates/' + tname)
+    temp = 'templates/' + tname
     if not os.path.isfile(temp):
         return False
 
@@ -46,7 +47,7 @@ def doRender(handler, tname='index.html', values={}):
     new_val = dict(values)
     new_val['path'] = handler.request.path
     new_val['db'] = NEWS_DB
-    template = JINJA_ENVIRONMENT.get_template('templates/' + tname)
+    template = JINJA_ENVIRONMENT.get_template(temp)
     out_str = template.render(new_val)
     handler.response.out.write(out_str)
     return True
@@ -66,7 +67,11 @@ def json_with_news(id):
     return json.encode(json_obj)
 
 
-class LoginPageHandler(webapp2.RequestHandler):
+class LoginPageHandler(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(LoginPageHandler, self).__init__(*args, **kwargs)
+
     def get(self):
         doRender(self, 'loginscreen.html')
 
@@ -90,18 +95,30 @@ class LoginPageHandler(webapp2.RequestHandler):
             )
 
 
-class LoadNewsHandler(webapp2.RequestHandler):
+class LoadNewsHandler(APIRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(LoadNewsHandler, self).__init__(*args, **kwargs)
+
     def get(self, last_id):
         self.response.headers['Content-Type'] = 'application/json'
         self.response.write(json_with_news(last_id))
 
 
-class ListOfNewsHandler(webapp2.RequestHandler):
+class ListOfNewsHandler(APIRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(ListOfNewsHandler, self).__init__(*args, **kwargs)
+
     def get(self):
         doRender(self, 'loggedin.html')
 
 
-class AddNewsHandler(webapp2.RequestHandler):
+class AddNewsHandler(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(AddNewsHandler, self).__init__(*args, **kwargs)
+
     def get(self):
         doRender(self, 'addnewsscreen.html')
 
@@ -120,11 +137,16 @@ class AddNewsHandler(webapp2.RequestHandler):
             url=url,
             timestamp=int(time.time()) * 1000)  # Unix-time in milliseconds
         news.put()
-        self.redirect('/listofnews')
+        self.redirect('/news/list')
 
 
-class ShowNewsHandler(webapp2.RequestHandler):
-    def get(self, id):
+class ShowNewsHandler(APIRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(ShowNewsHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        id = kwargs.get("id")
         news = db.GqlQuery('SELECT * FROM News WHERE id = :1', int(id))
         post = news.run().next()
         doRender(self, 'post.html', {'id': id, 'post': post})

@@ -3,16 +3,11 @@
 {% block contentheader %}Добавить новость{% endblock %}
 
 {% block content %}
-    <form method="post" action="/login">
+    <form method="post" action="/news/login">
         Name: <input type="text" name="account"/> <br>
         Pass: <input type="password" name="password"/> <br/>
         <input type="submit" value="Login"/>
         <input type="submit" value="Cancel"
                onclick="window.location='/login'; return false;"/>
     </form>
-    {% ifnotequal error None %}
-        <p>
-            {{ error }}
-        </p>
-    {% endifnotequal %}
 {% endblock %}

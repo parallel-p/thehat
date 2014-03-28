@@ -54,7 +54,7 @@
         }
         function update_all_json()
         {
-            var url = "/admin/global_dictionary/update_all_jsons";
+            var url = "/admin/global_dictionary/update_json/all";
             post(url, "");
             $('#update_myModal').modal({show:true})
         }
@@ -87,7 +87,7 @@
           Слова отправлены на обработку
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add'"> Close </button>
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add_words'"> Close </button>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@
           Обновление словаря запушено.
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add'"> Close </button>
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add_words'"> Close </button>
         </div>
       </div>
     </div>

@@ -49,9 +49,3 @@ class AssignDeviceHandler(AuthorizedAPIRequestHandler):
         pin.free(False)
 
 
-assign_device_routes = [
-    (r'/generate_pin', GeneratePinHandler),
-    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
-                  handler=AssignDeviceHandler,
-                  name='assign_device'),
-]

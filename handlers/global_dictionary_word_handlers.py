@@ -1,9 +1,7 @@
 __author__ = 'ivan'
 
 import time
-import webapp2
 import json
-from datetime import datetime
 
 from google.appengine.api import taskqueue
 from google.appengine.api import users
@@ -43,6 +41,14 @@ class WordsAddHandler(AdminRequestHandler):
                 if in_base is None:
                     to_add.append(word)
         taskqueue.add(url='/internal/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
+
+    def get(self):
+        template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
+        if users.get_current_user():
+            self.response.write(template.render(
+                {"logout_link": users.create_logout_url('/')}))
+        else:
+            self.response.write(template.render({"login_link": users.create_login_url('/')}))
 
 
 class TaskQueueAddWords(ServiceRequestHandler):
@@ -119,36 +125,4 @@ class GlobalDictionaryGetWordsHandler(APIRequestHandler):
         self.response.write(json.dumps(response_json))
 
 
-class GlobalWordEditor(AdminRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super(AdminRequestHandler, self).__init__(*args, **kwargs)
 
-    def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
-        if users.get_current_user():
-            self.response.write(template.render(
-                {"logout_link": users.create_logout_url('/')}))
-        else:
-            self.response.write(template.render({"login_link": users.create_login_url('/')}))
-
-
-global_dictionary_word_routes = [
-    webapp2.Route(r'/admin/global_dictionary/add_words',
-                  handler=WordsAddHandler,
-                  name='add words to global'),
-    webapp2.Route(r'/internal/global_dictionary/add_words/task_queue',
-                  handler=TaskQueueAddWords,
-                  name='add words to global task queue'),
-    webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
-                  handler=TaskQueueUpdateJson,
-                  name='update json task queue'),
-    webapp2.Route(r'/admin/global_dictionary/update_json',
-                  handler=UpdateJsonHandler,
-                  name='update json'),
-    webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
-                  handler=GlobalDictionaryGetWordsHandler,
-                  name='get words'),
-    webapp2.Route(r'/admin/global_dictionary/update_all_jsons',
-                  handler=UpdateAllJsonsHandler,
-                  name="update all jsons")
-]

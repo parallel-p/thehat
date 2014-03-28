@@ -105,7 +105,7 @@
      ]
 
     AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(word_count_data, "date", "Количество слов в играх");
+        var count_word_chart = make_serial_chart(word_count_data, "date", "Среднее количество слов в играх");
         make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
         var word_graph = make_graph("Количество слов в играх", "count",
@@ -145,8 +145,9 @@
         average_game_time_chart.write("average_game_time_chartdiv");
 	});
 ///////////
+        colors = ["#CC3333", "#FF0F00", "#FF6600","#FF9E01","#FCD202","#F8FF01","#FFFF00","#B0DE09","#04D215","#66FFFF", "#0D8ECF","#0D52D1","#2A0CD0" ,"#8A0CCF",
+        "#CD0D74", "#754DEB","#DDDDDD", "#999999","#444444","#333333","#222222","#111111","#000000","#000000"]
     var chart = AmCharts.makeChart("game_for_time_chartdiv", {
-    "title": "dddd",
     "theme": "none",
     "type": "serial",
 	"startDuration": 2,
@@ -154,7 +155,8 @@
         {%for i, j in games_for_time %}
             {
                 "count": "{{ i }}",
-                "time": "{{ j }}"
+                "time": "{{ j }}",
+                "color": colors[{{ j  }}]
             },
         {% endfor %}
     ],
@@ -184,12 +186,70 @@
     }
 });
 //////////
+////////
+ var games_for_player_chart = AmCharts.makeChart("games_for_player_chart_chartdiv", {
+    "type": "pie",
+	"theme": "none",
+    "titles": [{
+        "text": "Количество игроков и игр",
+        "size": 16
+    }],
+    "dataProvider": [{
+        "count": "0-2",
+        "players": {{ p0 }}
+    }, {
+        "count": "2-4",
+        "players": {{ p1 }}
+    }, {
+        "count": "5-10",
+        "players": {{ p2 }}
+    }, {
+        "count": "> 10",
+        "players": {{ p3 }}
+    }],
+    "valueField": "players",
+    "titleField": "count",
+    "startEffect": "elastic",
+    "startDuration": 2,
+    "labelRadius": 15,
+    "innerRadius": "50%",
+    "depth3D": 10,
+    "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+    "angle": 15,
+});
+////////
 </script>
 
 <!--amcharts import end-->
 {% endblock %}
 {% block content %}
 	<div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <br>
+                <table class="table">
+                <tbody>
+                  <tr>
+                    <td><p class="text-info">Общее количество игр</p></td>
+                    <td>{{ all_game }}</td>
+                  </tr>
+                  <tr>
+                    <td><p class="text-info">Общее количество разыгранных слов</p></td>
+                    <td>{{ all_word }}</td>
+                  </tr>
+
+                  <tr>
+                    <td><p class="text-info">В словаре слов</p></td>
+                    <td>Много</td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+             <div class="col-md-6">
+                <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
+            </div>
+        </div>
 		<div class="row">
 			<div class="col-md-6">
          	    <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
@@ -206,7 +266,11 @@
                 <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
             </div> <!-- end col-md-6>
 		</div> <!-- end row -->
-         <center><b>Распределние игр по времени суток<b></center>
+                  <center><b>Распределние игр по времени суток<b></center>
         <div id="game_for_time_chartdiv" style="width: 100%; height: 400px;"></div>
+
+
+
+
 	</div> <!-- end container -->
 {% endblock %}
