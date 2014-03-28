@@ -28,12 +28,20 @@ class RecalcRatingHandler(ServiceRequestHandler):
     def __init__(self, *args, **kwargs):
         super(RecalcRatingHandler, self).__init__(*args, **kwargs)
 
+    @ndb.transactional_async()
+    def update_word(self, word, E, D):
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db.E = E
+        word_db.D = D
+        word_db.put()
+
+    @ndb.toplevel
     def post(self):
-        words = json.loads(self.request.get("json"))
+        words = [ndb.Key(GlobalDictionaryWord, word) for word in json.loads(self.request.get("json"))]
         ratings = []
+        words = ndb.get_multi(words)
         words_db = []
-        for word in words:
-            word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        for word_db in words:
             if word_db is None:
                 logging.warning(u"There is no word '{}' in our dictionary".format(word))
                 continue
@@ -42,9 +50,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
         if len(ratings) > 1:
             rated = TRUESKILL_ENVIRONMENT.rate(ratings)
             for i in xrange(len(rated)):
-                words_db[i].E = rated[i][0].mu
-                words_db[i].D = rated[i][0].sigma
-                words_db[i].put()
+                self.update_word(words_db[i].word, rated[i][0].mu, rated[i][0].sigma)
             logging.info(u"Updated rating of {} word".format(len(ratings)))
         else:
             logging.warning("No word from pair is in our dictionary")
@@ -134,6 +140,30 @@ class AddGameHandler(ServiceRequestHandler):
             object.count += 1
             object.put()
 
+
+class AddGameHandler(ServiceRequestHandler):
+    @ndb.transactional_async()
+    def update_word(self, word, word_outcome, time, game_id):
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        if not word_db:
+            return
+        word_db.used_times += 1
+        if word_outcome == 'guessed':
+            word_db.guessed_times += 1
+        elif word_outcome == 'failed':
+            word_db.failed_times += 1
+        time_sec = int(round(time / 1000.0))
+        word_db.total_explanation_time += time_sec
+        if word_outcome == 'guessed':
+            pos = time_sec // 5
+            l = word_db.counts_by_expl_time
+            while pos >= len(l):
+                l.append(0)
+            l[pos] += 1
+        word_db.used_games.append(game_id)
+        word_db.put()
+
+    @ndb.toplevel
     def post(self):
         game_id = self.request.get('game_id')
         logging.info("Handling log of game {}".format(game_id))
@@ -204,32 +234,13 @@ class AddGameHandler(ServiceRequestHandler):
                             })
                     seen_words_time[word] += current_words_time[word]
                 current_words_time.clear()
-            AddGameHandler.push_game_len(max(0, finish_timestamp - start_timestamp), gamelog_date, len(players))
 
             for i in range(len(words_orig)):
-                if i not in seen_words_time:
-                    continue
-                word_db = ndb.Key(GlobalDictionaryWord, words_orig[i]['word']).get()
-                if not word_db:
-                    continue
-                word_db.used_times += 1
-                if words_outcome[i] == 'guessed':
-                    word_db.guessed_times += 1
-                elif words_outcome[i] == 'failed':
-                    word_db.failed_times += 1
-                time_sec = int(round(seen_words_time[i] / 1000.0))
-                word_db.total_explanation_time += time_sec
-                if words_outcome[i] == 'guessed':
-                    pos = time_sec // 5
-                    l = word_db.counts_by_expl_time
-                    while pos >= len(l):
-                        l.append(0)
-                    l[pos] += 1
-                word_db.used_games.append(game_id)
-                word_db.put()
+                if i in seen_words_time:
+                    self.update_word(words_orig[i]['word'], words_outcome[i], seen_words_time[i], game_id)
 
             words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                                     seen_words_time.keys()),
+                                                                  seen_words_time.keys()),
                                                            key=lambda w: -seen_words_time[w])]
             taskqueue.add(url='/internal/recalc_rating_after_game',
                           params={'json': json.dumps(words)},
@@ -287,19 +298,25 @@ class RecalcAllLogs(ServiceRequestHandler):
                                                                              params={'game_id': k.id()})), keys_only=True)
         f2 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                                              params={'game_id': k.id()})), keys_only=True)
-        f3 = GameHistory.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
-                                                                                 params={'game_id': k.id()})), keys_only=True)
+        f3 = GameHistory.query(GameHistory.ignored == False).map_async(\
+            lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
+                                                  params={'game_id': k.id()})), keys_only=True)
+        f1.get_result()
         f2.get_result()
         f3.get_result()
 
 
 class LogsAdminPage(AdminRequestHandler):
+    urls = ['/internal/recalc_all_logs', '/remove_duplicates',
+            '/remove_duplicates', '/remove_duplicates']
+    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'}]
     def post(self):
         code = self.request.get('code')
+        action = int(self.request.get('action'))
         message = 0
         if code:
             if code == self.request.get('ans'):
-                taskqueue.add(url='/internal/recalc_all_logs')
+                taskqueue.add(url=self.urls[action-1], params=self.params[action-1])
                 message = 1
             else:
                 message = 2

@@ -80,6 +80,8 @@ class GameHistory(ndb.Model):
     is_paired = ndb.BooleanProperty(indexed=False)
     game_type = ndb.IntegerProperty(indexed=False)
     game_number = ndb.IntegerProperty(indexed=False)
+    hash = ndb.StringProperty()
+    ignored = ndb.BooleanProperty(default=False)
 
     """ stores history of a game
     players: (ndb.StringProperty(repeated=True))
