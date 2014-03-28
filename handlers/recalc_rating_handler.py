@@ -43,7 +43,6 @@ class RecalcRatingHandler(ServiceRequestHandler):
         words_db = []
         for word_db in words:
             if word_db is None:
-                logging.warning(u"There is no word '{}' in our dictionary".format(word))
                 continue
             words_db.append(word_db)
             ratings.append((TRUESKILL_ENVIRONMENT.create_rating(mu=word_db.E, sigma=word_db.D), ))
@@ -290,18 +289,15 @@ class RecalcAllLogs(ServiceRequestHandler):
         RecalcAllLogs.delete_all_stat()
         f2 = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map_async(self.reset_word)
         f2.get_result()
-        q1 = taskqueue.Queue('statistic-calculation')
         q2 = taskqueue.Queue('logs-processing')
-        f1 = GameLog.query().map_async(lambda k: q1.add_async(taskqueue.Task(url='/internal/calculate_total_statistics',
-                                                                             params={'game_id': k.id()})), keys_only=True)
-        f2 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
-                                                                             params={'game_id': k.id()})), keys_only=True)
-        f3 = GameHistory.query(GameHistory.ignored == False).map_async(
+        f1 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
+                                                                             params={'game_id': k.id()})),
+                                       keys_only=True)
+        f2 = GameHistory.query(GameHistory.ignored == False).map_async(
             lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
                                                   params={'game_id': k.id()})), keys_only=True)
         f1.get_result()
         f2.get_result()
-        f3.get_result()
 
 
 class LogsAdminPage(AdminRequestHandler):

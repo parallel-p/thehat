@@ -15,7 +15,6 @@
 # limitations under the License.
 #
 import webapp2
-from google.appengine.api import users
 
 import handlers
 import handlers.dictionaries_packages_handlers
@@ -33,7 +32,6 @@ import handlers.statistics.word_statistics_handler
 import handlers.legacy_game_history_handler
 import handlers.remove_duplicates
 
-from environment import JINJA_ENVIRONMENT
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.statistics.total_statistics_handler
@@ -65,7 +63,7 @@ routes = [
                   handler=handlers.recalc_rating_handler.AddGameHandler,
                   name='add_game_Statistic'),
     webapp2.Route(r'/internal/recalc_all_logs',
-                   handler=handlers.recalc_rating_handler.RecalcAllLogs),
+                  handler=handlers.recalc_rating_handler.RecalcAllLogs),
     webapp2.Route(r'/internal/add_legacy_game',
                   handler=handlers.legacy_game_history_handler.LegacyStatisticsHandler,
                   name='add_game_Statistic'),

@@ -44,7 +44,8 @@ class WordStatisticsHandler(WebRequestHandler):
             if not c:
                 c = q.count()
                 memcache.set("used_words_count", c)
-            rand = q.fetch(limit=10, offset=randint(0, c-10))
+            if c >= 10:
+                rand = q.fetch(limit=10, offset=randint(0, c-10))
         self.draw_page('statistics/word_statistic', word=word, word_entity=entity, games=games,
                        top=top, bottom=bottom, rand=rand)
 
