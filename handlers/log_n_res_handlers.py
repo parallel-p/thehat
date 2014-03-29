@@ -22,13 +22,11 @@ class GameLogHandler(AuthorizedAPIRequestHandler):
     def put(self, **kwargs):
         game_id = json.loads(self.request.body)['setup']['meta']['game.id']
         game_key = ndb.Key(GameLog, game_id).get()
-        if game_key is not None:
-            self.abort(409)
-        else:
+        if game_key is None:
             log = GameLog(json=self.request.body, id=game_id)
             log.put()
             taskqueue.add(url='/internal/add_game_to_statistic', params={'game_id': game_id}, countdown=5)
-            self.response.set_status(201)
+        self.response.set_status(201)
 
 
 class GameResultsHandler(AuthorizedAPIRequestHandler):
