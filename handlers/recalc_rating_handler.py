@@ -140,7 +140,7 @@ class AddGameHandler(ServiceRequestHandler):
             object.put()
 
     @ndb.transactional_async()
-    def update_word(self, word, word_outcome, explaination_time, game_id):
+    def update_word(self, word, word_outcome, explanation_time, game_id):
         word_db = ndb.Key(GlobalDictionaryWord, word).get()
         if not word_db:
             return
@@ -149,7 +149,7 @@ class AddGameHandler(ServiceRequestHandler):
             word_db.guessed_times += 1
         elif word_outcome == 'failed':
             word_db.failed_times += 1
-        time_sec = int(round(explaination_time / 1000.0))
+        time_sec = int(round(explanation_time / 1000.0))
         word_db.total_explanation_time += time_sec
         if word_outcome == 'guessed':
             pos = time_sec // 5
@@ -255,6 +255,11 @@ class AddGameHandler(ServiceRequestHandler):
 
 
 class RecalcAllLogs(ServiceRequestHandler):
+    stage = 1
+    start_cursor = ndb.Cursor
+    cursor = ndb.Cursor()
+    more = False
+
     @ndb.tasklet
     def reset_word(self, word):
         word.E = 50.0
@@ -285,19 +290,45 @@ class RecalcAllLogs(ServiceRequestHandler):
         for i in ndb.gql("SELECT count FROM GameCountForPlayersObject"):
             i.key.delete()
 
+    def next_stage(self):
+        taskqueue.add(url="/internal/recalc_all_logs",
+                      params={"stage": str(self.stage+1)},
+                      queue_name="statistic-calculation")
+
+    def next_portion(self):
+        taskqueue.add(url="/internal/recalc_all_logs",
+                      params={"stage": str(self.stage), "cursor": self.cursor.urlsafe()},
+                      queue_name="statistic-calculation")
+
+    def fetch_portion(self, query, **kwargs):
+        portion, self.cursor, self.more = query.fetch_page(100, start_cursor=self.start_cursor, **kwargs)
+        return portion
+
     def post(self):
-        RecalcAllLogs.delete_all_stat()
-        f2 = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).map_async(self.reset_word)
-        f2.get_result()
-        q2 = taskqueue.Queue('logs-processing')
-        f1 = GameLog.query().map_async(lambda k: q2.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
-                                                                             params={'game_id': k.id()})),
-                                       keys_only=True)
-        f2 = GameHistory.query(GameHistory.ignored == False).map_async(
-            lambda k: q2.add_async(taskqueue.Task(url='/internal/add_legacy_game',
-                                                  params={'game_id': k.id()})), keys_only=True)
-        f1.get_result()
-        f2.get_result()
+        self.stage = int(self.request.get('stage', 0))
+        self.start_cursor = ndb.Cursor(urlsafe=self.request.get('cursor'))
+        queue = taskqueue.Queue('logs-processing')
+        if self.stage == 1:
+            RecalcAllLogs.delete_all_stat()
+            self.next_stage()
+            self.abort(200)
+        elif self.stage == 2:
+            words = self.fetch_portion(GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0))
+            for fut in map(self.reset_word, words):
+                fut.get_result()
+        elif self.stage == 3:
+            map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
+                                                         params={'game_id': k.id()})),
+                self.fetch_portion(GameLog.query(), keys_only=True))
+        elif self.stage == 4:
+            map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_legacy_game',
+                                          params={'game_id': k.id()})),
+                self.fetch_portion(GameHistory.query(GameHistory.ignored == False), keys_only=True))
+            self.abort(200)
+        if self.more and self.cursor:
+            self.next_portion()
+        else:
+            self.next_stage()
 
 
 class LogsAdminPage(AdminRequestHandler):

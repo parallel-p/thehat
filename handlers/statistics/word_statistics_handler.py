@@ -32,18 +32,18 @@ class WordStatisticsHandler(WebRequestHandler):
             if not top:
                 top = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
                     order(-GlobalDictionaryWord.E).fetch(limit=10)
-                memcache.set("words_top", top)
+                memcache.set("words_top", top, time=60*60*12)
             bottom = memcache.get("words_bottom")
             if not bottom:
                 bottom = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
                     order(GlobalDictionaryWord.E).fetch(limit=10)
-                memcache.set("words_bottom", bottom)
+                memcache.set("words_bottom", bottom, time=60*60*12)
             q = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.word]).\
                 filter(GlobalDictionaryWord.used_times > 0)
             c = memcache.get("used_words_count")
             if not c:
                 c = q.count()
-                memcache.set("used_words_count", c)
+                memcache.set("used_words_count", c, time=60*60*12)
             if c >= 10:
                 rand = q.fetch(limit=10, offset=randint(0, c-10))
 
