@@ -333,8 +333,9 @@ class RecalcAllLogs(ServiceRequestHandler):
 
 class LogsAdminPage(AdminRequestHandler):
     urls = ['/internal/recalc_all_logs', '/remove_duplicates',
-            '/remove_duplicates', '/remove_duplicates']
-    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'}]
+            '/remove_duplicates', '/remove_duplicates', '/internal/update_heatmap/task_queue',
+            '/internal/update_scatter/task_queue']
+    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'}, {}, {}]
     def post(self):
         code = self.request.get('code')
         action = int(self.request.get('action'))

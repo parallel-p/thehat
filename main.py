@@ -57,9 +57,6 @@ routes = [
     webapp2.Route(r'/admin/logs_processing',
                   handler=handlers.recalc_rating_handler.LogsAdminPage),
     #service
-    webapp2.Route(r'/admin/update_plots',
-                  handler=handlers.statistics.update_mathplotlib_plots.UpdatePlots,
-                  name='update_scatter_plot'),
     webapp2.Route(r'/admin/add_dictionary',
                   handler=handlers.statistics.update_mathplotlib_plots.MakeDictionaryHandler,
                   name='add dict'),

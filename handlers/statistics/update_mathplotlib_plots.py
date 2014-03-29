@@ -56,6 +56,9 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         super(UpdateHeatMapTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
+        heatmap_plot = ndb.Key(Plot, "heatmap_plot").get()
+        if heatmap_plot is not None:
+            heatmap_plot.key.delete()
         words = ndb.gql('SELECT word, E FROM GlobalDictionaryWord').fetch()
         matplotlib.pyplot.title("heatmap")
         x = []
@@ -82,20 +85,24 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         super(UpdateScatterPlotTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
+        scatter_plot = ndb.Key(Plot, "scatter_plot").get()
+        if scatter_plot is not None:
+            scatter_plot.key.delete()
         words = ndb.gql('SELECT word, E FROM GlobalDictionaryWord').fetch()
+        dict_words = {word.word:word.difficulty for word
+                      in ndb.gql('SELECT * FROM DictionaryWord').fetch()}
         x = []
         y = []
         for word in words:
-            dict_word = ndb.Key(DictionaryWord, word.word).get()
-            if dict_word is not None:
-                x.append(int(dict_word.difficulty))
+            if word.word in dict_words:
+                x.append(dict_words[word.word])
                 y.append(int(word.E))
 
         fig, ax = matplotlib.pyplot.subplots()
         ax.set_title("Scatter plot",fontsize=14)
         ax.set_xlabel("frequency", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
-        ax.grid(True,linestyle='-',color='0.75')
+        ax.grid(True, linestyle='-',color='0.75')
         ax.plot(x, y, 'o', color="green", markersize=10)
         ax.set_xlim([0, 10])
         ax.set_ylim([0, 100])
@@ -106,21 +113,6 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         rv.close()
 
 
-class UpdatePlots(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(UpdatePlots, self).__init__(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-
-        heatmap_plot = ndb.Key(Plot, "heatmap_plot").get()
-        scatter_plot = ndb.Key(Plot, "scatter_plot").get()
-        if heatmap_plot is not None:
-            heatmap_plot.key.delete()
-        if scatter_plot is not None:
-            scatter_plot.key.delete()
-        taskqueue.add(url='/internal/update_heatmap/task_queue')
-        taskqueue.add(url='/internal/update_scatter/task_queue')
 
 
 
