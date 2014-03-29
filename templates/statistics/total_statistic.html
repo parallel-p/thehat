@@ -13,6 +13,39 @@
 
 
 <script type="application/javascript" >
+        function getXmlHttp() {
+            var xmlhttp;
+            try {
+              xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+            try {
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+              xmlhttp = false;
+            }
+            }
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+              xmlhttp = new XMLHttpRequest();
+            }
+            return xmlhttp;
+          }
+
+        function post(url, json)
+        {
+            // alert(xmlhttp);
+            var xmlhttp = getXmlHttp();
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+            xmlhttp.send("json=" + json); // Отправляем POST-запрос
+        }
+        function is_good(element) {
+            return element != '';
+        }
+        function update_plots()
+        {
+            var url = "/admin/update_plots";
+            post(url, "");
+        }
 	function make_serial_chart(chart_data, category_field, title) {
 		chart = new AmCharts.AmSerialChart();
         chart.addTitle(title);
@@ -222,7 +255,9 @@
 
 <!--amcharts import end-->
 {% endblock %}
+
 {% block content %}
+
 	<div class="container">
         <div class="row">
             <div class="col-md-6">
@@ -250,6 +285,17 @@
                 <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
             </div>
         </div>
+        <button type="button" class="btn btn-success btn-lg btn-block" onclick="update_plots()">
+                Обновить
+        </button>
+        <div class="row">
+            <div class="col-md-6">
+                <img class="img-responsive" src="/images/scatter_plot" alt="" />
+            </div> <!-- end col-md-4-->
+            <div class="col-md-6">
+                <img class="img-responsive" src="/images/heatmap_plot" alt="" />
+            </div> <!-- end col-md-4-->
+        </div>
 		<div class="row">
 			<div class="col-md-6">
          	    <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
@@ -268,8 +314,6 @@
 		</div> <!-- end row -->
                   <center><b>Распределние игр по времени суток<b></center>
         <div id="game_for_time_chartdiv" style="width: 100%; height: 400px;"></div>
-
-
 
 
 	</div> <!-- end container -->

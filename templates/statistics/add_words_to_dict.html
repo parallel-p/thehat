@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<script type="application/javascript">
+
+    function getXmlHttp() {
+            var xmlhttp;
+            try {
+              xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+            } catch (e) {
+            try {
+              xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (E) {
+              xmlhttp = false;
+            }
+            }
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+              xmlhttp = new XMLHttpRequest();
+            }
+            return xmlhttp;
+          }
+
+        function post(url, json)
+        {
+            // alert(xmlhttp);
+            var xmlhttp = getXmlHttp();
+            xmlhttp.open('POST', url, true);
+            xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+            xmlhttp.send("json=" + json); // Отправляем POST-запрос
+        }
+
+        function send_words()
+        {
+            var url = "/admin/add_dictionary";
+            var text = document.getElementById("words").value;
+            var words = text.split('\n')
+            var res = []
+            for(var i = 0; i < words.length; ++i)
+            {
+                var a = words[i].split(' ');
+                var word = {};
+                word["word"] = a[0];
+                word["difficulty"] = a[1];
+                res.push(word)
+            }
+            var len = res.length;
+            for(var i = 0; i < (len / 1000) + 1; ++i)
+            {
+                var json = JSON.stringify(res.slice(1000 * i, 1000 * (i + 1)));
+                post(url, json);
+            }
+        }
+</script>
+<head>
+    <title></title>
+</head>
+<body>
+    <textarea class="form-control" name="text" rows="30"  id="words"></textarea>
+    <button type="button" class="btn btn-success btn-lg btn-block" onclick="send_words()">
+            <span class="glyphicon glyphicon-plus"></span> Добавить
+     </button>
+</body>
+</html>

@@ -33,3 +33,7 @@ libraries:
   version: "1.4"
 - name: jinja2
   version: latest
+- name: numpy
+  version: latest
+- name: matplotlib
+  version: latest

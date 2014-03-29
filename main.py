@@ -29,6 +29,7 @@ import handlers.recalc_rating_handler
 import handlers.web_game_creation_handler
 import handlers.link_device
 import handlers.statistics.word_statistics_handler
+import handlers.statistics.update_mathplotlib_plots
 import handlers.legacy_game_history_handler
 import handlers.remove_duplicates
 
@@ -56,6 +57,22 @@ routes = [
     webapp2.Route(r'/admin/logs_processing',
                   handler=handlers.recalc_rating_handler.LogsAdminPage),
     #service
+    webapp2.Route(r'/admin/update_plots',
+                  handler=handlers.statistics.update_mathplotlib_plots.UpdatePlots,
+                  name='update_scatter_plot'),
+    webapp2.Route(r'/admin/add_dictionary',
+                  handler=handlers.statistics.update_mathplotlib_plots.MakeDictionaryHandler,
+                  name='add dict'),
+    webapp2.Route(r'/internal/add_dictionary/task_queue',
+                  handler=handlers.statistics.update_mathplotlib_plots.MakeDictionaryTaskQueueHandler,
+                  name='add dict task_queue'),
+    webapp2.Route(r'/internal/update_heatmap/task_queue',
+                  handler=handlers.statistics.update_mathplotlib_plots.UpdateHeatMapTaskQueue,
+                  name='update heatmap task queue'),
+    webapp2.Route(r'/internal/update_scatter/task_queue',
+                  handler=handlers.statistics.update_mathplotlib_plots.UpdateScatterPlotTaskQueue,
+                  name='update heatmap task queue'),
+
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=handlers.recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating'),
@@ -90,6 +107,12 @@ routes = [
     webapp2.Route(r'/remove_duplicates',
                   handler=handlers.remove_duplicates.RemoveDuplicates,
                   name='remove_duplicates'),
+    webapp2.Route(r'/images/scatter_plot',
+                  handler=handlers.statistics.total_statistics_handler.ScattedPlotHandler,
+                  name='scatter_plot'),
+    webapp2.Route(r'/images/heatmap_plot',
+                  handler=handlers.statistics.total_statistics_handler.HeatmapPlotHandler,
+                  name='heatmap_plot'),
 
 
     #Statistics web handlers
