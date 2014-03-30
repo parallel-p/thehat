@@ -64,14 +64,14 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         x = []
         y = []
         for word in words:
-            x.append(len(word.word) * 4)
+            x.append(len(word.word))
             y.append(int(word.E))
 
-        heatmap, xedges, yedges = numpy.histogram2d(x, y, bins=50)
+        heatmap, xedges, yedges = numpy.histogram2d(x, y, bins=(50, 50))
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
         matplotlib.pyplot.clf()
-        matplotlib.pyplot.imshow(heatmap, extent=extent)
-
+        matplotlib.pyplot.axis([min(x), max(x), min(y), max(y)])
+        matplotlib.pyplot.imshow(heatmap, extent=extent, aspect ="auto")
         rv = StringIO.StringIO()
         matplotlib.pyplot.savefig(rv, format="png")
         Plot(plot=rv.getvalue(), id="heatmap_plot").put()
