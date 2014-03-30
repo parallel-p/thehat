@@ -5,7 +5,6 @@ import logging
 from collections import defaultdict
 
 from google.appengine.api import taskqueue
-from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
@@ -16,8 +15,6 @@ from base_handlers.admin_request_handler import AdminRequestHandler
 from random import randint
 from objects.total_statistics_object import *
 import datetime
-import webapp2
-import time
 
 
 class BadGameError(Exception):
@@ -199,11 +196,12 @@ class AddGameHandler(ServiceRequestHandler):
             if start_timestamp:
                 start_timestamp //= 1000
                 if finish_timestamp:
-                    duration = (finish_timestamp - start_timestamp) // 1000
+                    finish_timestamp //= 1000
+                    duration = finish_timestamp - start_timestamp
                 else:
                     duration = 0
                 game_date = get_date(start_timestamp)
-                self.update_daily_statistics(game_date, len(words_orig), players_count, duration)
+                self.update_daily_statistics(game_date, len(seen_words_time), players_count, duration)
                 self.update_statistics_by_hour(start_timestamp)
             if players_count:
                 self.update_statistics_by_player_count(players_count)

@@ -48,7 +48,7 @@ class TotalStatisticsHandler(WebRequestHandler):
             all_game_count += el.games
             b.append((el.games, el.date.strftime("%Y-%m-%d")))
             c.append((el.players_participated, el.date.strftime("%Y-%m-%d")))
-            d.append((el.total_game_duration / el.games / 1000 / 60, el.date.strftime("%Y-%m-%d")))
+            d.append((round(el.total_game_duration / el.games / 60.0, 2), el.date.strftime("%Y-%m-%d")))
         for el in games_for_hour:
             e.append((el.games, el.hour))
         player_count_classes = [0, 0, 0, 0]

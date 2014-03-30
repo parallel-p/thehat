@@ -109,7 +109,7 @@
         make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
         var word_graph = make_graph("Количество слов в играх", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] слов</span></b>")
         count_word_chart.addGraph(word_graph)
         count_word_chart.addChartCursor(create_cursor());
         count_word_chart.write("word_count_chartdiv");
@@ -119,7 +119,7 @@
         make_category_axis(count_game_chart, true, "DD");
         count_game_chart.addValueAxis(create_value_axis(0.2, 1));
         var count_game_graph = make_graph("Количество игр", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] игр</span></b>")
         count_game_chart.addGraph(count_game_graph)
         count_game_chart.addChartCursor(create_cursor());
         count_game_chart.write("game_count_chartdiv");
@@ -129,7 +129,7 @@
         make_category_axis(count_player_chart, true, "DD");
         count_player_chart.addValueAxis(create_value_axis(0.2, 1));
         var player_graph = make_graph("Количество игроков", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] игроков</span></b>")
         count_player_chart.addGraph(player_graph)
         count_player_chart.addChartCursor(create_cursor());
         count_player_chart.write("player_count_chartdiv");
@@ -139,7 +139,7 @@
         make_category_axis(average_game_time_chart, true, "DD");
         average_game_time_chart.addValueAxis(create_value_axis(0.2, 1));
         var average_game_time_graph = make_graph("Средняя продолжительность игр", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>value: [[value]]</span></b>")
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] ч</span></b>")
         average_game_time_chart.addGraph(average_game_time_graph)
         average_game_time_chart.addChartCursor(create_cursor());
         average_game_time_chart.write("average_game_time_chartdiv");
@@ -155,7 +155,7 @@
         {%for i, j in games_for_time %}
             {
                 "count": "{{ i }}",
-                "time": "{{ j }}",
+                "time": "{{ j }} ч",
                 "color": colors[{{ j  }}]
             },
         {% endfor %}
@@ -165,7 +165,7 @@
         "title": "Игры"
     }],
     "graphs": [{
-        "balloonText": "[[category]]: <b>[[value]]</b>",
+        "balloonText": "около [[category]]: <b>[[value]] игр</b>",
         "colorField": "color",
         "fillAlphas": 1,
         "lineAlpha": 0.1,
@@ -195,16 +195,16 @@
         "size": 16
     }],
     "dataProvider": [{
-        "count": "0-2",
+        "count": "меньше 3 игроков",
         "players": {{ player_count[0] }}
     }, {
-        "count": "2-4",
+        "count": "3-4 игрока",
         "players": {{ player_count[1] }}
     }, {
-        "count": "5-10",
+        "count": "5-10 игроков",
         "players": {{ player_count[2] }}
     }, {
-        "count": "> 10",
+        "count": "> 10 игроков",
         "players": {{ player_count[3] }}
     }],
     "valueField": "players",
@@ -214,7 +214,7 @@
     "labelRadius": 15,
     "innerRadius": "50%",
     "depth3D": 10,
-    "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]]</b> ([[percents]]%)</span>",
+    "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]] игр</b> ([[percents]]%)</span>",
     "angle": 15,
 });
 ////////
