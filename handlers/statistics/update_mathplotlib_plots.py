@@ -68,8 +68,6 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
             if word.used_times > 0:
                 x.append(len(word.word))
                 y.append(int(word.E))
-        logging.info('x' + " ".join([str(i) for i in x]))
-        logging.info('y' + " ".join([str(i) for i in y]))
 
         heatmap, xedges, yedges = numpy.histogram2d(x, y, bins=50)
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
@@ -105,7 +103,6 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
                 if word.word in dict_words:
                     x.append(dict_words[word.word])
                     y.append(int(word.E))
-
         fig, ax = matplotlib.pyplot.subplots()
         ax.set_title("Scatter plot",fontsize=14)
         ax.set_xlabel("frequency", fontsize=12)
