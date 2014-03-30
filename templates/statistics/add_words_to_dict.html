@@ -38,14 +38,14 @@
             {
                 var a = words[i].split(' ');
                 var word = {};
-                word["word"] = a[0];
-                word["difficulty"] = a[1];
+                word["w"] = a[0];
+                word["d"] = a[1];
                 res.push(word)
             }
             var len = res.length;
-            for(var i = 0; i < (len / 1000) + 1; ++i)
+            for(var i = 0; i < (len / 500) + 1; ++i)
             {
-                var json = JSON.stringify(res.slice(1000 * i, 1000 * (i + 1)));
+                var json = JSON.stringify(res.slice(500 * i, 500 * (i + 1)));
                 post(url, json);
             }
         }

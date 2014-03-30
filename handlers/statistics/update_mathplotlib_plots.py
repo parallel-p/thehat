@@ -30,7 +30,7 @@ class MakeDictionaryTaskQueueHandler(ServiceRequestHandler):
     def post(self, *args, **kwargs):
         words = json.loads(self.request.get("json"))
         for word in words:
-            DictionaryWord(word=word["word"], difficulty=int(word["difficulty"]), id=word["word"]).put()
+            DictionaryWord(word=word["w"], difficulty=int(word["d"]), id=word["w"]).put()
 
 
 class MakeDictionaryHandler(AdminRequestHandler):
@@ -42,9 +42,7 @@ class MakeDictionaryHandler(AdminRequestHandler):
         in_json = json.loads(self.request.get("json"))
         to_add = []
         for word in in_json:
-            in_base = ndb.Key(DictionaryWord, word["word"]).get()
-            if in_base is not None:
-                to_add.append(word)
+            to_add.append(word)
         taskqueue.add(url='/internal/add_dictionary/task_queue', params={"json": json.dumps(to_add)})
 
     def get(self, *args, **kwargs):
@@ -96,6 +94,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
         dict_words = {word.word:word.difficulty for word
                       in ndb.gql('SELECT * FROM DictionaryWord').fetch()}
+        logging.info('{0} words in freq dictionary'.format(len(dict_words)))
         x = []
         y = []
         for word in words:
@@ -109,7 +108,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         ax.set_ylabel("difficulty", fontsize=12)
         ax.grid(True, linestyle='-',color='0.75')
         ax.plot(x, y, 'o', color="green", markersize=10)
-        ax.set_xlim([0, 10])
+        ax.set_xlim([0, 100])
         ax.set_ylim([0, 100])
         rv = StringIO.StringIO()
         fig.savefig(rv, format="png", dpi=100)
