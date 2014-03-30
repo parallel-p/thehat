@@ -196,16 +196,16 @@
     }],
     "dataProvider": [{
         "count": "0-2",
-        "players": {{ p0 }}
+        "players": {{ player_count[0] }}
     }, {
         "count": "2-4",
-        "players": {{ p1 }}
+        "players": {{ player_count[1] }}
     }, {
         "count": "5-10",
-        "players": {{ p2 }}
+        "players": {{ player_count[2] }}
     }, {
         "count": "> 10",
-        "players": {{ p3 }}
+        "players": {{ player_count[3] }}
     }],
     "valueField": "players",
     "titleField": "count",
@@ -276,7 +276,7 @@
                 <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
             </div> <!-- end col-md-6>
 		</div> <!-- end row -->
-                  <center><b>Распределние игр по времени суток<b></center>
+                  <center><b>Распределение игр по времени суток<b></center>
         <div id="game_for_time_chartdiv" style="width: 100%; height: 400px;"></div>
 
 
