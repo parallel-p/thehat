@@ -8,6 +8,7 @@ import StringIO
 import numpy, matplotlib, matplotlib.pyplot
 from google.appengine.api import taskqueue
 import json
+import logging
 
 
 class Plot(ndb.Model):
@@ -59,19 +60,22 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         heatmap_plot = ndb.Key(Plot, "heatmap_plot").get()
         if heatmap_plot is not None:
             heatmap_plot.key.delete()
-        words = ndb.gql('SELECT word, E FROM GlobalDictionaryWord').fetch()
+        words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
         matplotlib.pyplot.title("heatmap")
         x = []
         y = []
         for word in words:
-            x.append(len(word.word))
-            y.append(int(word.E))
+            if word.used_times > 0:
+                x.append(len(word.word))
+                y.append(int(word.E))
+        logging.info('x' + " ".join([str(i) for i in x]))
+        logging.info('y' + " ".join([str(i) for i in y]))
 
         heatmap, xedges, yedges = numpy.histogram2d(x, y, bins=50)
         extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
         matplotlib.pyplot.clf()
         matplotlib.pyplot.axis([min(x), max(x), min(y), max(y)])
-        matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto")
+        matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto", origin="lower")
         matplotlib.pyplot.title("heatmap")
         matplotlib.pyplot.xlabel("word length", fontsize=12)
         matplotlib.pyplot.ylabel("word difficulty", fontsize=12)
@@ -91,15 +95,16 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         scatter_plot = ndb.Key(Plot, "scatter_plot").get()
         if scatter_plot is not None:
             scatter_plot.key.delete()
-        words = ndb.gql('SELECT word, E FROM GlobalDictionaryWord').fetch()
+        words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
         dict_words = {word.word:word.difficulty for word
                       in ndb.gql('SELECT * FROM DictionaryWord').fetch()}
         x = []
         y = []
         for word in words:
-            if word.word in dict_words:
-                x.append(dict_words[word.word])
-                y.append(int(word.E))
+            if word.used_times > 0:
+                if word.word in dict_words:
+                    x.append(dict_words[word.word])
+                    y.append(int(word.E))
 
         fig, ax = matplotlib.pyplot.subplots()
         ax.set_title("Scatter plot",fontsize=14)
