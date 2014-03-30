@@ -60,84 +60,38 @@ MAX_TIME = 5 * 60 * 1000  # 5 minutes
 MIN_TIME = 500  # 0.5 second
 
 
-def get_time(curr_json):
-    for i in curr_json["events"]:
-        if i["type"] == "start_game":
-            time = int(int(i["time"]) / 1000)
-            return time
-
-
 def get_date(time):
     return time - time % (60 * 60 * 24)
 
 
 class AddGameHandler(ServiceRequestHandler):
 
-    @staticmethod
-    def push_word_count(count, gamelog_date):
-        word_count_object = ndb.Key(WordCountObject, gamelog_date).get()
-        if word_count_object is None:
-            WordCountObject(count=count, date=datetime.datetime.fromtimestamp(gamelog_date),
-                            id=gamelog_date).put()
-        else:
-            word_count_object.count += count
-            word_count_object.put()
+    @ndb.transactional_async()
+    def update_daily_statistics(self, game_date, word_count, players_count, duration):
+        statistics = (ndb.Key(DailyStatistics, str(game_date)).get() or
+                      DailyStatistics(date=datetime.datetime.fromtimestamp(game_date),
+                                      id=str(game_date)))
+        statistics.words_used += word_count
+        statistics.players_participated += players_count
+        statistics.games += 1
+        statistics.total_game_duration += duration
+        statistics.put()
 
-    @staticmethod
-    def push_players_count(count, gamelog_date):
-        player_count_object = ndb.Key(PlayerCountObject, gamelog_date).get()
-        if player_count_object is None:
-            PlayerCountObject(count=count, date=datetime.datetime.fromtimestamp(gamelog_date),
-                            id=gamelog_date).put()
-        else:
-            player_count_object.count += count
-            player_count_object.put()
+    @ndb.transactional_async()
+    def update_statistics_by_player_count(self, player_count):
+        statistics = (ndb.Key(GamesForPlayerCount, str(player_count)).get() or
+                      GamesForPlayerCount(player_count=player_count,
+                                          id=str(player_count)))
+        statistics.games += 1
+        statistics.put()
 
-    @staticmethod
-    def push_game_count(gamelog_date):
-        game_count_object = ndb.Key(GameCountObject, gamelog_date).get()
-        if game_count_object is None:
-            GameCountObject(count=1, date=datetime.datetime.fromtimestamp(gamelog_date),
-                            id=gamelog_date).put()
-        else:
-            game_count_object.count += 1
-            game_count_object.put()
-
-    @staticmethod
-    def push_game_len(len, gamelog_date, player_count):
-        game_len_object = ndb.Key(GameLenObject, gamelog_date).get()
-        if game_len_object is None:
-            GameLenObject(time=len, date=datetime.datetime.fromtimestamp(gamelog_date),
-                          id=gamelog_date).put()
-        else:
-            game_len_object.time += len
-            game_len_object.put()
-
-        game_len_object = ndb.Key(GameCountForPlayersObject, player_count).get()
-        if game_len_object is None:
-            GameCountForPlayersObject(count=1, player_count=player_count,
-                                      id=player_count).put()
-        else:
-            game_len_object.count += 1
-            game_len_object.put()
-
-        game_count_object = ndb.Key(GameTimeForPlayersObject, player_count).get()
-        if game_count_object is None:
-            GameTimeForPlayersObject(time=len, player_count=player_count,
-                                     id=player_count).put()
-        else:
-            game_count_object.time += len
-            game_count_object.put()
-
-    @staticmethod
-    def push_games_for_time(curr_time):
-        time = (curr_time % (60 * 60 * 24) / (60 * 60))
-        object = ndb.Key(GamesForTimeObject, time).get()
-        if object is None:
-            GamesForTimeObject(count=1, time=time, id=time).put()
-        else:
-            object.count += 1
-            object.put()
+    @ndb.transactional_async()
+    def update_statistics_by_hour(self, game_time):
+        hour = (game_time % (60 * 60 * 24) // (60 * 60))
+        statistics = (ndb.Key(GamesForHour, str(hour)).get() or
+                      GamesForHour(hour=hour, id=str(hour)))
+        statistics.games += 1
+        statistics.put()
 
     @ndb.transactional_async()
     def update_word(self, word, word_outcome, explanation_time, game_id):
@@ -181,17 +135,8 @@ class AddGameHandler(ServiceRequestHandler):
             current_words_time = {}
             words_by_players_pair = {}
 
-            gamelog_time = get_time(log)
-            gamelog_date = get_date(gamelog_time)
-            players = log["setup"]["players"] if "players" in log["setup"] else []
-
-            AddGameHandler.push_word_count(len(words_orig), gamelog_date)
-            AddGameHandler.push_players_count(len(players), gamelog_date)
-            AddGameHandler.push_game_count(gamelog_date)
-            AddGameHandler.push_games_for_time(gamelog_time)
-
-            start_timestamp = 0
-            finish_timestamp = 0
+            start_timestamp = None
+            finish_timestamp = None
             for i in events:
                 if i["type"] == "end_game":
                     finish_timestamp = i["time"]
@@ -250,7 +195,20 @@ class AddGameHandler(ServiceRequestHandler):
                                   params={'json': json.dumps(to_recalc)},
                                   queue_name='rating-calculation')
 
-        except BadGameError:
+            players_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
+            if start_timestamp:
+                start_timestamp //= 1000
+                if finish_timestamp:
+                    duration = (finish_timestamp - start_timestamp) // 1000
+                else:
+                    duration = 0
+                game_date = get_date(start_timestamp)
+                self.update_daily_statistics(game_date, len(words_orig), players_count, duration)
+                self.update_statistics_by_hour(start_timestamp)
+            if players_count:
+                self.update_statistics_by_player_count(players_count)
+
+        except (BadGameError, KeyError):
             self.abort(200)
 
 
@@ -275,20 +233,10 @@ class RecalcAllLogs(ServiceRequestHandler):
 
     @staticmethod
     def delete_all_stat():
-        for i in ndb.gql("SELECT count FROM WordCountObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT count FROM PlayerCountObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT count FROM GameCountObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT time FROM GameLenObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT count FROM GamesForTimeObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT time FROM GameTimeForPlayersObject"):
-            i.key.delete()
-        for i in ndb.gql("SELECT count FROM GameCountForPlayersObject"):
-            i.key.delete()
+        # for t in ["WordCountObject", "PlayerCountObject", "GameCountObject", "GameLenObject", "GamesForTimeObject", "GameTimeForPlayersObject", "GameCountForPlayersObject"]:
+        #   ndb.delete_multi(ndb.Query(kind=t).fetch(keys_only=True))
+        for t in [DailyStatistics, GamesForHour, GamesForPlayerCount]:
+            ndb.delete_multi(t.query().fetch(keys_only=True))
 
     def next_stage(self):
         taskqueue.add(url="/internal/recalc_all_logs",
@@ -305,7 +253,7 @@ class RecalcAllLogs(ServiceRequestHandler):
         return portion
 
     def post(self):
-        self.stage = int(self.request.get('stage', 0))
+        self.stage = int(self.request.get('stage', 1))
         self.start_cursor = ndb.Cursor(urlsafe=self.request.get('cursor'))
         queue = taskqueue.Queue('logs-processing')
         if self.stage == 1:

@@ -5,6 +5,7 @@ import webapp2
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.statistics.update_mathplotlib_plots import Plot
 from google.appengine.ext import ndb
+from objects.total_statistics_object import *
 
 class ScattedPlotHandler(webapp2.RequestHandler):
 
@@ -34,38 +35,32 @@ class TotalStatisticsHandler(WebRequestHandler):
         super(TotalStatisticsHandler, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        WordCountObject= ndb.gql("SELECT * FROM WordCountObject ORDER BY date").fetch()
-        GameCountObject = ndb.gql("SELECT * FROM GameCountObject ORDER BY date").fetch()
-        PlayerCountObject = ndb.gql("SELECT * FROM PlayerCountObject ORDER BY date").fetch()
-        GameLenObject = ndb.gql("SELECT * FROM GameLenObject ORDER BY date").fetch()
-        GamesForTimeObject = ndb.gql("SELECT * FROM GamesForTimeObject ORDER BY time").fetch()
-        GamesForPlayerObject = ndb.gql("SELECT * FROM GameCountForPlayersObject").fetch()
+        daily_statistics = DailyStatistics.query().order(DailyStatistics.date).fetch()
+        games_for_hour = GamesForHour.query().order(GamesForHour.hour).fetch()
+        games_for_player_count = GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch()
         a, b, c, d, e = [], [], [], [], []
         all_game_count = 0
         all_word_count = 0
 
-        for index, i in enumerate(WordCountObject):
-            all_word_count += i.count
-            a.append((i.count / GameCountObject[index].count, i.date.strftime("%Y-%m-%d")))
-        for i in GameCountObject:
-            all_game_count += i.count
-            b.append((i.count, i.date.strftime("%Y-%m-%d")))
-        for i in PlayerCountObject:
-            c.append((i.count, i.date.strftime("%Y-%m-%d")))
-        for index, i in enumerate(GameLenObject):
-            d.append((i.time / GameCountObject[index].count / 1000 / 60, i.date.strftime("%Y-%m-%d")))
-        for i in GamesForTimeObject:
-            e.append((i.count, i.time))
-        toPieLess2, toPie3_4, toPie5_10, toPieMore10 = 0, 0, 0, 0
-        for index, i in enumerate(GamesForPlayerObject):
-            if i.player_count <= 2:
-                toPieLess2 += i.count
-            elif i.player_count <= 4:
-                toPie3_4 += i.count
-            elif i.player_count <= 10:
-                toPie5_10 += i.count
+        for el in daily_statistics:
+            all_word_count += el.words_used
+            a.append((el.words_used // el.games, el.date.strftime("%Y-%m-%d")))
+            all_game_count += el.games
+            b.append((el.games, el.date.strftime("%Y-%m-%d")))
+            c.append((el.players_participated, el.date.strftime("%Y-%m-%d")))
+            d.append((el.total_game_duration / el.games / 1000 / 60, el.date.strftime("%Y-%m-%d")))
+        for el in games_for_hour:
+            e.append((el.games, el.hour))
+        player_count_classes = [0, 0, 0, 0]
+        for el in games_for_player_count:
+            if el.player_count <= 2:
+                player_count_classes[0] += el.games
+            elif el.player_count <= 4:
+                player_count_classes[1] += el.games
+            elif el.player_count <= 10:
+                player_count_classes[2] += el.games
             else:
-                toPieMore10 += i.count
+                player_count_classes[3] += el.games
 
 
         self.draw_page("statistics/total_statistic",
@@ -74,5 +69,5 @@ class TotalStatisticsHandler(WebRequestHandler):
                        player_count_for_date=c,
                        average_game_time=d,
                        games_for_time=e,
-                       p0=toPieLess2, p1=toPie3_4, p2=toPie5_10, p3=toPieMore10, all_word=all_word_count,
+                       player_count=player_count_classes, all_word=all_word_count,
                        all_game=all_game_count)
