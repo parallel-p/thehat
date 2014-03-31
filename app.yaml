@@ -24,7 +24,8 @@ handlers:
   script: main.app
 
 
-
+builtins:
+- remote_api: on
 
 libraries:
 - name: webapp2
