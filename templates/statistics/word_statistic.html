@@ -69,7 +69,7 @@
             <td>{{ loop.index }}</td>
             <td><a href="word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
             <td>{{ word.E|round(1) }}</td>
-            <td>{{ word.danger|round(1) * 100}}</td>
+            <td>{{ word.danger|round(1) * 100}} %</td>
         </tr>
     {% endfor %}
 </table>
