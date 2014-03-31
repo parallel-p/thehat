@@ -16,10 +16,10 @@ class Plot(ndb.Model):
     plot = ndb.BlobProperty(indexed=False)
 
 
-class DictionaryWord(ndb.Model):
+class WordFrequency(ndb.Model):
 
     word = ndb.StringProperty()
-    difficulty = ndb.IntegerProperty()
+    frequency = ndb.IntegerProperty()
 
 
 class MakeDictionaryTaskQueueHandler(ServiceRequestHandler):
@@ -30,7 +30,7 @@ class MakeDictionaryTaskQueueHandler(ServiceRequestHandler):
     def post(self, *args, **kwargs):
         words = json.loads(self.request.get("json"))
         for word in words:
-            DictionaryWord(word=word["w"], difficulty=int(word["d"]), id=word["w"]).put()
+            WordFrequency(word=word["w"], frequency=int(word["d"]), id=word["w"]).put()
 
 
 class MakeDictionaryHandler(AdminRequestHandler):
@@ -44,9 +44,6 @@ class MakeDictionaryHandler(AdminRequestHandler):
         for word in in_json:
             to_add.append(word)
         taskqueue.add(url='/internal/add_dictionary/task_queue', params={"json": json.dumps(to_add)})
-
-    def get(self, *args, **kwargs):
-        self.draw_page("statistics/add_words_to_dict")
 
 
 class UpdateHeatMapTaskQueue(ServiceRequestHandler):
@@ -76,7 +73,7 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         matplotlib.pyplot.xlabel("word length", fontsize=12)
         matplotlib.pyplot.ylabel("word difficulty", fontsize=12)
         rv = StringIO.StringIO()
-        matplotlib.pyplot.savefig(rv, format="png")
+        matplotlib.pyplot.savefig(rv, format="png", dpi=100)
         Plot(plot=rv.getvalue(), id="heatmap_plot").put()
         matplotlib.pyplot.close()
         rv.close()
@@ -92,8 +89,8 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         if scatter_plot is not None:
             scatter_plot.key.delete()
         words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
-        dict_words = {word.word:word.difficulty for word
-                      in ndb.gql('SELECT * FROM DictionaryWord').fetch()}
+        dict_words = {word.word:word.frequency for word
+                      in ndb.gql('SELECT * FROM WordFrequency').fetch()}
         logging.info('{0} words in freq dictionary'.format(len(dict_words)))
         x = []
         y = []
@@ -107,7 +104,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         ax.set_xlabel("frequency", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
         ax.grid(True, linestyle='-',color='0.75')
-        ax.plot(x, y, 'o', color="green", markersize=10)
+        ax.plot(x, y, 'o', color="green", markersize=2)
         ax.set_xlim([0, 100])
         ax.set_ylim([0, 100])
         rv = StringIO.StringIO()
