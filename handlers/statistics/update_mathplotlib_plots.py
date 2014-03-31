@@ -5,7 +5,6 @@ from google.appengine.ext import ndb
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 import StringIO
-import numpy, matplotlib, matplotlib.pyplot
 from google.appengine.api import taskqueue
 import json
 import logging
@@ -52,6 +51,7 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         super(UpdateHeatMapTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
+        import numpy, matplotlib, matplotlib.pyplot
         N = self.request.get("N")
         heatmap_plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
         if heatmap_plot is not None:
@@ -86,6 +86,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         super(UpdateScatterPlotTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
+        import numpy, matplotlib, matplotlib.pyplot
         N = self.request.get("N")
         scatter_plot = ndb.Key(Plot, "scatter_plot_"+N).get()
         if scatter_plot is not None:
