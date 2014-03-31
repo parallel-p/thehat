@@ -109,6 +109,7 @@ class AddGameHandler(ServiceRequestHandler):
                 l.append(0)
             l[pos] += 1
         word_db.used_games.append(game_id)
+        word_db.danger = word_db.failed_times / word_db.used_times
         word_db.put()
 
     @ndb.toplevel

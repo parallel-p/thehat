@@ -17,3 +17,4 @@ class GlobalDictionaryWord(ndb.Model):
     used_games = ndb.StringProperty(indexed=False, repeated=True)
     used_legacy_games = ndb.IntegerProperty(indexed=False, repeated=True)
     tags = ndb.StringProperty(indexed=False)
+    danger = ndb.FloatProperty(default=0)

@@ -23,6 +23,24 @@ indexes:
 
 - kind: GlobalDictionaryWord
   properties:
+  - name: danger
+  - name: word
+
+- kind: GlobalDictionaryWord
+  properties:
+  - name: danger
+    direction: desc
+  - name: E
+  - name: word
+
+- kind: GlobalDictionaryWord
+  properties:
+  - name: danger
+    direction: desc
+  - name: word
+
+- kind: GlobalDictionaryWord
+  properties:
   - name: timestamp
   - name: word
 
