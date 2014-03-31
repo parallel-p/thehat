@@ -61,6 +61,7 @@ class DeleteComplainedWord(AdminRequestHandler):
         super(DeleteComplainedWord, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
+        print("ruuun")
         deleted_word = self.request.get(constants.deleted_word_name)
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(keys_only=True))
         self.redirect("/admin/complain/list")
@@ -72,9 +73,9 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
 
     def post(self, *args, **kwargs):
         data = self.request.get(constants.complained_word)
-        word = GlobalDictionaryWord.get_by_id(data)
+        word = ndb.Key(GlobalDictionaryWord, data).get()
         if word is not None:
-            if word.tags.find("-deleted") != -1:
+            if word.tags.find("-deleted") == -1:
                 word.tags += "-deleted"
             word.put()
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == data).fetch(keys_only=True))
