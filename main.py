@@ -36,6 +36,7 @@ import handlers.remove_duplicates
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.statistics.total_statistics_handler
+import handlers.frequency_dictionary_handlers
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -52,24 +53,31 @@ routes = [
                   handler=handlers.link_device.LinkDeviceMaintainConsistency,
                   name='internal_linkdevice'),
 
+    #Frequency dictionary handlers
+    webapp2.Route(r'/admin/frequency_dictionary/add',
+                  handler=handlers.frequency_dictionary_handlers.MakeDictionaryHandler,
+                  name='add dict'),
+    webapp2.Route(r'/admin/frequency_dictionary/delete',
+                  handler=handlers.frequency_dictionary_handlers.DeleteDictionary,
+                  name='delete dict'),
+    webapp2.Route(r'/internal/frequency_dictionary/delete/task_queue',
+                  handler=handlers.frequency_dictionary_handlers.DeleteDictionaryTaskQueue,
+                  name='delete dict'),
+    webapp2.Route(r'/internal/frequency_dictionary/add/task_queue',
+                  handler=handlers.frequency_dictionary_handlers.MakeDictionaryTaskQueueHandler,
+                  name='add dict task_queue'),
+
     #recalc rating & make_statistics handlers
     #web
     webapp2.Route(r'/admin/logs_processing',
                   handler=handlers.recalc_rating_handler.LogsAdminPage),
     #service
-    webapp2.Route(r'/admin/add_dictionary',
-                  handler=handlers.statistics.update_mathplotlib_plots.MakeDictionaryHandler,
-                  name='add dict'),
-    webapp2.Route(r'/internal/add_dictionary/task_queue',
-                  handler=handlers.statistics.update_mathplotlib_plots.MakeDictionaryTaskQueueHandler,
-                  name='add dict task_queue'),
     webapp2.Route(r'/internal/update_heatmap/task_queue',
                   handler=handlers.statistics.update_mathplotlib_plots.UpdateHeatMapTaskQueue,
                   name='update heatmap task queue'),
     webapp2.Route(r'/internal/update_scatter/task_queue',
                   handler=handlers.statistics.update_mathplotlib_plots.UpdateScatterPlotTaskQueue,
                   name='update heatmap task queue'),
-
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=handlers.recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating'),
@@ -243,6 +251,12 @@ routes = [
     webapp2.Route(r'/admin/global_dictionary/add_words',
                   handler=handlers.global_dictionary_word_handlers.WordsAddHandler,
                   name='add words to global'),
+    webapp2.Route(r'/admin/global_dictionary/delete',
+                  handler=handlers.global_dictionary_word_handlers.DeleteDictionary,
+                  name='delete'),
+    webapp2.Route(r'/internal/global_dictionary/delete/task_queue',
+                  handler=handlers.global_dictionary_word_handlers.DeleteDictionaryTaskQueue,
+                  name='delete task_queue'),
     webapp2.Route(r'/admin/global_dictionary/update_json',
                   handler=handlers.global_dictionary_word_handlers.UpdateJsonHandler,
                   name='update json'),
