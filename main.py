@@ -104,10 +104,10 @@ routes = [
     webapp2.Route(r'/remove_duplicates',
                   handler=handlers.remove_duplicates.RemoveDuplicates,
                   name='remove_duplicates'),
-    webapp2.Route(r'/images/scatter_plot',
+    webapp2.Route(r'/images/scatter_plot/<N:[-\d]+>',
                   handler=handlers.statistics.total_statistics_handler.ScattedPlotHandler,
                   name='scatter_plot'),
-    webapp2.Route(r'/images/heatmap_plot',
+    webapp2.Route(r'/images/heatmap_plot/<N:[-\d]+>',
                   handler=handlers.statistics.total_statistics_handler.HeatmapPlotHandler,
                   name='heatmap_plot'),
 

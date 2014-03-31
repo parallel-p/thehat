@@ -6,23 +6,32 @@ from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.statistics.update_mathplotlib_plots import Plot
 from google.appengine.ext import ndb
 from objects.total_statistics_object import *
+from handlers.base_handlers.api_request_handlers import APIRequestHandler
 
-class ScattedPlotHandler(webapp2.RequestHandler):
+class ScattedPlotHandler(APIRequestHandler):
 
-    def get(self):
+    def __init__(self, *args, **kwargs):
+        super(ScattedPlotHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        N = kwargs.get("N")
         self.response.headers['Content-Type'] = "image/png"
-        plot = ndb.Key(Plot, "scatter_plot").get()
+        plot = ndb.Key(Plot, "scatter_plot_" +N).get()
         if plot is not None:
             self.response.write(plot.plot)
         else:
             self.response.write(None)
 
 
-class HeatmapPlotHandler(webapp2.RequestHandler):
+class HeatmapPlotHandler(APIRequestHandler):
 
-    def get(self):
+    def __init__(self, *args, **kwargs):
+        super(HeatmapPlotHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        N = kwargs.get("N")
         self.response.headers['Content-Type'] = "image/png"
-        plot = ndb.Key(Plot, "heatmap_plot").get()
+        plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
         if plot is not None:
             self.response.write(plot.plot)
         else:

@@ -52,7 +52,8 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         super(UpdateHeatMapTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
-        heatmap_plot = ndb.Key(Plot, "heatmap_plot").get()
+        N = self.request.get("N")
+        heatmap_plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
         if heatmap_plot is not None:
             heatmap_plot.key.delete()
         words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
@@ -60,7 +61,7 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         x = []
         y = []
         for word in words:
-            if word.used_times > 0:
+            if word.used_times >= int(N):
                 x.append(len(word.word))
                 y.append(int(word.E))
 
@@ -69,12 +70,12 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         matplotlib.pyplot.clf()
         matplotlib.pyplot.axis([min(x), max(x), min(y), max(y)])
         matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto", origin="lower")
-        matplotlib.pyplot.title("heatmap")
+        matplotlib.pyplot.title("heatmap for words, used >= {0} times".format(N))
         matplotlib.pyplot.xlabel("word length", fontsize=12)
         matplotlib.pyplot.ylabel("word difficulty", fontsize=12)
         rv = StringIO.StringIO()
         matplotlib.pyplot.savefig(rv, format="png", dpi=100)
-        Plot(plot=rv.getvalue(), id="heatmap_plot").put()
+        Plot(plot=rv.getvalue(), id="heatmap_plot_"+N).put()
         matplotlib.pyplot.close()
         rv.close()
 
@@ -85,7 +86,8 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         super(UpdateScatterPlotTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
-        scatter_plot = ndb.Key(Plot, "scatter_plot").get()
+        N = self.request.get("N")
+        scatter_plot = ndb.Key(Plot, "scatter_plot_"+N).get()
         if scatter_plot is not None:
             scatter_plot.key.delete()
         words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord').fetch()
@@ -95,12 +97,12 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         x = []
         y = []
         for word in words:
-            if word.used_times > 0:
+            if word.used_times >= int(N):
                 if word.word in dict_words:
                     x.append(dict_words[word.word])
                     y.append(int(word.E))
         fig, ax = matplotlib.pyplot.subplots()
-        ax.set_title("Scatter plot",fontsize=14)
+        ax.set_title("Scatter plot for words, used >= {0} times", fontsize=14)
         ax.set_xlabel("frequency", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
         ax.grid(True, linestyle='-',color='0.75')
@@ -109,7 +111,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         ax.set_ylim([0, 100])
         rv = StringIO.StringIO()
         fig.savefig(rv, format="png", dpi=100)
-        Plot(plot=rv.getvalue(), id="scatter_plot").put()
+        Plot(plot=rv.getvalue(), id="scatter_plot_"+N).put()
         matplotlib.pyplot.close()
         rv.close()
 
