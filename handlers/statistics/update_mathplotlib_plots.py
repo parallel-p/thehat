@@ -102,7 +102,7 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
                     x.append(dict_words[word.word])
                     y.append(int(word.E))
         fig, ax = matplotlib.pyplot.subplots()
-        ax.set_title("Scatter plot for words, used >= {0} times", fontsize=14)
+        ax.set_title("Scatter plot for words, used >= {0} times".format(N), fontsize=14)
         ax.set_xlabel("frequency", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
         ax.grid(True, linestyle='-',color='0.75')
