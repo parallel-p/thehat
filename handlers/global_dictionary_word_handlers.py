@@ -99,6 +99,25 @@ class UpdateJsonHandler(AdminRequestHandler):
         taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": max_timestamp})
 
 
+class DeleteDictionary(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(DeleteDictionary, self).__init__(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        taskqueue.add(url='/internal/global_dictionary/delete/task_queue')
+
+
+class DeleteDictionaryTaskQueue(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(DeleteDictionaryTaskQueue, self).__init__(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        for word in ndb.gql("SELECT word FROM GlobalDictionaryWord").fetch():
+            word.key.delete()
+
+
 class GlobalDictionaryGetWordsHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GlobalDictionaryGetWordsHandler, self).__init__(*args, **kwargs)

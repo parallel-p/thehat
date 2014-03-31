@@ -2,11 +2,9 @@ __author__ = 'ivan'
 
 
 from google.appengine.ext import ndb
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 import StringIO
-from google.appengine.api import taskqueue
-import json
+
 import logging
 
 
@@ -15,34 +13,7 @@ class Plot(ndb.Model):
     plot = ndb.BlobProperty(indexed=False)
 
 
-class WordFrequency(ndb.Model):
 
-    word = ndb.StringProperty()
-    frequency = ndb.IntegerProperty()
-
-
-class MakeDictionaryTaskQueueHandler(ServiceRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(MakeDictionaryTaskQueueHandler, self).__init__(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-        words = json.loads(self.request.get("json"))
-        for word in words:
-            WordFrequency(word=word["w"], frequency=int(word["d"]), id=word["w"]).put()
-
-
-class MakeDictionaryHandler(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(MakeDictionaryHandler, self).__init__(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-        in_json = json.loads(self.request.get("json"))
-        to_add = []
-        for word in in_json:
-            to_add.append(word)
-        taskqueue.add(url='/internal/add_dictionary/task_queue', params={"json": json.dumps(to_add)})
 
 
 class UpdateHeatMapTaskQueue(ServiceRequestHandler):
