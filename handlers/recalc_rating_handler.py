@@ -25,12 +25,12 @@ class RecalcRatingHandler(ServiceRequestHandler):
     def __init__(self, *args, **kwargs):
         super(RecalcRatingHandler, self).__init__(*args, **kwargs)
 
-    @ndb.transactional_tasklet()
+    @ndb.transactional()
     def update_word(self, word, E, D):
-        word_db = yield ndb.Key(GlobalDictionaryWord, word).get_async()
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
         word_db.E = E
         word_db.D = D
-        yield word_db.put_async()
+        word_db.put()
 
     @ndb.toplevel
     def post(self):
@@ -63,36 +63,36 @@ def get_date(time):
 
 class AddGameHandler(ServiceRequestHandler):
 
-    @ndb.transactional_tasklet()
+    @ndb.transactional()
     def update_daily_statistics(self, game_date, word_count, players_count, duration):
-        statistics = ((yield ndb.Key(DailyStatistics, str(game_date)).get_async()) or
+        statistics = (ndb.Key(DailyStatistics, str(game_date)).get() or
                       DailyStatistics(date=datetime.datetime.fromtimestamp(game_date),
                                       id=str(game_date)))
         statistics.words_used += word_count
         statistics.players_participated += players_count
         statistics.games += 1
         statistics.total_game_duration += duration
-        yield statistics.put_async()
+        statistics.put()
 
-    @ndb.transactional_tasklet()
+    @ndb.transactional()
     def update_statistics_by_player_count(self, player_count):
-        statistics = ((yield ndb.Key(GamesForPlayerCount, str(player_count)).get_async()) or
+        statistics = (ndb.Key(GamesForPlayerCount, str(player_count)).get() or
                       GamesForPlayerCount(player_count=player_count,
                                           id=str(player_count)))
         statistics.games += 1
         statistics.put()
 
-    @ndb.transactional_tasklet()
+    @ndb.transactional()
     def update_statistics_by_hour(self, game_time):
         hour = (game_time % (60 * 60 * 24) // (60 * 60))
-        statistics = ((yield ndb.Key(GamesForHour, str(hour)).get_async()) or
+        statistics = (ndb.Key(GamesForHour, str(hour)).get() or
                       GamesForHour(hour=hour, id=str(hour)))
         statistics.games += 1
-        yield statistics.put_async()
+        statistics.put()
 
-    @ndb.transactional_tasklet()
+    @ndb.transactional()
     def update_word(self, word, word_outcome, explanation_time, game_id):
-        word_db = yield ndb.Key(GlobalDictionaryWord, word).get_async()
+        word_db = ndb.Key(GlobalDictionaryWord, word).get()
         if not word_db:
             return
         word_db.used_times += 1
@@ -109,7 +109,7 @@ class AddGameHandler(ServiceRequestHandler):
                 l.append(0)
             l[pos] += 1
         word_db.used_games.append(game_id)
-        yield word_db.put_async()
+        word_db.put()
 
     @ndb.toplevel
     def post(self):
