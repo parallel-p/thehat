@@ -65,7 +65,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     @ndb.transactional_tasklet()
     def update_daily_statistics(self, game_date, word_count, players_count, duration):
-        statistics = (yield ndb.Key(DailyStatistics, str(game_date)).get_async() or
+        statistics = ((yield ndb.Key(DailyStatistics, str(game_date)).get_async()) or
                       DailyStatistics(date=datetime.datetime.fromtimestamp(game_date),
                                       id=str(game_date)))
         statistics.words_used += word_count
@@ -76,7 +76,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     @ndb.transactional_tasklet()
     def update_statistics_by_player_count(self, player_count):
-        statistics = (yield ndb.Key(GamesForPlayerCount, str(player_count)).get_async() or
+        statistics = ((yield ndb.Key(GamesForPlayerCount, str(player_count)).get_async()) or
                       GamesForPlayerCount(player_count=player_count,
                                           id=str(player_count)))
         statistics.games += 1
@@ -85,7 +85,7 @@ class AddGameHandler(ServiceRequestHandler):
     @ndb.transactional_tasklet()
     def update_statistics_by_hour(self, game_time):
         hour = (game_time % (60 * 60 * 24) // (60 * 60))
-        statistics = (yield ndb.Key(GamesForHour, str(hour)).get_async() or
+        statistics = ((yield ndb.Key(GamesForHour, str(hour)).get_async()) or
                       GamesForHour(hour=hour, id=str(hour)))
         statistics.games += 1
         yield statistics.put_async()
