@@ -25,12 +25,12 @@ class RecalcRatingHandler(ServiceRequestHandler):
     def __init__(self, *args, **kwargs):
         super(RecalcRatingHandler, self).__init__(*args, **kwargs)
 
-    @ndb.transactional_async()
+    @ndb.transactional_tasklet()
     def update_word(self, word, E, D):
-        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db = yield ndb.Key(GlobalDictionaryWord, word).get_async()
         word_db.E = E
         word_db.D = D
-        word_db.put()
+        yield word_db.put_async()
 
     @ndb.toplevel
     def post(self):
@@ -63,36 +63,36 @@ def get_date(time):
 
 class AddGameHandler(ServiceRequestHandler):
 
-    @ndb.transactional_async()
+    @ndb.transactional_tasklet()
     def update_daily_statistics(self, game_date, word_count, players_count, duration):
-        statistics = (ndb.Key(DailyStatistics, str(game_date)).get() or
+        statistics = (yield ndb.Key(DailyStatistics, str(game_date)).get_async() or
                       DailyStatistics(date=datetime.datetime.fromtimestamp(game_date),
                                       id=str(game_date)))
         statistics.words_used += word_count
         statistics.players_participated += players_count
         statistics.games += 1
         statistics.total_game_duration += duration
-        statistics.put()
+        yield statistics.put_async()
 
-    @ndb.transactional_async()
+    @ndb.transactional_tasklet()
     def update_statistics_by_player_count(self, player_count):
-        statistics = (ndb.Key(GamesForPlayerCount, str(player_count)).get() or
+        statistics = (yield ndb.Key(GamesForPlayerCount, str(player_count)).get_async() or
                       GamesForPlayerCount(player_count=player_count,
                                           id=str(player_count)))
         statistics.games += 1
         statistics.put()
 
-    @ndb.transactional_async()
+    @ndb.transactional_tasklet()
     def update_statistics_by_hour(self, game_time):
         hour = (game_time % (60 * 60 * 24) // (60 * 60))
-        statistics = (ndb.Key(GamesForHour, str(hour)).get() or
+        statistics = (yield ndb.Key(GamesForHour, str(hour)).get_async() or
                       GamesForHour(hour=hour, id=str(hour)))
         statistics.games += 1
-        statistics.put()
+        yield statistics.put_async()
 
-    @ndb.transactional_async()
+    @ndb.transactional_tasklet()
     def update_word(self, word, word_outcome, explanation_time, game_id):
-        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db = yield ndb.Key(GlobalDictionaryWord, word).get_async()
         if not word_db:
             return
         word_db.used_times += 1
@@ -110,7 +110,7 @@ class AddGameHandler(ServiceRequestHandler):
             l[pos] += 1
         word_db.used_games.append(game_id)
         word_db.danger = word_db.failed_times / word_db.used_times
-        word_db.put()
+        yield word_db.put_async()
 
     @ndb.toplevel
     def post(self):
@@ -232,12 +232,12 @@ class RecalcAllLogs(ServiceRequestHandler):
 
     @staticmethod
     def delete_all_stat():
-        # for t in ["WordCountObject", "PlayerCountObject", "GameCountObject", "GameLenObject", "GamesForTimeObject", "GameTimeForPlayersObject", "GameCountForPlayersObject"]:
-        #   ndb.delete_multi(ndb.Query(kind=t).fetch(keys_only=True))
         for t in [DailyStatistics, GamesForHour, GamesForPlayerCount]:
             ndb.delete_multi(t.query().fetch(keys_only=True))
 
     def next_stage(self):
+        if self.stage == 4:
+            return
         taskqueue.add(url="/internal/recalc_all_logs",
                       params={"stage": str(self.stage+1)},
                       queue_name="statistic-calculation")
@@ -271,7 +271,6 @@ class RecalcAllLogs(ServiceRequestHandler):
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_legacy_game',
                                           params={'game_id': k.id()})),
                 self.fetch_portion(GameHistory.query(GameHistory.ignored == False), keys_only=True))
-            self.abort(200)
         if self.more and self.cursor:
             self.next_portion()
         else:
