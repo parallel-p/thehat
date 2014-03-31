@@ -198,9 +198,6 @@ routes = [
                   name='pregame_abort'),
 
     #assign device handlers
-    webapp2.Route(r'/assign_device/generate_pin',
-                  handler=handlers.assign_device_handler.GeneratePinHandler,
-                  name='assign_device'),
     webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
                   handler=handlers.assign_device_handler.AssignDeviceHandler,
                   name='assign_device'),

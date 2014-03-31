@@ -43,12 +43,7 @@ class WordsAddHandler(AdminRequestHandler):
         taskqueue.add(url='/internal/global_dictionary/add_words/task_queue', params={"json": json.dumps(to_add)})
 
     def get(self):
-        template = JINJA_ENVIRONMENT.get_template('templates/addwordsscreen.html')
-        if users.get_current_user():
-            self.response.write(template.render(
-                {"logout_link": users.create_logout_url('/')}))
-        else:
-            self.response.write(template.render({"login_link": users.create_login_url('/')}))
+        self.draw_page('addwordsscreen')
 
 
 class TaskQueueAddWords(ServiceRequestHandler):

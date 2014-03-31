@@ -16,6 +16,8 @@ class AdminRequestHandler(WebRequestHandler):
         else:
             webapp2.RequestHandler.dispatch(self)
 
+
     def __init__(self, *args, **kwargs):
         super(AdminRequestHandler, self).__init__(*args, **kwargs)
+
 

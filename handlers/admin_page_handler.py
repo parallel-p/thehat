@@ -12,6 +12,4 @@ class AdminPage(AdminRequestHandler):
         super(AdminPage, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
-        template = JINJA_ENVIRONMENT.get_template('templates/admin.html')
-        self.response.write(template.render(
-            {"logout_link": users.create_logout_url('/')}))
+        self.draw_page('admin')
