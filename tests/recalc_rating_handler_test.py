@@ -1,15 +1,18 @@
 __author__ = 'nikolay'
 
 import json
-import unittest, os, urllib2
+import unittest
+import os
+import urllib2
 
 import webapp2
 from google.appengine.ext import testbed, ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.game_results_log import GameLog
-from handlers.legacy_game_history_handler import GameHistory, WordGuessResult, Word, Round
+from objects.legacy_game_history import GameHistory, WordGuessResult, Word, Round
 import main
+
 
 LOG_JSON = '''
 {"events":[{"type":"start_game","time":1394351741458},
@@ -180,13 +183,14 @@ class RecalcRatingTest(unittest.TestCase):
             last_rating = word_db.E
 
     def test_add_game_log(self):
-        GameLog(json=LOG_JSON, id="test_log").put()
-        words = [put_word(el).get() for el in WORDS]
+        key = GameLog(json=LOG_JSON, id="test_log").put().urlsafe()
+        words = [put_word(el) for el in WORDS]
         request = webapp2.Request.blank('/internal/add_game_to_statistic')
         request.method = 'POST'
-        request.body = "game_id=test_log"
+        request.body = "game_key={}".format(key)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
+        words = [el.get() for el in words]
         for i in range(len(words)):
             if i in EXPECTED_TIME:
                 self.assertEqual(words[i].total_explanation_time, EXPECTED_TIME[i])
@@ -207,14 +211,15 @@ class RecalcRatingTest(unittest.TestCase):
             self.assertIn([WORDS.index(w) for w in words], EXPECTED_RATES)
 
     def test_add_game_history(self):
-        id = HISTORY.put().id()
-        words = [put_word("word{}".format(i)).get() for i in range(35)]
-        request = webapp2.Request.blank('/internal/add_legacy_game')
+        id = HISTORY.put().urlsafe()
+        words = [put_word("word{}".format(i)) for i in range(35)]
+        request = webapp2.Request.blank('/internal/add_game_to_statistic')
         request.method = 'POST'
-        request.body = "game_id={}".format(id)
+        request.body = "game_key={}".format(id)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
-        for i in range(len(words)):
+        words = [el.get() for el in words]
+        for j in range(len(words)):
             if i in H_EXPECTED_TIME:
                 self.assertEqual(words[i].total_explanation_time, H_EXPECTED_TIME[i])
                 if H_EXPECTED_OUTCOME[i] == 'guessed':

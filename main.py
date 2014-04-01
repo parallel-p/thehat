@@ -30,9 +30,7 @@ import handlers.web_game_creation_handler
 import handlers.link_device
 import handlers.statistics.word_statistics_handler
 import handlers.statistics.update_mathplotlib_plots
-import handlers.legacy_game_history_handler
 import handlers.remove_duplicates
-
 import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.statistics.total_statistics_handler
@@ -86,9 +84,6 @@ routes = [
                   name='add_game_Statistic'),
     webapp2.Route(r'/internal/recalc_all_logs',
                   handler=handlers.recalc_rating_handler.RecalcAllLogs),
-    webapp2.Route(r'/internal/add_legacy_game',
-                  handler=handlers.legacy_game_history_handler.LegacyStatisticsHandler,
-                  name='add_game_Statistic'),
 
     #User dictionary handlers
     (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
