@@ -15,7 +15,8 @@
     {% endfor %}
 </table>
 {% endmacro %}
-{% block title %}Cтатистика по слову "{{ word }}"{% endblock %}
+{% block title %}Cтатистика по слову {% if word %}"{{ word }}" {% endif %} {% endblock %}
+
 {% block header %}Статистика{% endblock %}
 {% block head %}
 <!--amcharts imports-->
