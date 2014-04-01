@@ -5,7 +5,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
-from legacy_game_history import GameHistory
+from objects.legacy_game_history import GameHistory
 
 
 class RemoveDuplicates(ServiceRequestHandler):

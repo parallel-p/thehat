@@ -10,7 +10,7 @@ from google.appengine.ext import testbed, ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.game_results_log import GameLog
-from legacy_game_history import GameHistory, WordGuessResult, Word, Round
+from objects.legacy_game_history import GameHistory, WordGuessResult, Word, Round
 import main
 
 

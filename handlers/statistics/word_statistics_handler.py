@@ -1,10 +1,6 @@
 __author__ = 'ivan'
 
-import logging
-from environment import JINJA_ENVIRONMENT
-from environment import TRUESKILL_ENVIRONMENT
 from handlers.base_handlers.web_request_handler import WebRequestHandler
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from google.appengine.ext import ndb
 from google.appengine.api import memcache

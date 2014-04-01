@@ -11,7 +11,7 @@ from google.appengine.api import taskqueue
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
-from legacy_game_history import GameHistory
+from objects.legacy_game_history import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
@@ -277,7 +277,6 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.total_explanation_time = 0
         word.counts_by_expl_time = []
         word.used_games = []
-        word.used_legacy_games = []
         yield word.put_async()
 
     @staticmethod
@@ -314,10 +313,15 @@ class RecalcAllLogs(ServiceRequestHandler):
             for fut in map(self.reset_word, words):
                 fut.get_result()
         elif self.stage == 3:
+            logs = self.fetch_portion(GameLog.query())
+            for el in logs:
+                el.ignored = False
+                el.put()
+        elif self.stage == 4:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                          params={'game_key': k.urlsafe()})),
                 self.fetch_portion(GameLog.query(GameLog.ignored == False), keys_only=True))
-        elif self.stage == 4:
+        elif self.stage == 5:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                           params={'game_key': k.urlsafe()})),
                 self.fetch_portion(GameHistory.query(GameHistory.ignored == False), keys_only=True))
