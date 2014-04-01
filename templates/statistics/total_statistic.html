@@ -104,41 +104,41 @@
      ]
 
     AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(word_count_data, "date", "Среднее количество слов в играх");
+        var count_word_chart = make_serial_chart(word_count_data, "date", "Объяснено слов");
         make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
-        var word_graph = make_graph("Количество слов в играх", "count",
+        var word_graph = make_graph("Объяснено слов", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] слов</span></b>")
         count_word_chart.addGraph(word_graph)
         count_word_chart.addChartCursor(create_cursor());
         count_word_chart.write("word_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var count_game_chart = make_serial_chart(game_count_data, "date", "Количество игр   ");
+        var count_game_chart = make_serial_chart(game_count_data, "date", "Сыграно партий");
         make_category_axis(count_game_chart, true, "DD");
         count_game_chart.addValueAxis(create_value_axis(0.2, 1));
-        var count_game_graph = make_graph("Количество игр", "count",
+        var count_game_graph = make_graph("Сыграно партий", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] игр</span></b>")
         count_game_chart.addGraph(count_game_graph)
         count_game_chart.addChartCursor(create_cursor());
         count_game_chart.write("game_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var count_player_chart = make_serial_chart(player_count_data, "date", "Количество игроков ");
+        var count_player_chart = make_serial_chart(player_count_data, "date", "Участвовало игроков");
         make_category_axis(count_player_chart, true, "DD");
         count_player_chart.addValueAxis(create_value_axis(0.2, 1));
-        var player_graph = make_graph("Количество игроков", "count",
+        var player_graph = make_graph("Участвовало игроков", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] игроков</span></b>")
         count_player_chart.addGraph(player_graph)
         count_player_chart.addChartCursor(create_cursor());
         count_player_chart.write("player_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игр ");
+        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игры");
         make_category_axis(average_game_time_chart, true, "DD");
         average_game_time_chart.addValueAxis(create_value_axis(0.2, 1));
-        var average_game_time_graph = make_graph("Средняя продолжительность игр", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] ч</span></b>")
+        var average_game_time_graph = make_graph("Средняя продолжительность игры", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] мин</span></b>")
         average_game_time_chart.addGraph(average_game_time_graph)
         average_game_time_chart.addChartCursor(create_cursor());
         average_game_time_chart.write("average_game_time_chartdiv");
@@ -260,7 +260,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "type": "pie",
 	"theme": "none",
     "titles": [{
-        "text": "Количество игроков и игр",
+        "text": "Количество игр с различным числом игроков",
         "size": 16
     }],
     "dataProvider": [{
@@ -366,7 +366,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
                 <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
             </div> <!-- end col-md-6> -->
 		</div> <!-- end row -->
-                  <center><b>Распределение игр по времени суток<b></center>
+                  <center><b>Распределение игр по дням недели и времени суток<b></center>
         <div class="row">
         <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
         <div class="col-md-6" id="day-chart" style="height: 400px;"></div>
