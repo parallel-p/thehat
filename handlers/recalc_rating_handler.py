@@ -288,7 +288,7 @@ class RecalcAllLogs(ServiceRequestHandler):
             ndb.delete_multi(ndb.Query(kind=t).fetch(keys_only=True))
 
     def next_stage(self):
-        if self.stage == 4:
+        if self.stage == 5:
             return
         taskqueue.add(url="/internal/recalc_all_logs",
                       params={"stage": str(self.stage+1)},
