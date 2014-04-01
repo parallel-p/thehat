@@ -14,8 +14,6 @@ class Plot(ndb.Model):
 
 
 
-
-
 class UpdateHeatMapTaskQueue(ServiceRequestHandler):
 
     def __init__(self, *args, **kwargs):
