@@ -1,6 +1,7 @@
 __author__ = 'ivan'
 
 import webapp2
+import logging
 
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.statistics.update_mathplotlib_plots import Plot
@@ -45,21 +46,15 @@ class TotalStatisticsHandler(WebRequestHandler):
 
     def get(self, *args, **kwargs):
         daily_statistics = DailyStatistics.query().order(DailyStatistics.date).fetch()
-        games_for_hour = GamesForHour.query().order(GamesForHour.hour).fetch()
+        total = TotalStatistics.get()
         games_for_player_count = GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch()
-        a, b, c, d, e = [], [], [], [], []
-        all_game_count = 0
-        all_word_count = 0
+        a, b, c, d = [], [], [], []
 
         for el in daily_statistics:
-            all_word_count += el.words_used
             a.append((el.words_used // el.games, el.date.strftime("%Y-%m-%d")))
-            all_game_count += el.games
             b.append((el.games, el.date.strftime("%Y-%m-%d")))
             c.append((el.players_participated, el.date.strftime("%Y-%m-%d")))
             d.append((round(el.total_game_duration / el.games / 60.0, 2), el.date.strftime("%Y-%m-%d")))
-        for el in games_for_hour:
-            e.append((el.games, el.hour))
         player_count_classes = [0, 0, 0, 0]
         for el in games_for_player_count:
             if el.player_count <= 2:
@@ -70,13 +65,19 @@ class TotalStatisticsHandler(WebRequestHandler):
                 player_count_classes[2] += el.games
             else:
                 player_count_classes[3] += el.games
-
-
+        logging.debug(total.by_hour)
+        by_hour = [0 for i in range(24)]
+        by_day = [0 for i in range(7)]
+        for hour, games in enumerate(total.by_hour):
+            by_hour[hour % 24] += games
+            by_day[hour // 24] += games
         self.draw_page("statistics/total_statistic",
                        word_count_for_date=a,
                        game_count_for_date=b,
                        player_count_for_date=c,
                        average_game_time=d,
-                       games_for_time=e,
-                       player_count=player_count_classes, all_word=all_word_count,
-                       all_game=all_game_count)
+                       games_for_time=total.by_hour,
+                       by_hour=by_hour,
+                       by_day=by_day,
+                       player_count=player_count_classes, all_word=total.words_used,
+                       all_game=total.games)

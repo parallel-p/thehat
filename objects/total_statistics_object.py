@@ -11,9 +11,14 @@ class DailyStatistics(ndb.Model):
     total_game_duration = ndb.IntegerProperty(default=0)
 
 
-class GamesForHour(ndb.Model):
+class TotalStatistics(ndb.Model):
     games = ndb.IntegerProperty(default=0)
-    hour = ndb.IntegerProperty()
+    words_used = ndb.IntegerProperty(default=0)
+    by_hour = ndb.JsonProperty(default=[0 for i in range(24*7)])
+
+    @classmethod
+    def get(cls):
+        return ndb.Key(cls, 'total_statistics').get() or TotalStatistics(id='total_statistics')
 
 
 class GamesForPlayerCount(ndb.Model):
