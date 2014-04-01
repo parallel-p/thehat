@@ -8,6 +8,7 @@ from handlers.statistics.update_mathplotlib_plots import Plot
 from google.appengine.ext import ndb
 from objects.total_statistics_object import *
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
+from objects.global_dictionary_word import GlobalDictionaryWord
 
 class ScattedPlotHandler(APIRequestHandler):
 
@@ -71,6 +72,7 @@ class TotalStatisticsHandler(WebRequestHandler):
         for hour, games in enumerate(total.by_hour):
             by_hour[hour % 24] += games
             by_day[hour // 24] += games
+        words_in_dictionary = GlobalDictionaryWord.query().count()
         self.draw_page("statistics/total_statistic",
                        word_count_for_date=a,
                        game_count_for_date=b,
@@ -80,4 +82,4 @@ class TotalStatisticsHandler(WebRequestHandler):
                        by_hour=by_hour,
                        by_day=by_day,
                        player_count=player_count_classes, all_word=total.words_used,
-                       all_game=total.games)
+                       all_game=total.games, words_in_dictionary=words_in_dictionary)
