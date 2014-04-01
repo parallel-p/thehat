@@ -6,11 +6,15 @@
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/pie.js"></script>
-<script type="text/javascript" src="http://www.amcharts.com/lib/3/gauge.js"></script>
-    <script type="text/javascript" src="http://www.amcharts.com/lib/3/amcharts.js"></script>
-<script type="text/javascript" src="http://www.amcharts.com/lib/3/serial.js"></script>
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/xy.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/none.js"></script>
-
+<script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/light.js"></script>
+<style  type="text/css">
+.row
+{
+    margin-bottom: 50px;
+}
+</style>
 
 <script type="application/javascript" >
 	function make_serial_chart(chart_data, category_field, title) {
@@ -105,93 +109,163 @@
      ]
 
     AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(word_count_data, "date", "Среднее количество слов в играх");
+        var count_word_chart = make_serial_chart(word_count_data, "date", "Объяснено слов");
         make_category_axis(count_word_chart, true, "DD");
         count_word_chart.addValueAxis(create_value_axis(0.2, 1));
-        var word_graph = make_graph("Количество слов в играх", "count",
+        var word_graph = make_graph("Объяснено слов", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] слов</span></b>")
         count_word_chart.addGraph(word_graph)
         count_word_chart.addChartCursor(create_cursor());
         count_word_chart.write("word_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var count_game_chart = make_serial_chart(game_count_data, "date", "Количество игр   ");
+        var count_game_chart = make_serial_chart(game_count_data, "date", "Сыграно партий");
         make_category_axis(count_game_chart, true, "DD");
         count_game_chart.addValueAxis(create_value_axis(0.2, 1));
-        var count_game_graph = make_graph("Количество игр", "count",
+        var count_game_graph = make_graph("Сыграно партий", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] игр</span></b>")
         count_game_chart.addGraph(count_game_graph)
         count_game_chart.addChartCursor(create_cursor());
         count_game_chart.write("game_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var count_player_chart = make_serial_chart(player_count_data, "date", "Количество игроков ");
+        var count_player_chart = make_serial_chart(player_count_data, "date", "Участвовало игроков");
         make_category_axis(count_player_chart, true, "DD");
         count_player_chart.addValueAxis(create_value_axis(0.2, 1));
-        var player_graph = make_graph("Количество игроков", "count",
+        var player_graph = make_graph("Участвовало игроков", "count",
                 "[[category]]<br><b><span style='font-size:14px;'>[[value]] игроков</span></b>")
         count_player_chart.addGraph(player_graph)
         count_player_chart.addChartCursor(create_cursor());
         count_player_chart.write("player_count_chartdiv");
 	});
     AmCharts.ready(function () {
-        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игр ");
+        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игры");
         make_category_axis(average_game_time_chart, true, "DD");
         average_game_time_chart.addValueAxis(create_value_axis(0.2, 1));
-        var average_game_time_graph = make_graph("Средняя продолжительность игр", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] ч</span></b>")
+        var average_game_time_graph = make_graph("Средняя продолжительность игры", "count",
+                "[[category]]<br><b><span style='font-size:14px;'>[[value]] мин</span></b>")
         average_game_time_chart.addGraph(average_game_time_graph)
         average_game_time_chart.addChartCursor(create_cursor());
         average_game_time_chart.write("average_game_time_chartdiv");
 	});
-///////////
-        colors = ["#CC3333", "#FF0F00", "#FF6600","#FF9E01","#FCD202","#F8FF01","#FFFF00","#B0DE09","#04D215","#66FFFF", "#0D8ECF","#0D52D1","#2A0CD0" ,"#8A0CCF",
-        "#CD0D74", "#754DEB","#DDDDDD", "#999999","#444444","#333333","#222222","#111111","#000000","#000000"]
-    var chart = AmCharts.makeChart("game_for_time_chartdiv", {
-    "theme": "none",
+    colors = ["#CC3333", "#FF0F00", "#FF6600","#FF9E01","#FCD202","#F8FF01","#FFFF00","#B0DE09","#04D215","#66FFFF", "#0D8ECF","#0D52D1","#2A0CD0" ,"#8A0CCF",
+    "#CD0D74", "#754DEB","#DDDDDD", "#999999","#444444","#333333","#222222","#111111","#000000","#000000"]
+    days = ["в понедельник", "во вторник", "в среду", "в четверг", "в пятницу", "в субботу", "в воскресенье"]
+    var chart = AmCharts.makeChart("hour-chart", {
+    "theme": "light",
     "type": "serial",
 	"startDuration": 2,
     "dataProvider": [
-        {%for i, j in games_for_time %}
+        {%for games in by_hour%}
             {
-                "count": "{{ i }}",
-                "time": "{{ j }} ч",
-                "color": colors[{{ j  }}]
+                "hour": {{loop.index - 1}},
+                "games": {{ games }}
             },
         {% endfor %}
     ],
     "valueAxes": [{
-        "position": "left",
-        "title": "Игры"
+        "position": "right",
+        "title": "Игры",
+        "reversed": true
     }],
     "graphs": [{
-        "balloonText": "около [[category]]: <b>[[value]] игр</b>",
-        "colorField": "color",
+        "balloonText": "около [[category]] часов: <b>[[value]] игр</b>",
         "fillAlphas": 1,
         "lineAlpha": 0.1,
         "type": "column",
-        "valueField": "count"
+        "valueField": "games"
     }],
-    "depth3D": 20,
-	"angle": 30,
     "chartCursor": {
         "categoryBalloonEnabled": false,
         "cursorAlpha": 0,
         "zoomable": false
     },
-    "categoryField": "time",
+    "categoryField": "hour",
     "categoryAxis": {
         "gridPosition": "start",
         "labelRotation": 90
-    }
+    }});
+var chart_day = AmCharts.makeChart("day-chart", {
+    "theme": "light",
+    "type": "serial",
+	"startDuration": 2,
+    "dataProvider": [
+        {%for games in by_day%}
+            {
+                "day": {{loop.index - 1}},
+                "games": {{ games }}
+            },
+        {% endfor %}
+    ],
+    "valueAxes": [{
+        "position": "bottom",
+        "title": "Игры"
+    }],
+    "graphs": [{
+        "balloonFunction": function (a, b) {return days[a.index]+"<br><b>"+ a.values.value+" игр</b>"},
+        "fillAlphas": 1,
+        "lineAlpha": 0.1,
+        "type": "column",
+        "valueField": "games"
+    }],
+    "chartCursor": {
+        "categoryBalloonEnabled": false,
+        "cursorAlpha": 0,
+        "zoomable": false
+    },
+    "rotate": true,
+    "categoryField": "day",
+    "categoryAxis": {
+        "gridPosition": "start",
+    }});
+ var hour_day_chart = AmCharts.makeChart("hour-day-chart", {
+    "type": "xy",
+    "pathToImages": "http://www.amcharts.com/lib/3/images/",
+    "theme": "light",
+    "dataProvider": [
+        {%for games in games_for_time%}
+            {
+                "day": {{ (loop.index - 1) // 24 }},
+                "hour": {{ (loop.index - 1) % 24}},
+                "games": {{ games }}
+            },
+        {% endfor %}
+    ],
+    "valueAxes": [{
+        "position":"bottom",
+        "axisAlpha": 0,
+        "minimum": 0,
+        "maximum": 23,
+        "integersOnly": true,
+        "title": "Время"
+    }, {
+        "axisAlpha": 0,
+        "position": "right",
+        "minimum": 0,
+        "maximum": 6,
+        "integersOnly": true,
+        "reversed": true,
+        "title": "День недели"
+    }],
+    "startDuration": 1.5,
+    "graphs": [{
+        "balloonFunction": function (a, b) {return "около "+ a.values.x +" часов "+days[a.values.y]+"<br><b>"+ a.values.value+" игр</b>"},
+        "bullet": "circle",
+        "bulletBorderAlpha": 0.2,
+		"bulletAlpha": 0.8,
+        "lineAlpha": 0,
+        "fillAlphas": 0,
+        "valueField": "games",
+        "xField": "hour",
+        "yField": "day",
+        "maxBulletSize": 20
+    }]
 });
-//////////
-////////
  var games_for_player_chart = AmCharts.makeChart("games_for_player_chart_chartdiv", {
     "type": "pie",
 	"theme": "none",
     "titles": [{
-        "text": "Количество игроков и игр",
+        "text": "Количество игр с различным числом игроков",
         "size": 16
     }],
     "dataProvider": [{
@@ -215,92 +289,93 @@
     "innerRadius": "50%",
     "depth3D": 10,
     "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]] игр</b> ([[percents]]%)</span>",
-    "angle": 15,
+    "angle": 15
 });
-////////
 </script>
 
 <!--amcharts import end-->
 {% endblock %}
 
 {% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <br>
+            <table class="table">
+            <tbody>
+              <tr>
+                <td><p class="text-info">Общее количество игр</p></td>
+                <td>{{ all_game }}</td>
+              </tr>
+              <tr>
+                <td><p class="text-info">Общее количество разыгранных слов</p></td>
+                <td>{{ all_word }}</td>
+              </tr>
 
-	<div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <br>
-                <table class="table">
-                <tbody>
-                  <tr>
-                    <td><p class="text-info">Общее количество игр</p></td>
-                    <td>{{ all_game }}</td>
-                  </tr>
-                  <tr>
-                    <td><p class="text-info">Общее количество разыгранных слов</p></td>
-                    <td>{{ all_word }}</td>
-                  </tr>
+              <tr>
+                <td><p class="text-info">В словаре слов</p></td>
+                <td>{{ words_in_dictionary }}</td>
+              </tr>
 
-                  <tr>
-                    <td><p class="text-info">В словаре слов</p></td>
-                    <td>Много</td>
-                  </tr>
-
-                </tbody>
-              </table>
-            </div>
-             <div class="col-md-6">
-                <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div>
+            </tbody>
+          </table>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 1 раза<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/1" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 1 раза<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/1" alt="" />
-            </div> <!-- end col-md-4-->
+         <div class="col-md-6">
+            <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 2 раз<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/2" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 2 раз<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/2" alt="" />
-            </div> <!-- end col-md-4-->
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 3 раз<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/3" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 3 раз<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/3" alt="" />
-            </div> <!-- end col-md-4-->
-        </div>
-		<div class="row">
-			<div class="col-md-6">
-         	    <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
-    		</div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div> <!-- end col-md-6>
-		</div> <!-- end row -->
-        <div class="row">
-			<div class="col-md-6">
-         	    <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
-    		</div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div> <!-- end col-md-6>
-		</div> <!-- end row -->
-                  <center><b>Распределение игр по времени суток<b></center>
-        <div id="game_for_time_chartdiv" style="width: 100%; height: 400px;"></div>
-
-
-	</div> <!-- end container -->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 1 раза<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/1" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 1 раза<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/1" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 2 раз<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/2" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 2 раз<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/2" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 3 раз<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/3" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 3 раз<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/3" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-6> -->
+    </div> <!-- end row -->
+    <div class="row">
+        <div class="col-md-6">
+            <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-6> -->
+    </div> <!-- end row -->
+    <div class="row" style="margin-bottom: 0">
+    <center><b>Распределение игр по дням недели и времени суток<b></center>
+    <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
+    <div class="col-md-6" id="day-chart" style="height: 400px;"></div>
+    </div>
+    <div class="row">
+    <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
+    </div>
+</div>
 {% endblock %}

@@ -87,11 +87,13 @@ class AddGameHandler(ServiceRequestHandler):
         statistics.put()
 
     @ndb.transactional()
-    def update_statistics_by_hour(self, game_time):
-        hour = (game_time % (60 * 60 * 24) // (60 * 60))
-        statistics = (ndb.Key(GamesForHour, str(hour)).get() or
-                      GamesForHour(hour=hour, id=str(hour)))
+    def update_total_statistics(self, word_count, game_time=None):
+        statistics = TotalStatistics.get()
         statistics.games += 1
+        statistics.words_used += word_count
+        if game_time:
+            hour = game_time / (60 * 60) % (24 * 7)
+            statistics.by_hour[hour] += 1
         statistics.put()
 
     @ndb.transactional()
@@ -250,7 +252,7 @@ class AddGameHandler(ServiceRequestHandler):
                     duration = 0
                 game_date = get_date(start_timestamp)
                 self.update_daily_statistics(game_date, len(seen_words_time), players_count, duration)
-                self.update_statistics_by_hour(start_timestamp)
+            self.update_total_statistics(len(seen_words_time), start_timestamp)
             if players_count:
                 self.update_statistics_by_player_count(players_count)
 
@@ -281,8 +283,9 @@ class RecalcAllLogs(ServiceRequestHandler):
 
     @staticmethod
     def delete_all_stat():
-        for t in [DailyStatistics, GamesForHour, GamesForPlayerCount]:
-            ndb.delete_multi(t.query().fetch(keys_only=True))
+        TotalStatistics(id="total_statistics").put()
+        for t in ['DailyStatistics', 'GamesForHour', 'GamesForPlayerCount']:
+            ndb.delete_multi(ndb.Query(kind=t).fetch(keys_only=True))
 
     def next_stage(self):
         if self.stage == 4:
@@ -315,8 +318,9 @@ class RecalcAllLogs(ServiceRequestHandler):
         elif self.stage == 3:
             logs = self.fetch_portion(GameLog.query())
             for el in logs:
-                el.ignored = False
-                el.put()
+                if not el.ignored:
+                    el.ignored = False
+                    el.put()
         elif self.stage == 4:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                          params={'game_key': k.urlsafe()})),
