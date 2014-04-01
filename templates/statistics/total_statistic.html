@@ -9,7 +9,12 @@
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/xy.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/none.js"></script>
 <script type="text/javascript" src="http://www.amcharts.com/lib/3/themes/light.js"></script>
-
+<style  type="text/css">
+.row
+{
+    margin-bottom: 50px;
+}
+</style>
 
 <script type="application/javascript" >
 	function make_serial_chart(chart_data, category_field, title) {
@@ -292,89 +297,85 @@ var chart_day = AmCharts.makeChart("day-chart", {
 {% endblock %}
 
 {% block content %}
+    <div class="row">
+        <div class="col-md-6">
+            <br>
+            <table class="table">
+            <tbody>
+              <tr>
+                <td><p class="text-info">Общее количество игр</p></td>
+                <td>{{ all_game }}</td>
+              </tr>
+              <tr>
+                <td><p class="text-info">Общее количество разыгранных слов</p></td>
+                <td>{{ all_word }}</td>
+              </tr>
 
-	<div class="container">
-        <div class="row">
-            <div class="col-md-6">
-                <br>
-                <table class="table">
-                <tbody>
-                  <tr>
-                    <td><p class="text-info">Общее количество игр</p></td>
-                    <td>{{ all_game }}</td>
-                  </tr>
-                  <tr>
-                    <td><p class="text-info">Общее количество разыгранных слов</p></td>
-                    <td>{{ all_word }}</td>
-                  </tr>
+              <tr>
+                <td><p class="text-info">В словаре слов</p></td>
+                <td>{{ words_in_dictionary }}</td>
+              </tr>
 
-                  <tr>
-                    <td><p class="text-info">В словаре слов</p></td>
-                    <td>{{ words_in_dictionary }}</td>
-                  </tr>
-
-                </tbody>
-              </table>
-            </div>
-             <div class="col-md-6">
-                <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div>
+            </tbody>
+          </table>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 1 раза<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/1" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 1 раза<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/1" alt="" />
-            </div> <!-- end col-md-4-->
+         <div class="col-md-6">
+            <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
         </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 2 раз<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/2" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 2 раз<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/2" alt="" />
-            </div> <!-- end col-md-4-->
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 3 раз<b></center>
-                <img class="img-responsive" src="/images/scatter_plot/3" alt="" />
-            </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для слов сыгранных более 3 раз<b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/3" alt="" />
-            </div> <!-- end col-md-4-->
-        </div>
-		<div class="row">
-			<div class="col-md-6">
-         	    <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
-    		</div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div> <!-- end col-md-6>
-		</div> <!-- end row -->
-        <div class="row">
-			<div class="col-md-6">
-         	    <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
-    		</div> <!-- end col-md-4-->
-            <div class="col-md-6">
-                <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
-            </div> <!-- end col-md-6> -->
-		</div> <!-- end row -->
-                  <center><b>Распределение игр по дням недели и времени суток<b></center>
-        <div class="row">
-        <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
-        <div class="col-md-6" id="day-chart" style="height: 400px;"></div>
-        </div>
-        <div class="row">
-        <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
-        </div>
-
-
-	</div> <!-- end container -->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 1 раза<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/1" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 1 раза<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/1" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 2 раз<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/2" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 2 раз<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/2" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для слов сыгранных более 3 раз<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/3" alt="" />
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для слов сыгранных более 3 раз<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/3" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-6> -->
+    </div> <!-- end row -->
+    <div class="row">
+        <div class="col-md-6">
+            <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-4-->
+        <div class="col-md-6">
+            <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
+        </div> <!-- end col-md-6> -->
+    </div> <!-- end row -->
+    <div class="row" style="margin-bottom: 0">
+    <center><b>Распределение игр по дням недели и времени суток<b></center>
+    <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
+    <div class="col-md-6" id="day-chart" style="height: 400px;"></div>
+    </div>
+    <div class="row">
+    <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
+    </div>
+</div>
 {% endblock %}
