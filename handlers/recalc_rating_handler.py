@@ -283,11 +283,12 @@ class LogsAdminPage(AdminRequestHandler):
             '/remove_duplicates',
             '/internal/update_heatmap/task_queue',
             '/internal/update_heatmap/task_queue',
+            '/internal/update_heatmap/task_queue',
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue']
     params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'},
-                  {'N': '1'}, {'N': '2'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
+                  {'N': '1'}, {'N': '2'}, {'N': '3'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
 
     def post(self):
         code = self.request.get('code')
