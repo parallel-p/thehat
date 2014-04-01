@@ -69,6 +69,8 @@ routes = [
     #web
     webapp2.Route(r'/admin/logs_processing',
                   handler=handlers.recalc_rating_handler.LogsAdminPage),
+    webapp2.Route(r'/cron/update_plots/start',
+                  handler=handlers.statistics.update_mathplotlib_plots.runUpdateAll),
     #service
     webapp2.Route(r'/internal/update_heatmap/task_queue',
                   handler=handlers.statistics.update_mathplotlib_plots.UpdateHeatMapTaskQueue,

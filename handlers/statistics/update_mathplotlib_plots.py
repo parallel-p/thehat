@@ -5,12 +5,33 @@ from google.appengine.ext import ndb
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 import StringIO
 
+from google.appengine.api import taskqueue
+
 import logging
 
 
 class Plot(ndb.Model):
 
     plot = ndb.BlobProperty(indexed=False)
+
+
+class runUpdateAll(ServiceRequestHandler):
+    urls = [
+            '/internal/update_heatmap/task_queue',
+            '/internal/update_heatmap/task_queue',
+            '/internal/update_heatmap/task_queue',
+            '/internal/update_scatter/task_queue',
+            '/internal/update_scatter/task_queue',
+            '/internal/update_scatter/task_queue']
+    params = [{'N': '1'}, {'N': '2'}, {'N': '3'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
+
+    def __init__(self, *args, **kwargs):
+        super(runUpdateAll, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        logging.info("plot update runned")
+        for i in xrange(len(self.urls)):
+            taskqueue.add(url=self.urls[i], params=self.params[i])
 
 
 
