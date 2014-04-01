@@ -183,7 +183,8 @@
     "categoryField": "hour",
     "categoryAxis": {
         "gridPosition": "start",
-        "labelRotation": 90
+        "labelRotation": 90,
+        "position": "top"
     }});
 var chart_day = AmCharts.makeChart("day-chart", {
     "theme": "light",
@@ -192,7 +193,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "dataProvider": [
         {%for games in by_day%}
             {
-                "day": {{loop.index - 1}},
+                "day": days[{{loop.index - 1}}],
                 "games": {{ games }}
             },
         {% endfor %}
@@ -202,7 +203,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
         "title": "Игры"
     }],
     "graphs": [{
-        "balloonFunction": function (a, b) {return days[a.index]+"<br><b>"+ a.values.value+" игр</b>"},
+        "balloonText": "[[category]]: <b>[[value]] игр</b>",
         "fillAlphas": 1,
         "lineAlpha": 0.1,
         "type": "column",
@@ -237,7 +238,8 @@ var chart_day = AmCharts.makeChart("day-chart", {
         "minimum": 0,
         "maximum": 23,
         "integersOnly": true,
-        "title": "Время"
+        "title": "Время",
+        "labelsEnabled": false
     }, {
         "axisAlpha": 0,
         "position": "right",
@@ -245,7 +247,8 @@ var chart_day = AmCharts.makeChart("day-chart", {
         "maximum": 6,
         "integersOnly": true,
         "reversed": true,
-        "title": "День недели"
+        "title": "День недели",
+        "labelsEnabled": false
     }],
     "startDuration": 1.5,
     "graphs": [{
