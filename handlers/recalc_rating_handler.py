@@ -7,6 +7,7 @@ from random import randint
 import datetime
 
 from google.appengine.api import taskqueue
+from google.appengine.api import memcache
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
@@ -309,6 +310,7 @@ class RecalcAllLogs(ServiceRequestHandler):
         queue = taskqueue.Queue('logs-processing')
         if self.stage == 1:
             RecalcAllLogs.delete_all_stat()
+            memcache.delete_multi("danger_top", "words_top", "words_bottom", "used_words_count")
             self.next_stage()
             self.abort(200)
         elif self.stage == 2:
