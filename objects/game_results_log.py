@@ -20,3 +20,4 @@ class SavedGame(ndb.Model):
 
 class GameLog(ndb.Model):
     json = ndb.StringProperty(indexed=False)
+    ignored = ndb.BooleanProperty(default=False)

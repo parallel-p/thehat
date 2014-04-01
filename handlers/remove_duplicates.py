@@ -1,9 +1,11 @@
 __author__ = 'nikolay'
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
+import hashlib
+
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
-from handlers.legacy_game_history_handler import GameHistory
-import hashlib
+
+from handlers.base_handlers.service_request_handler import ServiceRequestHandler
+from legacy_game_history import GameHistory
 
 
 class RemoveDuplicates(ServiceRequestHandler):

@@ -3,22 +3,26 @@ __author__ = 'nikolay'
 import json
 import logging
 from collections import defaultdict
+from random import randint
+import datetime
 
 from google.appengine.api import taskqueue
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
-from legacy_game_history_handler import GameHistory
+from legacy_game_history import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
-from random import randint
 from objects.total_statistics_object import *
-import datetime
 
 
 class BadGameError(Exception):
-    pass
+    def __init__(self, msg=""):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
 
 
 class RecalcRatingHandler(ServiceRequestHandler):
@@ -91,7 +95,7 @@ class AddGameHandler(ServiceRequestHandler):
         statistics.put()
 
     @ndb.transactional()
-    def update_word(self, word, word_outcome, explanation_time, game_id):
+    def update_word(self, word, word_outcome, explanation_time, game_key):
         word_db = ndb.Key(GlobalDictionaryWord, word).get()
         if not word_db:
             return
@@ -100,7 +104,7 @@ class AddGameHandler(ServiceRequestHandler):
             word_db.guessed_times += 1
         elif word_outcome == 'failed':
             word_db.failed_times += 1
-        time_sec = int(round(explanation_time / 1000.0))
+        time_sec = explanation_time
         word_db.total_explanation_time += time_sec
         if word_outcome == 'guessed':
             pos = time_sec // 5
@@ -108,91 +112,135 @@ class AddGameHandler(ServiceRequestHandler):
             while pos >= len(l):
                 l.append(0)
             l[pos] += 1
-        word_db.used_games.append(game_id)
+        word_db.used_games.append(game_key.urlsafe())
         word_db.put()
+
+    def parse_log(self, log_db):
+        log = json.loads(log_db.json)
+        #TODO: solve problem with free-play games
+        if log['setup']['type'] == "freeplay":
+            raise BadGameError("Free-play game - has not enough data")
+        events = log['events']
+        words_orig = [el['word'] for el in log['setup']['words']]
+        seen_words_time = defaultdict(lambda: 0)
+        words_outcome = {}
+        current_words_time = {}
+        words_by_players_pair = {}
+        start_timestamp = None
+        finish_timestamp = None
+
+        for i in events:
+            if i["type"] == "end_game":
+                finish_timestamp = i["time"]
+        i = 0
+        while i < len(events) and events[i]['type'] != 'round_start':
+            if events[i]['type'] != 'start_game':
+                logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
+            else:
+                start_timestamp = events[i]["time"]
+            i += 1
+        while i < len(events):
+            current_pair = (events[i]['from'], events[i]['to'])
+            if current_pair not in words_by_players_pair:
+                words_by_players_pair[current_pair] = []
+            i += 1
+            while i < len(events) and events[i]['type'] != 'round_start':
+                event = events[i]
+                if event['type'] == 'stripe_outcome':
+                    words_outcome[event['word']] = event['outcome']
+                    current_words_time[event['word']] = event['time'] + event['timeExtra']
+                elif event['type'] == 'outcome_override':
+                    if not event['word'] in words_outcome:
+                        raise BadGameError("Overriding not existing outcome")
+                    words_outcome[event['word']] = event['outcome']
+                else:
+                    if event['type'] not in ('finish_round', 'end_game', 'pick_stripe'):
+                        logging.warning("Event of unknown type {}".format(event['type']))
+                i += 1
+            for word in current_words_time.keys():
+                if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
+                    words_outcome[word] = 'removed'
+                elif words_outcome[word] in ('guessed', 'failed'):
+                    if not word in seen_words_time:
+                        words_by_players_pair[current_pair].append((current_words_time[word]
+                                                                    if words_outcome[word] == 'guessed'
+                                                                    else MAX_TIME, words_orig[word]))
+                seen_words_time[word] += int(round(current_words_time[word] / 1000.0))
+            current_words_time.clear()
+        player_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
+        return (words_orig, seen_words_time, words_outcome, words_by_players_pair,
+                player_count, start_timestamp, finish_timestamp)
+
+    def parse_history(self, hist):
+        if hist.game_type is None:
+            hist.game_type = GameHistory.HAT_STANDART
+        if hist.game_type != GameHistory.HAT_STANDART:
+            raise BadGameError("This is a non-original-hat game")
+        words_orig = [el.text for el in hist.words]
+        words_by_players_pair = {}
+        seen_words_time = defaultdict(lambda: 0)
+        words_outcome = {}
+        pick_time = 0
+        cur_round = 0
+        for res in hist.guess_results:
+            if cur_round != res.round_:
+                pick_time = 0
+                cur_round = res.round_
+            res.time_sec -= pick_time
+            pick_time += res.time_sec
+            if res.result in [0, 1]:
+                r = hist.rounds[res.round_]
+                if not res.word in seen_words_time:
+                    if not (r.player_explain, r.player_guess) in words_by_players_pair:
+                        words_by_players_pair[(r.player_explain, r.player_guess)] = []
+                    words_by_players_pair[(r.player_explain, r.player_guess)].append(
+                        (res.time_sec if res.result == 0 else 5*60, words_orig[res.word])
+                    )
+            seen_words_time[res.word] += int(round(res.time_sec))
+            words_outcome[res.word] = hist.string_repr[res.result]
+        player_count = len(hist.players)
+        return words_orig, seen_words_time, words_outcome, words_by_players_pair, player_count, None, None
 
     @ndb.toplevel
     def post(self):
-        game_id = self.request.get('game_id')
-        logging.info("Handling log of game {}".format(game_id))
-        log_db = ndb.Key(GameLog, game_id).get()
+        game_key = ndb.Key(urlsafe=self.request.get('game_key'))
+        logging.info("Handling log of game {}".format(game_key.id()))
+        if game_key.kind() not in ('GameLog', 'GameHistory'):
+            self.abort(200)
+        log_db = game_key.get()
         if log_db is None:
             logging.error("Can't find game log")
             self.abort(200)
+        is_legacy = game_key.kind() == 'GameHistory'
         try:
-            log = json.loads(log_db.json)
-
-            #TODO: solve problem with free-play games
-            if log['setup']['type'] == "freeplay":
-                raise BadGameError()
-            events = log['events']
-            words_orig = log['setup']['words']
-            seen_words_time = defaultdict(lambda: 0)
-            words_outcome = {}
-            current_words_time = {}
-            words_by_players_pair = {}
-
-            start_timestamp = None
-            finish_timestamp = None
-            for i in events:
-                if i["type"] == "end_game":
-                    finish_timestamp = i["time"]
-            i = 0
-            while i < len(events) and events[i]['type'] != 'round_start':
-                if events[i]['type'] != 'start_game':
-                    logging.warning("Unexpected {} event before the first round start".format(events[i]['type']))
-                else:
-                    start_timestamp = events[i]["time"]
-                i += 1
-            while i < len(events):
-                current_pair = (events[i]['from'], events[i]['to'])
-                if current_pair not in words_by_players_pair:
-                    words_by_players_pair[current_pair] = []
-                i += 1
-                while i < len(events) and events[i]['type'] != 'round_start':
-                    event = events[i]
-                    if event['type'] == 'stripe_outcome':
-                        words_outcome[event['word']] = event['outcome']
-                        current_words_time[event['word']] = event['time'] + event['timeExtra']
-                    elif event['type'] == 'outcome_override':
-                        if not event['word'] in words_outcome:
-                            raise BadGameError()
-                        words_outcome[event['word']] = event['outcome']
-                    else:
-                        if event['type'] not in ('finish_round', 'end_game', 'pick_stripe'):
-                            logging.warning("Event of unknown type {}".format(event['type']))
-                    i += 1
-                for word in current_words_time.keys():
-                    if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
-                        words_outcome[word] = 'removed'
-                    elif words_outcome[word] in ('guessed', 'failed'):
-                        if not word in seen_words_time:
-                            words_by_players_pair[current_pair].append({
-                                'word': words_orig[word]['word'],
-                                'time': current_words_time[word] if words_outcome[word] == 'guessed' else MAX_TIME
-                            })
-                    seen_words_time[word] += current_words_time[word]
-                current_words_time.clear()
+            words_orig, seen_words_time, words_outcome, words_by_players_pair, players_count,\
+                start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
+            bad_words_count = 0
+            for k, v in seen_words_time.items():
+                if v < 2:
+                    bad_words_count += 1
+            if 2*len(seen_words_time) < len(words_orig) or 2*bad_words_count > len(seen_words_time):
+                raise BadGameError("It's probably not a real game")
 
             for i in range(len(words_orig)):
                 if i in seen_words_time:
-                    self.update_word(words_orig[i]['word'], words_outcome[i], seen_words_time[i], game_id)
+                    self.update_word(words_orig[i], words_outcome[i], seen_words_time[i], game_key)
 
-            words = [words_orig[w]['word'] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                                  seen_words_time.keys()),
-                                                           key=lambda w: -seen_words_time[w])]
-            taskqueue.add(url='/internal/recalc_rating_after_game',
-                          params={'json': json.dumps(words)},
-                          queue_name='rating-calculation')
+            if len(seen_words_time) > 1:
+                words = [words_orig[w] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
+                                                              seen_words_time.keys()),
+                                                       key=lambda w: -seen_words_time[w])]
+                taskqueue.add(url='/internal/recalc_rating_after_game',
+                              params={'json': json.dumps(words)},
+                              queue_name='rating-calculation')
             for players_pair, words in words_by_players_pair.items():
                 if len(words) > 1:
-                    words = sorted(words, key=lambda w: -w['time'])
-                    to_recalc = [w['word'] for w in words]
+                    words = sorted(words, key=lambda w: -w[0])
+                    to_recalc = [w[1] for w in words]
                     taskqueue.add(url='/internal/recalc_rating_after_game',
                                   params={'json': json.dumps(to_recalc)},
                                   queue_name='rating-calculation')
 
-            players_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
             if start_timestamp:
                 start_timestamp //= 1000
                 if finish_timestamp:
@@ -206,7 +254,10 @@ class AddGameHandler(ServiceRequestHandler):
             if players_count:
                 self.update_statistics_by_player_count(players_count)
 
-        except (BadGameError, KeyError):
+        except BadGameError as e:
+            log_db.ignored = True
+            log_db.put()
+            logging.warning("Did not handle and marked this game as ignored: {}".format(str(e)))
             self.abort(200)
 
 
@@ -264,11 +315,11 @@ class RecalcAllLogs(ServiceRequestHandler):
                 fut.get_result()
         elif self.stage == 3:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
-                                                         params={'game_id': k.id()})),
-                self.fetch_portion(GameLog.query(), keys_only=True))
+                                                         params={'game_key': k.urlsafe()})),
+                self.fetch_portion(GameLog.query(GameLog.ignored == False), keys_only=True))
         elif self.stage == 4:
-            map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_legacy_game',
-                                          params={'game_id': k.id()})),
+            map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
+                                          params={'game_key': k.urlsafe()})),
                 self.fetch_portion(GameHistory.query(GameHistory.ignored == False), keys_only=True))
         if self.more and self.cursor:
             self.next_portion()

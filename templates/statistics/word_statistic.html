@@ -242,8 +242,8 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
 <div class="col-md-6">
 Слово использовано в следующих играх:
 <ol>
-    {%  for g in games %}
-        <li><a href="https://appengine.google.com/datastore/edit?app_id=s~the-hat-dev&key={{ g }}">{{ g }}</a></li>
+    {%  for g in word_entity.used_games %}
+        <li><a href="https://appengine.google.com/datastore/edit?app_id=s~the-hat&key={{ g }}">{{ g }}</a></li>
     {%  endfor %}
 </ol>
 </div>
