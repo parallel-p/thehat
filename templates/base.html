@@ -27,14 +27,18 @@
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
+                {% if is_admin %}
                 <li>
                     <a href="/admin">Admin</a>
                 </li>
+                {% endif %}
             </ul>
             {% if user_email %}
-            <a href="{{ logout_link|safe }}" class="btn btn-default navbar-btn navbar-right">
+            <a href="{{ user_link|safe }}" class="btn btn-default navbar-btn navbar-right">
                 <span class="glyphicon glyphicon-user"></span> {{ user_email }} (Выйти)
             </a>
+            {% else %}
+            <a href="{{ user_link|safe }}" class="btn btn-success navbar-btn navbar-right">Войти</a>
             {% endif %}
         </div>
     </div>
@@ -46,10 +50,6 @@
 </div>
 <div class="container">
     {% block content %}{% endblock %}
-    <hr>
-    <footer>
-        <p>&copy; Company 2013</p>
-    </footer>
 </div>
 </body>
 </html>

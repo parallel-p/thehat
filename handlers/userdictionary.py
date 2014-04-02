@@ -38,6 +38,7 @@ def _get_max_version(user):
 class DrawWebpage(WebRequestHandler):
     def __init__(self, *args, **kwargs):
         super(DrawWebpage, self).__init__(*args, **kwargs)
+        self.login_required = True
 
     def get(self):
         word_list = filter(lambda x: (x.status == "ok"), UserDictionaryWord.query(self.user_key).fetch())
@@ -47,6 +48,7 @@ class DrawWebpage(WebRequestHandler):
 class ProcWebpage(WebRequestHandler):
     def __init__(self, *args, **kwargs):
         super(ProcWebpage, self).__init__(*args, **kwargs)
+        self.login_required = True
 
     def post(self):
         added = self.request.get_all("added[]")
