@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 __author__ = 'nikolay'
+
 
 import json
 import logging
@@ -350,6 +352,16 @@ class LogsAdminPage(AdminRequestHandler):
             '/internal/update_scatter/task_queue']
     params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'},
                   {'N': '1'}, {'N': '2'}, {'N': '3'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
+    task_name = [u'Пересчитать статистику',
+                 u"Посчитать хэши старых игр",
+                 u"Пометить дубликаты старых игр",
+                 u"Удалить дубликаты старых игр",
+                 u"Обновить heatmap 1+",
+                 u"Обновить heatmap 2+",
+                 u"Обновить heatmap 3+",
+                 u"Обновить scatter plot 1+",
+                 u"Обновить scatter plot 2+",
+                 u"Обновить scatter plot 3+"]
 
     def post(self):
         code = self.request.get('code')
@@ -363,9 +375,10 @@ class LogsAdminPage(AdminRequestHandler):
                 message = 2
         a = randint(10, 99)
         b = randint(10, 99)
-        self.draw_page('logs_administration', message=message, a=a, b=b)
+        self.draw_page('logs_administration', message=message, a=a, b=b, names=self.task_name,
+                       last_value=int(action))
 
     def get(self):
         a = randint(10, 99)
         b = randint(10, 99)
-        self.draw_page('logs_administration', message=0, a=a, b=b)
+        self.draw_page('logs_administration', message=0, a=a, b=b, names=self.task_name)
