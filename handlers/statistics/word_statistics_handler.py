@@ -4,6 +4,7 @@ from handlers.base_handlers.web_request_handler import WebRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
+from google.appengine.api import users
 from random import randint
 
 
@@ -14,6 +15,7 @@ class WordStatisticsHandler(WebRequestHandler):
 
     def get(self, *args, **kwargs):
         word = self.request.get('word', None)
+        admin = users.is_current_user_admin()
         entity, games, top, bottom, rand, danger_top = None, None, None, None, None, None
         if word:
             entity = ndb.Key(GlobalDictionaryWord, word).get()
@@ -45,5 +47,5 @@ class WordStatisticsHandler(WebRequestHandler):
                 rand = q.fetch(limit=10, offset=randint(0, c-10))
 
         self.draw_page('statistics/word_statistic', word=word, word_entity=entity,
-                       top=top, bottom=bottom, rand=rand, danger=danger_top)
+                       top=top, bottom=bottom, rand=rand, danger=danger_top, is_admin=admin)
 
