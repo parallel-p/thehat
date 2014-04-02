@@ -3,7 +3,6 @@ __author__ = 'ivan'
 from google.appengine.api import users
 
 from web_request_handler import WebRequestHandler
-import webapp2
 
 
 class AdminRequestHandler(WebRequestHandler):
@@ -19,5 +18,3 @@ class AdminRequestHandler(WebRequestHandler):
     def __init__(self, *args, **kwargs):
         super(AdminRequestHandler, self).__init__(*args, **kwargs)
         self.login_required = True
-
-
