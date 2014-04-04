@@ -34,7 +34,6 @@ class runUpdateAll(ServiceRequestHandler):
         logging.info("plot update runned")
         from_admin = kwargs.get("admin") == "admin"
         for i in xrange(len(self.urls)):
-            print(i)
             taskqueue.add(url=self.urls[i], params=self.params[i])
         if from_admin:
             self.redirect("/admin/logs_processing")
