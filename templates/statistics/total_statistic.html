@@ -334,34 +334,42 @@ var chart_day = AmCharts.makeChart("day-chart", {
     </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для слов сыгранных не менее 1 раза<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/1" alt="" />
+            <center><b>Зависимость сложности слова от частотности, для top 75% слов<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
         </div> <!-- end col-md-4-->
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для слов сыгранных не менее 1 раза<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/1" alt="" />
+            <center><b>Зависимость сложности слова от длины, для top 75% слов<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
         </div> <!-- end col-md-4-->
     </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для слов сыгранных не менее 2 раз<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/2" alt="" />
+            <center><b>Зависимость сложности слова от частотности, для top 30% слов<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/30" alt="" />
         </div> <!-- end col-md-4-->
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для слов сыгранных не менее 2 раз<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/2" alt="" />
+            <center><b>Зависимость сложности слова от длины, для top 30% слов<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/30" alt="" />
         </div> <!-- end col-md-4-->
     </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для слов сыгранных не менее 3 раз<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/3" alt="" />
+            <center><b>Зависимость сложности слова от частотности, для top 10% слов<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/10" alt="" />
         </div> <!-- end col-md-4-->
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для слов сыгранных не менее 3 раз<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/3" alt="" />
+            <center><b>Зависимость сложности слова от длины, для top 10% слов<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/10" alt="" />
         </div> <!-- end col-md-4-->
     </div>
+    {% if is_admin %}
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость погрешности сложности (D) от количества игр<b></center>
+            <img class="img-responsive" src="/images/d_plot" alt="" />
+        </div> <!-- end col-md-4-->
+    </div>
+    {% endif %}
     <div class="row">
         <div class="col-md-6">
             <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>

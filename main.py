@@ -78,6 +78,9 @@ routes = [
     webapp2.Route(r'/internal/update_scatter/task_queue',
                   handler=handlers.statistics.update_mathplotlib_plots.UpdateScatterPlotTaskQueue,
                   name='update heatmap task queue'),
+    webapp2.Route(r'/internal/update_d/task_queue',
+              handler=handlers.statistics.update_mathplotlib_plots.UpdateDPlotHeatMapTaskQueue,
+              name='update d task queue'),
     webapp2.Route(r'/internal/recalc_rating_after_game',
                   handler=handlers.recalc_rating_handler.RecalcRatingHandler,
                   name='recalc_rating'),
@@ -115,6 +118,9 @@ routes = [
     webapp2.Route(r'/images/heatmap_plot/<N:[-\d]+>',
                   handler=handlers.statistics.total_statistics_handler.HeatmapPlotHandler,
                   name='heatmap_plot'),
+    webapp2.Route(r'/images/d_plot',
+                  handler=handlers.statistics.total_statistics_handler.DPlotHandler,
+                  name='d_plot'),
 
 
     #Statistics web handlers
