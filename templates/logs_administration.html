@@ -13,11 +13,9 @@
     <div class="form-group"><label class="col-sm-2 control-label">{{ a }} + {{ b }} = </label><div class="col-md-2"><input type="text" class="form-control" name="code" placeholder="Введите ответ"></div></div>
     <input type="hidden" name="ans" value="{{ a+b }}">
     <div class="form-group"><select required name="action">
-        <option value="1">{{ names[0] }}</option>
-        <option value="2">{{ names[1] }}</option>
-        <option value="3">{{ names[2] }}</option>
-        <option value="4">{{ names[3] }}</option>
-        <option value="5">{{ names[4] }}</option>
+    {% for el in names %}
+        <option value="{{ loop.index }}">{{ el }}</option>
+    {% endfor %}
     </select></div>
     <button type="submit" class="btn btn-danger">Выполнить действие</button>
 </form>
