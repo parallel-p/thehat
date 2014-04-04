@@ -24,7 +24,7 @@ class runUpdateAll(ServiceRequestHandler):
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue']
-    params = [{'N': '1'}, {'N': '2'}, {'N': '3'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
+    params = [{'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}]
 
     def __init__(self, *args, **kwargs):
         super(runUpdateAll, self).__init__(*args, **kwargs)
@@ -34,6 +34,38 @@ class runUpdateAll(ServiceRequestHandler):
         for i in xrange(len(self.urls)):
             taskqueue.add(url=self.urls[i], params=self.params[i])
 
+
+class UpdateDPlotHeatMapTaskQueue(ServiceRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(UpdateDPlotHeatMapTaskQueue, self).__init__(*args, **kwargs)
+
+    def post(self):
+        import numpy, matplotlib, matplotlib.pyplot
+        heatmap_plot = ndb.Key(Plot, "d_plot").get()
+        if heatmap_plot is not None:
+            heatmap_plot.key.delete()
+        words = ndb.gql('SELECT D, used_times FROM GlobalDictionaryWord').fetch()
+        matplotlib.pyplot.title("heatmap")
+        x = []
+        y = []
+        for word in words:
+            if word.used_times > 0:
+                x.append(word.used_times)
+                y.append(word.D)
+        heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[50, 50], range=[[0, 30], [0, 8]])
+        extent = [0, 8, 0, 30]
+        matplotlib.pyplot.clf()
+        matplotlib.pyplot.axis([0, 8, 0, 30])
+        matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto", origin="lower")
+        matplotlib.pyplot.title("heatmap for word used times to D")
+        matplotlib.pyplot.xlabel("times used", fontsize=12)
+        matplotlib.pyplot.ylabel("word D", fontsize=12)
+        rv = StringIO.StringIO()
+        matplotlib.pyplot.savefig(rv, format="png", dpi=100)
+        Plot(plot=rv.getvalue(), id="d_plot").put()
+        matplotlib.pyplot.close()
+        rv.close()
 
 
 class UpdateHeatMapTaskQueue(ServiceRequestHandler):

@@ -17,6 +17,11 @@ indexes:
 
 - kind: GlobalDictionaryWord
   properties:
+  - name: used_times
+  - name: D
+
+- kind: GlobalDictionaryWord
+  properties:
   - name: E
     direction: desc
   - name: word

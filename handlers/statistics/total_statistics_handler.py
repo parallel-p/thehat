@@ -40,6 +40,20 @@ class HeatmapPlotHandler(APIRequestHandler):
             self.response.write(None)
 
 
+class DPlotHandler(APIRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(DPlotHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        self.response.headers['Content-Type'] = "image/png"
+        plot = ndb.Key(Plot, "d_plot").get()
+        if plot is not None:
+            self.response.write(plot.plot)
+        else:
+            self.response.write(None)
+
+
 class TotalStatisticsHandler(WebRequestHandler):
 
     def __init__(self, *args, **kwargs):
