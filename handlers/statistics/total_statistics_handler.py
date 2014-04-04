@@ -71,7 +71,7 @@ class TotalStatisticsHandler(WebRequestHandler):
         by_day = [0 for i in range(7)]
         for hour, games in enumerate(total.by_hour):
             by_hour[hour % 24] += games
-            by_day[hour // 24] += games
+            by_day[(hour // 24 + 3) % 7] += games
         words_in_dictionary = GlobalDictionaryWord.query().count()
         self.draw_page("statistics/total_statistic",
                        word_count_for_date=a,
