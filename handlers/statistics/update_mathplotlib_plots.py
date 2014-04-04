@@ -23,8 +23,9 @@ class runUpdateAll(ServiceRequestHandler):
             '/internal/update_heatmap/task_queue',
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue',
-            '/internal/update_scatter/task_queue']
-    params = [{'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}]
+            '/internal/update_scatter/task_queue',
+            '/internal/update_d/task_queue']
+    params = [{'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}, {}]
 
     def __init__(self, *args, **kwargs):
         super(runUpdateAll, self).__init__(*args, **kwargs)
