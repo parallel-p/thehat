@@ -18,7 +18,7 @@ from objects.legacy_game_history import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
-
+from handlers.statistics.update_mathplotlib_plots import runUpdateAll
 
 class BadGameError(Exception):
     def __init__(self, msg=""):
@@ -344,26 +344,13 @@ class LogsAdminPage(AdminRequestHandler):
             '/remove_duplicates',
             '/remove_duplicates',
             '/remove_duplicates',
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_d/task_queue']
-    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'},
-                  {'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}, {}]
+            "/cron/update_plots/start/admin"]
+    params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'}, {}]
     task_name = [u'Пересчитать статистику',
                  u"Посчитать хэши старых игр",
                  u"Пометить дубликаты старых игр",
                  u"Удалить дубликаты старых игр",
-                 u"Обновить heatmap top 75%",
-                 u"Обновить heatmap top 30%",
-                 u"Обновить heatmap top 10%",
-                 u"Обновить scatter plot top 75%",
-                 u"Обновить scatter plot top 30%",
-                 u"Обновить scatter plot top 10%",
-                 u"Обновить D plot"]
+                 u"Обновить все графики"]
 
     def post(self):
         code = self.request.get('code')
@@ -371,8 +358,11 @@ class LogsAdminPage(AdminRequestHandler):
         message = 0
         if code:
             if code == self.request.get('ans'):
-                taskqueue.add(url=self.urls[action-1], params=self.params[action-1])
-                message = 1
+                if action == 5:
+                    self.redirect(self.urls[action-1])
+                else:
+                    taskqueue.add(url=self.urls[action-1], params=self.params[action-1])
+                    message = 1
             else:
                 message = 2
         a = randint(10, 99)

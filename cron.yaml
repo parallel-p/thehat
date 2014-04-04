@@ -1,4 +1,4 @@
 cron:
 - description: run update heatmap & scatter
-  url: /cron/update_plots/start
+  url: /cron/update_plots/start/
   schedule: every 12 hours

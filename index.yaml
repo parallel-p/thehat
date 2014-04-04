@@ -17,11 +17,6 @@ indexes:
 
 - kind: GlobalDictionaryWord
   properties:
-  - name: used_times
-  - name: D
-
-- kind: GlobalDictionaryWord
-  properties:
   - name: E
     direction: desc
   - name: word
@@ -48,6 +43,11 @@ indexes:
   properties:
   - name: timestamp
   - name: word
+
+- kind: GlobalDictionaryWord
+  properties:
+  - name: used_times
+  - name: D
 
 - kind: GlobalDictionaryWord
   properties:
