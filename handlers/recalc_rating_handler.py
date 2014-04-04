@@ -351,17 +351,17 @@ class LogsAdminPage(AdminRequestHandler):
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue']
     params = [{}, {'stage': 'hash'}, {'stage': 'mark'}, {'stage': 'remove'},
-                  {'N': '1'}, {'N': '2'}, {'N': '3'}, {'N': '1'}, {'N': '2'}, {'N': '3'}]
+                  {'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}]
     task_name = [u'Пересчитать статистику',
                  u"Посчитать хэши старых игр",
                  u"Пометить дубликаты старых игр",
                  u"Удалить дубликаты старых игр",
-                 u"Обновить heatmap 1+",
-                 u"Обновить heatmap 2+",
-                 u"Обновить heatmap 3+",
-                 u"Обновить scatter plot 1+",
-                 u"Обновить scatter plot 2+",
-                 u"Обновить scatter plot 3+"]
+                 u"Обновить heatmap top 75%",
+                 u"Обновить heatmap top 30%",
+                 u"Обновить heatmap top 10%",
+                 u"Обновить scatter plot top 75%",
+                 u"Обновить scatter plot top 30%",
+                 u"Обновить scatter plot top 10%"]
 
     def post(self):
         code = self.request.get('code')
