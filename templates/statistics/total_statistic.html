@@ -156,16 +156,17 @@
     "type": "serial",
 	"startDuration": 2,
     "dataProvider": [
+        {"hour": "", "games": 0},
         {%for games in by_hour%}
             {
                 "hour": {{loop.index - 1}},
                 "games": {{ games }}
             },
         {% endfor %}
+        {"hour": "", "games": 0}
     ],
     "valueAxes": [{
         "position": "right",
-        "title": "Игры",
         "reversed": true
     }],
     "graphs": [{
@@ -184,23 +185,25 @@
     "categoryAxis": {
         "gridPosition": "start",
         "labelRotation": 90,
-        "position": "top"
+        "position": "top",
+        "startOnAxis": true
     }});
 var chart_day = AmCharts.makeChart("day-chart", {
     "theme": "light",
     "type": "serial",
 	"startDuration": 2,
     "dataProvider": [
+        {"day": "", "games": 0},
         {%for games in by_day%}
             {
                 "day": days[{{loop.index - 1}}],
                 "games": {{ games }}
             },
         {% endfor %}
+        {"day": "", "games": 0}
     ],
     "valueAxes": [{
-        "position": "bottom",
-        "title": "Игры"
+        "position": "bottom"
     }],
     "graphs": [{
         "balloonText": "[[category]]: <b>[[value]] игр</b>",
@@ -218,6 +221,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "categoryField": "day",
     "categoryAxis": {
         "gridPosition": "start",
+        "startOnAxis": true
     }});
  var hour_day_chart = AmCharts.makeChart("hour-day-chart", {
     "type": "xy",
@@ -235,16 +239,18 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "valueAxes": [{
         "position":"bottom",
         "axisAlpha": 0,
-        "minimum": 0,
-        "maximum": 23,
+        "minimum": -1,
+        "maximum": 24,
         "integersOnly": true,
         "title": "Время",
-        "labelsEnabled": false
+        "labelsEnabled": false,
+        "autoGridCount": false,
+        "gridCount": 26
     }, {
         "axisAlpha": 0,
         "position": "right",
-        "minimum": 0,
-        "maximum": 6,
+        "minimum": -1,
+        "maximum": 7,
         "integersOnly": true,
         "reversed": true,
         "title": "День недели",
