@@ -312,7 +312,7 @@ class RecalcAllLogs(ServiceRequestHandler):
         queue = taskqueue.Queue('logs-processing')
         if self.stage == 1:
             RecalcAllLogs.delete_all_stat()
-            memcache.delete_multi("danger_top", "words_top", "words_bottom", "used_words_count")
+            memcache.delete_multi(["danger_top", "words_top", "words_bottom", "used_words_count"])
             self.next_stage()
             self.abort(200)
         elif self.stage == 2:
