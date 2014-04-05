@@ -36,7 +36,7 @@
     <div class="form-group">
         <input type="search" class="form-control" name="word" placeholder="Слово">
     </div>
-    <button type="submit" class="btn btn-primary btn-bloc   k">
+    <button type="submit" class="btn btn-primary">
         <span class="glyphicon glyphicon-search"></span>Найти
     </button>
 </form>
@@ -243,7 +243,7 @@ var chart = AmCharts.makeChart("gist_chartdiv", {
 Слово использовано в следующих играх:
 <ol>
     {%  for g in word_entity.used_games %}
-        <li><a href="https://appengine.google.com/datastore/edit?app_id=s~the-hat&key={{ g }}">{{ g }}</a></li>
+        <li><a href="/admin/view_game_log?key={{ g }}">{{ g }}</a></li>
     {%  endfor %}
 </ol>
 </div>

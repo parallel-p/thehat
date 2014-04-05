@@ -35,6 +35,7 @@ import handlers.admin_page_handler
 import handlers.pregame_handlers
 import handlers.statistics.total_statistics_handler
 import handlers.frequency_dictionary_handlers
+import handlers.game_log_viewer
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -130,6 +131,9 @@ routes = [
     webapp2.Route('/statistics/total_statistics',
                   handler=handlers.statistics.total_statistics_handler.TotalStatisticsHandler,
                   name="total statistics handler"),
+    webapp2.Route('/admin/view_game_log',
+                  handler=handlers.game_log_viewer.GameLogViewer,
+                  name='view_log'),
 
     #gamelog handlers
     webapp2.Route(r'/<device_id:[-\w]+>/game_log',
