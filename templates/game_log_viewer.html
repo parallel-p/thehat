@@ -1,0 +1,19 @@
+{% extends "templates/base.html" %}
+{% block title %}Просмотр игры- Sombreo{% endblock %}
+{% block header %}Просмотр протокола игры{% endblock %}
+
+{% block content %}
+{% if not game %}
+    <h2>Введите urlsafe key нужной вам игры:</h2>
+    <form style="margin-left: 30px" class="form-inline" method="get" action="view_game_log">
+    <div class="form-group">
+        <input type="search" class="form-control" name="key" placeholder="Urlsafe">
+    </div>
+    <button type="submit" class="btn btn-primary">
+        <span class="glyphicon glyphicon-search"></span>Показать
+    </button>
+</form>
+{% else %}
+{{ game }}
+{% endif %}
+{% endblock %}
