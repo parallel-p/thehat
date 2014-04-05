@@ -66,7 +66,7 @@ class TotalStatisticsHandler(WebRequestHandler):
         a, b, c, d = [], [], [], []
 
         for el in daily_statistics:
-            a.append((el.words_used // el.games, el.date.strftime("%Y-%m-%d")))
+            a.append((el.words_used, el.date.strftime("%Y-%m-%d")))
             b.append((el.games, el.date.strftime("%Y-%m-%d")))
             c.append((el.players_participated, el.date.strftime("%Y-%m-%d")))
             d.append((round(el.total_game_duration / el.games / 60.0, 2), el.date.strftime("%Y-%m-%d")))
