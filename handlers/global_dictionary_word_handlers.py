@@ -114,6 +114,8 @@ class DeleteDictionaryTaskQueue(ServiceRequestHandler):
     def post(self, *args, **kwargs):
         for word in ndb.gql("SELECT word FROM GlobalDictionaryWord").fetch():
             word.key.delete()
+        for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson").fetch():
+            json.key.delete()
 
 
 class GlobalDictionaryGetWordsHandler(APIRequestHandler):

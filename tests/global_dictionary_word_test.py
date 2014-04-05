@@ -97,7 +97,7 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         response = request.get_response(main.app)
         self.assertEqual(json.loads(response.body)["words"], [])
         self.assertEqual(json.loads(response.body)["timestamp"], timestamp)
-        time.sleep(0.01)
+        time.sleep(1)
         request = make_request("/admin/global_dictionary/add_words", "POST", True, 'json=["f", "g", "h"]')
         request.get_response(main.app)
         task_response = self.run_tasks(1)
@@ -152,6 +152,14 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
         request = make_request("/admin/global_dictionary/add_words", "GET", True)
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
+
+    def test_delete(self):
+        url = "/admin/global_dictionary/delete"
+        request = make_request(url, "POST", True, '0')
+        response = request.get_response(main.app)
+        task_response = self.run_tasks(1)
+        self.assertEqual(GlobalDictionaryWord.query().count(), 0)
+        self.assertEqual(GlobalDictionaryJson.query().count(), 0)
 
 
     def tearDown(self):
