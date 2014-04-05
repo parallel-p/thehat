@@ -4,10 +4,10 @@ import webapp2
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 from google.appengine.ext import testbed
-from google.appengine.ext import deferred
+from google.appengine.ext import ndb
 from tests.base_functions import *
 import unittest2
-
+import time
 import main
 import json
 import base64
@@ -92,6 +92,29 @@ class GlobalDictionaryWordTest(unittest2.TestCase):
                     ok = True
                     break
             self.assertTrue(ok)
+
+        request = make_request("/api/global_dictionary/get_words/{0}".format(timestamp), "GET", True, '0')
+        response = request.get_response(main.app)
+        self.assertEqual(json.loads(response.body)["words"], [])
+        self.assertEqual(json.loads(response.body)["timestamp"], timestamp)
+        time.sleep(0.01)
+        request = make_request("/admin/global_dictionary/add_words", "POST", True, 'json=["f", "g", "h"]')
+        request.get_response(main.app)
+        task_response = self.run_tasks(1)
+        self.assertEqual(task_response[0].status_int, 200)
+
+        request = make_request("/admin/global_dictionary/update_json", "POST", True, '0')
+        request.get_response(main.app)
+        task_response = self.run_tasks(1)
+        self.assertEqual(task_response[0].status_int, 200)
+
+        self.assertEqual(GlobalDictionaryWord.query().count(), 7)
+        self.assertEqual(GlobalDictionaryJson.query().count(), 2)
+
+        request = make_request("/api/global_dictionary/get_words/0", "GET", True, '0')
+        response = request.get_response(main.app)
+
+        self.assertEqual(len(json.loads(response.body)["words"]), 7)
 
     def test_more(self):
         request = make_request("/admin/global_dictionary/add_words",

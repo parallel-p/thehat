@@ -16,9 +16,6 @@ from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
-def make_timestamp():
-    return int(1000 * time.time())
-
 StrategyTypeChooseConstant = 200
 
 
@@ -72,7 +69,8 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
                 max_timestamp = max(max_timestamp, word_time)
                 downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
                 word_list.append({"word": word.word, "E": downloaded_word.E, "D": downloaded_word.D, "U": downloaded_word.used_times, "tags": downloaded_word.tags})
-        GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
+        if word_list != []:
+            GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
 
 
 class UpdateAllJsonsHandler(AdminRequestHandler):
@@ -128,8 +126,8 @@ class GlobalDictionaryGetWordsHandler(APIRequestHandler):
         response_json = {"words":[]}
         for diff_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson "
                                  "ORDER BY timestamp"):
+            max_timestamp = max(max_timestamp, diff_json.timestamp)
             if diff_json.timestamp > device_timestamp:
-                max_timestamp = max(max_timestamp, diff_json.timestamp)
                 for res_json in ndb.gql("SELECT * FROM GlobalDictionaryJson "
                                         "WHERE timestamp = {0} "
                                         "ORDER BY timestamp".format(diff_json.timestamp)):
