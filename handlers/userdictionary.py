@@ -41,8 +41,9 @@ class DrawWebpage(WebRequestHandler):
         self.login_required = True
 
     def get(self):
-        word_list = filter(lambda x: (x.status == "ok"), UserDictionaryWord.query(self.user_key).fetch())
-        self.draw_page('editpersonaldictionary', words=word_list)
+        saved = self.request.get("saved", False)
+        word_list = UserDictionaryWord.query(self.user_key, UserDictionaryWord.status == "ok").fetch()
+        self.draw_page('editpersonaldictionary', words=word_list, saved=saved)
 
 
 class ProcWebpage(WebRequestHandler):

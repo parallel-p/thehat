@@ -3,63 +3,84 @@
 {% block header %}Личный словарь{% endblock %}
 
 {% block head %}
-    <script type="application/javascript">
+    <script type="application/javascript" xmlns="http://www.w3.org/1999/html">
+    var removed = [];
+    var added = [];
     function submit()
     {
-        var removed = [];
-        $.each($(".word"), function(i, el) {
-            if (!$(el).prop("checked"))
-                removed[removed.length] = $(el).attr("data-word");
-        });
-        var added = [];
         $.each($(".new-word"), function(i, el) {
-            if ($(el).prop("checked"))
-                added[added.length] = $(el).attr("data-word");
+               added[added.length] = $(el).attr("data-word");
         });
         $.post("/html/udict/proc", {"added": added, "removed": removed}).done(function (d) {
-        location.reload(true);
+        location.replace("/html/udict/edit?saved=1")
+        });
+    }
+    function remove_words()
+    {
+        $.each($(".word"), function(i, el) {
+            if ($(el).prop("checked"))
+            {
+                removed[removed.length] = $(el).attr("data-word");
+                $(el).parent().remove();
+            }
+        });
+        $.each($(".new-word"), function(i, el) {
+            if ($(el).prop("checked"))
+                $(el).parent().remove();
         });
     }
     function add_word()
     {
         inp = $("#inp");
-        if (inp.val() == "" || inp.val().contains(' '))
+        var arr = inp.val().split(new RegExp('[ ,\n]', 'g'));
+        if (arr.length == 1 && arr[0] == "")
             return;
-        $("#word_list").append('<li><input type="checkbox" checked class="new-word" data-word="'+inp.val()+'">'+inp.val()+'</li>');
+        for (el in arr)
+        {
+            $("#word_list").append('<li><input type="checkbox" class="new-word" data-word="'+arr[el]+'">'+arr[el]+'</li>');
+        }
         inp.val("")
     }
     function validate()
     {
         inp = $("#inp");
-        if (inp.val().contains(' '))
-        {
-            $("#inp-group").addClass('has-error');
-            $("#add-btn").attr('disabled', 'disabled');
-        }
-        else
-        {
-            $("#inp-group").removeClass('has-error');
-            $("#add-btn").removeAttr('disabled');
-        }
+        var arr = inp.val().split(new RegExp('[ ,\n]', 'g'));
+        for (el in arr)
+            if (arr[el].contains('+'))
+            {
+                $("#inp-group").addClass('has-error');
+                $("#add-btn").attr('disabled', 'disabled');
+            }
+            else
+            {
+                $("#inp-group").removeClass('has-error');
+                $("#add-btn").removeAttr('disabled');
+            }
     }
     </script>
 {% endblock %}
 {% block content %}
     <div class="row">
          <div class="col-md-4 col-md-offset-4">
+            {% if saved %}
+             <div class="alert alert-success alert-dismissable">Изменения сохранены</div>
+            {% endif %}
+            <button class="btn btn-default" onclick="remove_words()">
+                <i class="glyphicon glyphicon-trash"></i>Удалить выбранные
+            </button>
             <ol id="word_list">
             {%  for word in words %}
-            <li><input type="checkbox" checked class="word" data-word="{{ word.word }}">{{ word.word }}</li>
+            <li><input type="checkbox" class="word" data-word="{{ word.word }}">{{ word.word }}</li>
             {% endfor %}
             </ol>
             <div class="input-group" id="inp-group">
-                <input type="text" id="inp" onkeyup="validate()" onchange="add_word()" class="form-control">
+                <textarea id="inp" onkeyup="validate()" class="form-control"></textarea>
                 <span class="input-group-btn"><button id="add-btn" class="btn btn-primary" onclick="add_word()">
                     <b>+</b>
                 </button></span>
             </div>
             <br/>
-            <button onclick="submit()" class="form-control btn btn-success">Готово</button>
+            <button onclick="submit()" class="form-control btn btn-success">Сохранить изменения</button>
          </div>
     </div>
 {% endblock %}
