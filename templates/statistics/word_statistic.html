@@ -10,7 +10,7 @@
         <tr>
             <td>{{ loop.index }}</td>
             <td><a href="word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
-            <td>{{ word.E|round(1) }}</td>
+            <td>{{ word.E|round(1) }} &plusmn {{3 * word.D|round(1) }}</td>
         </tr>
     {% endfor %}
 </table>
@@ -69,7 +69,7 @@
         <tr>
             <td>{{ loop.index }}</td>
             <td><a href="word_statistics?word={{ word.word }}">{{ word.word }}</a></td>
-            <td>{{ word.E|round(1) }}</td>
+            <td>{{ word.E|round(1) }} &plusmn {{3 * word.D|round(1) }} </td>
             <td>{{ word.danger|round(1) * 100}} %</td>
         </tr>
     {% endfor %}
@@ -130,7 +130,7 @@
 
         // bottom text
         diff_axis.bottomTextYOffset = -20;
-        diff_axis.setBottomText("{{ word_entity.E | round(1) }}");
+        diff_axis.setBottomText("{{ word_entity.E | round(1) }} ");
         diff_chart.addAxis(diff_axis);
 
         // gauge arrow
