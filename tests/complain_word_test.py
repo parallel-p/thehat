@@ -8,6 +8,9 @@ from google.appengine.ext import testbed
 import unittest2
 
 from objects.complained_word import ComplainedWord
+from objects.global_dictionary_word import GlobalDictionaryWord
+from google.appengine.ext import ndb
+from tests.base_functions import *
 import main
 import os
 
@@ -85,13 +88,36 @@ class complain_word_test(unittest2.TestCase):
         len_before = ComplainedWord.query().count()
         response = request.get_response(main.app)
 
-        self.assertEqual(response.status_int, 302)  # not 200, because redirrect
+        self.assertEqual(response.status_int, 200)
         len_after = ComplainedWord.query().count()
         self.assertEqual(len_before, len_after + 2)
         request = webapp2.Request.blank('/admin/complain/clear')
         request.method = 'POST'
         response = request.get_response(main.app)
         self.assertEqual(ComplainedWord.query().count(), 0)
+
+    def test_delete_from_global_dictionary(self):
+        words = ["a", "b", "c", "d"]
+        for i in words:
+            GlobalDictionaryWord(word=i, id=i, tags="").put()
+        ComplainedWord(word="c").put()
+        ComplainedWord(word="c").put()
+        ComplainedWord(word="d").put()
+        request = make_request("/admin/complain/remove", "POST", True, 'word=c')
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        self.assertEqual(ComplainedWord.query().count(), 1)
+        self.assertEqual(GlobalDictionaryWord.query().count(), 4)
+        self.assertEqual(ndb.Key(GlobalDictionaryWord, "c").get().tags, "-deleted")
+
+        ComplainedWord(word="c").put()
+        response = request.get_response(main.app)
+        self.assertEqual(ComplainedWord.query().count(), 1)
+        self.assertEqual(GlobalDictionaryWord.query().count(), 4)
+        self.assertEqual(ndb.Key(GlobalDictionaryWord, "c").get().tags, "-deleted")
+
+
+
 
     def tearDown(self):
         complain_word_test.logoutCurrentUser()

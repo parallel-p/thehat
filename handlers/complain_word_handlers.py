@@ -60,7 +60,6 @@ class DeleteComplainedWord(AdminRequestHandler):
     def post(self, *args, **kwargs):
         deleted_word = self.request.get("word")
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(keys_only=True))
-        self.redirect("/admin/complain/list")
 
 
 class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
@@ -75,7 +74,6 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
                 word.tags += "-deleted"
             word.put()
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == data).fetch(keys_only=True))
-        self.redirect("/admin/complain/list")
 
 
 

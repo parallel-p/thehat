@@ -67,7 +67,8 @@ class UserDictionaryTestCase(unittest.TestCase):
             request.method = "GET"
             response = request.get_response(main.app)
             diff = json.loads(response.body)
-            self.assertEqual(len(diff["words"]), expected_counts[i], msg="count mismatch with device {}. expected {} found {}".format(i, expected_counts[i], len(diff["words"])))
+            self.assertEqual(len(diff["words"]), expected_counts[i],
+                             msg="count mismatch with device {}. expected {} found {}".format(i, expected_counts[i], len(diff["words"])))
 
     def tearDown(self):
         self.testbed.deactivate()
