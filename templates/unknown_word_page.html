@@ -1,0 +1,19 @@
+{% extends "templates/base.html" %}
+{% block title %}Неизвестные слова{% endblock %}
+{% block header %}Неизвестные слова{% endblock %}
+{%block content%}
+<table class="table table-hover">
+    <thead>
+        <td>Слово</td>
+        <td>Встречалось раз</td>
+    </thead>
+    <tbody>
+        {% for word in word_list %}
+            <tr>
+                <td>{{ word.word }}</td>
+                <td>{{ word.times_used}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

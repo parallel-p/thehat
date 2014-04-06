@@ -18,13 +18,6 @@ indexes:
 
 - kind: GlobalDictionaryWord
   properties:
-  - name: used_times
-  - name: D
-  - name: E
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
   - name: E
   - name: word
 
@@ -99,6 +92,12 @@ indexes:
   properties:
   - name: word
   - name: tags
+
+- kind: UnknownWord
+  properties:
+  - name: ignored
+  - name: times_used
+    direction: desc
 
 - kind: UserDictionaryWord
   properties:

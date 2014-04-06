@@ -36,6 +36,7 @@ import handlers.pregame_handlers
 import handlers.statistics.total_statistics_handler
 import handlers.frequency_dictionary_handlers
 import handlers.game_log_viewer
+import handlers.unknown_word_handler
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -51,6 +52,11 @@ routes = [
     webapp2.Route(r'/internal/linkdevice',
                   handler=handlers.link_device.LinkDeviceMaintainConsistency,
                   name='internal_linkdevice'),
+
+    #Unknown words handlers
+    webapp2.Route(r'/admin/unknown_word/list',
+                  handler=handlers.unknown_word_handler.GetWordPageHandler,
+                  name='get unknown words list'),
 
     #Frequency dictionary handlers
     webapp2.Route(r'/admin/frequency_dictionary/add',

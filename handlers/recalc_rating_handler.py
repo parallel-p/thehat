@@ -18,7 +18,7 @@ from objects.legacy_game_history import GameHistory
 from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
-from handlers.statistics.update_mathplotlib_plots import runUpdateAll
+from objects.unknown_word import UnknownWord
 
 class BadGameError(Exception):
     def __init__(self, msg=""):
@@ -69,6 +69,16 @@ def get_date(time):
 
 
 class AddGameHandler(ServiceRequestHandler):
+
+    @staticmethod
+    def check_word(word):
+        if ndb.Key(GlobalDictionaryWord, word).get() is None:
+            on_server = ndb.Key(UnknownWord, word).get()
+            if on_server is None:
+                UnknownWord(word=word, id=word, times_used=1).put()
+            elif not on_server.ignored:
+                on_server.times_used += 1
+                on_server.put()
 
     @ndb.transactional()
     def update_daily_statistics(self, game_date, word_count, players_count, duration):
@@ -220,6 +230,8 @@ class AddGameHandler(ServiceRequestHandler):
         try:
             words_orig, seen_words_time, words_outcome, words_by_players_pair, players_count,\
                 start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
+            for word in words_orig:
+                self.check_word(word)
             bad_words_count = 0
             for k, v in seen_words_time.items():
                 if v < 2:
