@@ -16,7 +16,6 @@ import os
 
 
 class complain_word_test(unittest2.TestCase):
-
     @staticmethod
     def setCurrentUser(email, user_id, is_admin=False):
         os.environ['USER_EMAIL'] = email or ''
@@ -115,8 +114,6 @@ class complain_word_test(unittest2.TestCase):
         self.assertEqual(ComplainedWord.query().count(), 1)
         self.assertEqual(GlobalDictionaryWord.query().count(), 4)
         self.assertEqual(ndb.Key(GlobalDictionaryWord, "c").get().tags, "-deleted")
-
-
 
 
     def tearDown(self):

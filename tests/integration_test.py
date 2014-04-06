@@ -3,8 +3,6 @@ import unittest2
 import webapp2
 from google.appengine.ext import testbed
 
-import main
-
 
 class IntegrationTest(unittest2.TestCase):
     @staticmethod

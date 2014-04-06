@@ -1,10 +1,10 @@
 import unittest
+import time
 
 from google.appengine.ext import testbed
+import mox
 
 from objects.pin_number import PinNumber
-import mox
-import time
 
 TEST_KEY = "test key"
 TEST2_KEY = "another test key"

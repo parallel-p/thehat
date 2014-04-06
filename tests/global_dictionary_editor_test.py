@@ -1,16 +1,14 @@
 __author__ = 'ivan'
 
-import webapp2
-from google.appengine.ext import testbed
 import unittest2
-from tests.base_functions import *
 
+from google.appengine.ext import testbed
+
+from tests.base_functions import *
 import main
-import os
 
 
 class GlobalDictionaryEditorTest(unittest2.TestCase):
-
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()

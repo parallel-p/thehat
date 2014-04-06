@@ -1,7 +1,8 @@
 __author__ = 'ivan'
 
-import webapp2
 import os
+
+import webapp2
 
 
 def setCurrentUser(email, user_id, is_admin=False):

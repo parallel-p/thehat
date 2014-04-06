@@ -115,7 +115,7 @@ EXPECTED_OUTCOME = {21: 'guessed', 38: 'guessed', 17: 'timed-out', 23: 'timed-ou
 PARSED_LOG = json.loads(LOG_JSON)
 WORDS = [el['word'] for el in PARSED_LOG['setup']['words']]
 EXPECTED_RATES = [
-    [41, 42, 38, 31],  #of pair (0,1)
+    [41, 42, 38, 31], #of pair (0,1)
     [2, 21, 42, 38, 31]  #overall
 ]
 HISTORY = GameHistory(
@@ -137,10 +137,11 @@ H_EXPECTED_TIME = {3: 30, 22: 20, 24: 28, 4: 15, 10: 10, 34: 4, 23: 6, 30: 7, 2:
 H_EXPECTED_OUTCOME = {3: 'guessed', 22: 'timed-out', 24: 'guessed', 4: 'failed', 10: 'guessed', 34: 'guessed',
                       23: 'guessed', 30: 'guessed', 2: 'guessed', 20: 'timed-out'}
 H_EXPECTED_RATES = [
-    [2, 10, 30],  #of pair (0,1)
-    [4, 23, 34],  #of pair (1, 0)
+    [2, 10, 30], #of pair (0,1)
+    [4, 23, 34], #of pair (1, 0)
     [3, 24, 2, 10, 30, 23, 34]  #overall
 ]
+
 
 def put_word(word):
     return GlobalDictionaryWord(id=word, word=word).put()

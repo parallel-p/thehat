@@ -2,7 +2,7 @@ import unittest
 
 import json
 import webapp2
-from google.appengine.ext import testbed, ndb
+from google.appengine.ext import testbed
 
 import main
 from objects.user_dictionary_word import UserDictionaryWord
@@ -68,7 +68,8 @@ class UserDictionaryTestCase(unittest.TestCase):
             response = request.get_response(main.app)
             diff = json.loads(response.body)
             self.assertEqual(len(diff["words"]), expected_counts[i],
-                             msg="count mismatch with device {}. expected {} found {}".format(i, expected_counts[i], len(diff["words"])))
+                             msg="count mismatch with device {}. expected {} found {}".format(i, expected_counts[i],
+                                                                                              len(diff["words"])))
 
     def tearDown(self):
         self.testbed.deactivate()

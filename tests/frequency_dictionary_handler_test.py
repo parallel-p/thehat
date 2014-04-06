@@ -1,20 +1,17 @@
 __author__ = 'ivan'
 
-import webapp2
-from handlers.frequency_dictionary_handlers import WordFrequency
-from google.appengine.ext import testbed
-from google.appengine.ext import ndb
-from tests.base_functions import *
 import unittest2
-import time
-import main
 import json
 import base64
-import time
+
+from google.appengine.ext import testbed
+
+from handlers.frequency_dictionary_handlers import WordFrequency
+from tests.base_functions import *
+import main
 
 
 class FrequencyDictionaryHandlersTest(unittest2.TestCase):
-
     @staticmethod
     def post(url, content):
         request = make_request(url, "POST", True, content)
@@ -42,7 +39,8 @@ class FrequencyDictionaryHandlersTest(unittest2.TestCase):
     def test_add(self):
         for words, count in [([{"w": "a", "d": "1"}, {"w": "b", "d": "2"}, {"w": "c", "d": "3"}], 3),
                              ([{"w": "t", "d": "1"}, {"w": "y", "d": "2"}, {"w": "c", "d": "3"}], 5)]:
-            request = make_request(r'/admin/frequency_dictionary/add', "POST", True, "json={0}".format(json.dumps(words)))
+            request = make_request(r'/admin/frequency_dictionary/add', "POST", True,
+                                   "json={0}".format(json.dumps(words)))
             response = request.get_response(main.app)
             self.assertEqual(response.status_int, 200)
             task_response = self.run_tasks(1)[0]
@@ -52,7 +50,8 @@ class FrequencyDictionaryHandlersTest(unittest2.TestCase):
     def test_no_admin(self):
         for words, count in [([{"w": "a", "d": "1"}, {"w": "b", "d": "2"}, {"w": "c", "d": "3"}], 0),
                              ([{"w": "t", "d": "1"}, {"w": "y", "d": "2"}, {"w": "c", "d": "3"}], 0)]:
-            request = make_request(r'/admin/frequency_dictionary/add', "POST", False, "json={0}".format(json.dumps(words)))
+            request = make_request(r'/admin/frequency_dictionary/add', "POST", False,
+                                   "json={0}".format(json.dumps(words)))
             response = request.get_response(main.app)
             self.assertEqual(response.status_int, 302)
             self.assertEqual(WordFrequency.query().count(), 0)
@@ -68,9 +67,6 @@ class FrequencyDictionaryHandlersTest(unittest2.TestCase):
         task_response = self.run_tasks(1)[0]
         self.assertEqual(task_response.status_int, 200)
         self.assertEqual(WordFrequency.query().count(), 0)
-
-
-
 
     def tearDown(self):
         self.testbed.deactivate()

@@ -1,21 +1,14 @@
 __author__ = 'ivan'
 
-import json
-
-import webapp2
-from google.appengine.ext import testbed
 import unittest2
 
-from objects.complained_word import ComplainedWord
-from objects.global_dictionary_word import GlobalDictionaryWord
-from google.appengine.ext import ndb
+from google.appengine.ext import testbed
+
 from tests.base_functions import *
 import main
-import os
 
 
 class complain_word_test(unittest2.TestCase):
-
     def setUp(self):
         self.testbed = testbed.Testbed()
         self.testbed.activate()
