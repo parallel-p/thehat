@@ -41,5 +41,5 @@ class WordStatisticsHandler(WebRequestHandler):
                 rand = q.fetch(limit=10, offset=randint(0, c-10))
 
         self.draw_page('statistics/word_statistic', word=word, word_entity=entity,
-                       top=top, bottom=bottom, rand=rand, danger=danger_top)
+                       top=top, bottom=bottom, rand=rand, danger=danger_top, spidometer_max=min(120, entity.E + 2 * entity.D))
 
