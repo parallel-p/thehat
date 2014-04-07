@@ -229,11 +229,13 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "theme": "light",
     "dataProvider": [
         {%for games in games_for_time%}
-            {
-                "day": {{ ((loop.index - 1) // 24 + 3) % 7}},
-                "hour": {{ (loop.index - 1) % 24}},
-                "games": {{ games }}
-            },
+            {% if games > 0 %}
+                {
+                    "day": {{ ((loop.index - 1) // 24 + 3) % 7}},
+                    "hour": {{ (loop.index - 1) % 24}},
+                    "games": {{ games }}
+                },
+            {% endif %}
         {% endfor %}
     ],
     "valueAxes": [{
