@@ -20,23 +20,19 @@ class WordStatisticsHandler(WebRequestHandler):
         if not entity:
             danger_top = memcache.get("danger_top")
             if not danger_top:
-                danger_top = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.danger, GlobalDictionaryWord.E, GlobalDictionaryWord.D, GlobalDictionaryWord.word]).\
-                    order(-GlobalDictionaryWord.danger).fetch(limit=10)
+                danger_top = GlobalDictionaryWord.query().order(-GlobalDictionaryWord.danger).fetch(limit=10)
                 memcache.set("danger_top", danger_top, time=60*60*12)
 
 
             top = memcache.get("words_top")
             if not top:
-                top = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.D, GlobalDictionaryWord.word]).\
-                    order(-GlobalDictionaryWord.E).fetch(limit=10)
+                top = GlobalDictionaryWord.query().order(-GlobalDictionaryWord.E).fetch(limit=10)
                 memcache.set("words_top", top, time=60*60*12)
             bottom = memcache.get("words_bottom")
             if not bottom:
-                bottom = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.D, GlobalDictionaryWord.word]).\
-                    order(GlobalDictionaryWord.E).fetch(limit=10)
+                bottom = GlobalDictionaryWord.query().order(GlobalDictionaryWord.E).fetch(limit=10)
                 memcache.set("words_bottom", bottom, time=60*60*12)
-            q = GlobalDictionaryWord.query(projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.D, GlobalDictionaryWord.word]).\
-                filter(GlobalDictionaryWord.used_times > 0)
+            q = GlobalDictionaryWord.query().filter(GlobalDictionaryWord.used_times > 0)
             c = memcache.get("used_words_count")
             if not c:
                 c = q.count()

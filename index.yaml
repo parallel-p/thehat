@@ -12,56 +12,6 @@ indexes:
 
 - kind: GlobalDictionaryWord
   properties:
-  - name: E
-  - name: D
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: E
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: E
-    direction: desc
-  - name: D
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: E
-    direction: desc
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: danger
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: danger
-    direction: desc
-  - name: D
-  - name: E
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: danger
-    direction: desc
-  - name: E
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: danger
-    direction: desc
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
   - name: timestamp
   - name: word
 
@@ -69,19 +19,6 @@ indexes:
   properties:
   - name: used_times
   - name: D
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: used_times
-  - name: D
-  - name: E
-  - name: word
-
-- kind: GlobalDictionaryWord
-  properties:
-  - name: used_times
-  - name: E
-  - name: word
 
 - kind: GlobalDictionaryWord
   properties:
