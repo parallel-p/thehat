@@ -1,5 +1,7 @@
 __author__ = 'nikolay'
 from google.appengine.ext import ndb
+from objects.enum_property import EnumProperty
+from objects.game_results_log import IGNORE_REASON
 
 
 class Word(ndb.Model):
@@ -77,6 +79,7 @@ class GameHistory(ndb.Model):
     game_number = ndb.IntegerProperty(indexed=False)
     hash = ndb.StringProperty()
     ignored = ndb.BooleanProperty(default=False)
+    reason = EnumProperty(IGNORE_REASON)
 
     """ stores history of a game
     players: (ndb.StringProperty(repeated=True))

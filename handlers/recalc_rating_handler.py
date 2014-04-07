@@ -20,12 +20,10 @@ from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
 from objects.unknown_word import UnknownWord
 
-class BadGameError(Exception):
-    def __init__(self, msg=""):
-        self.msg = msg
 
-    def __str__(self):
-        return self.msg
+class BadGameError(Exception):
+    def __init__(self, reason):
+        self.reason = reason
 
 
 class RecalcRatingHandler(ServiceRequestHandler):
@@ -134,7 +132,7 @@ class AddGameHandler(ServiceRequestHandler):
         log = json.loads(log_db.json)
         #TODO: solve problem with free-play games
         if log['setup']['type'] == "freeplay":
-            raise BadGameError("Free-play game - has not enough data")
+            raise BadGameError('old_version')
         events = log['events']
         words_orig = [el['word'] for el in log['setup']['words']]
         seen_words_time = defaultdict(lambda: 0)
@@ -147,6 +145,9 @@ class AddGameHandler(ServiceRequestHandler):
         for i in events:
             if i["type"] == "end_game":
                 finish_timestamp = i["time"]
+                if i["aborted"]:
+                    log_db.reason = 'aborted'
+                    log_db.put()
         i = 0
         while i < len(events) and events[i]['type'] != 'round_start':
             if events[i]['type'] != 'start_game':
@@ -190,7 +191,7 @@ class AddGameHandler(ServiceRequestHandler):
         if hist.game_type is None:
             hist.game_type = GameHistory.HAT_STANDART
         if hist.game_type != GameHistory.HAT_STANDART:
-            raise BadGameError("This is a non-original-hat game")
+            raise BadGameError('not_hat')
         words_orig = [el.text for el in hist.words]
         words_by_players_pair = {}
         seen_words_time = defaultdict(lambda: 0)
@@ -236,8 +237,10 @@ class AddGameHandler(ServiceRequestHandler):
             for k, v in seen_words_time.items():
                 if v < 2:
                     bad_words_count += 1
-            if 2*len(seen_words_time) < len(words_orig) or 2*bad_words_count > len(seen_words_time):
-                raise BadGameError("It's probably not a real game")
+            if 2*len(seen_words_time) < len(words_orig):
+                raise BadGameError('suspect_too_little_words')
+            if 2*bad_words_count > len(seen_words_time):
+                raise BadGameError('suspect_too_quick_explanation')
 
             for i in range(len(words_orig)):
                 if i in seen_words_time:
@@ -270,11 +273,13 @@ class AddGameHandler(ServiceRequestHandler):
             self.update_total_statistics(len(seen_words_time), start_timestamp)
             if players_count:
                 self.update_statistics_by_player_count(players_count)
-
+        except (TypeError, ValueError):
+            raise BadGameError('format-error')
         except BadGameError as e:
             log_db.ignored = True
+            log_db.reason = e.reason
             log_db.put()
-            logging.warning("Did not handle and marked this game as ignored: {}".format(str(e)))
+            logging.warning("Did not handle and marked this game as ignored: {}".format(str(log_db.reason)))
             self.abort(200)
 
 
@@ -334,9 +339,9 @@ class RecalcAllLogs(ServiceRequestHandler):
         elif self.stage == 3:
             logs = self.fetch_portion(GameLog.query())
             for el in logs:
-                if not el.ignored:
-                    el.ignored = False
-                    el.put()
+                #if not el.ignored:
+                el.ignored = False
+                el.put()
         elif self.stage == 4:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                          params={'game_key': k.urlsafe()})),
