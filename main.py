@@ -57,6 +57,12 @@ routes = [
     webapp2.Route(r'/admin/unknown_word/list',
                   handler=handlers.unknown_word_handler.GetWordPageHandler,
                   name='get unknown words list'),
+    webapp2.Route(r'/admin/unknown_word/add',
+                  handler=handlers.unknown_word_handler.AddWordHanler,
+                  name='add word'),
+    webapp2.Route(r'/admin/unknown_word/ignore',
+                  handler=handlers.unknown_word_handler.IgnoreWordHanler,
+                  name='ignore word'),
 
     #Frequency dictionary handlers
     webapp2.Route(r'/admin/frequency_dictionary/add',
