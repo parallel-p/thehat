@@ -231,8 +231,6 @@ class AddGameHandler(ServiceRequestHandler):
         try:
             words_orig, seen_words_time, words_outcome, words_by_players_pair, players_count,\
                 start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
-            for word in words_orig:
-                self.check_word(word)
             bad_words_count = 0
             for k, v in seen_words_time.items():
                 if v < 2:
@@ -241,6 +239,9 @@ class AddGameHandler(ServiceRequestHandler):
                 raise BadGameError('suspect_too_little_words')
             if 2*bad_words_count > len(seen_words_time):
                 raise BadGameError('suspect_too_quick_explanation')
+
+            for word in words_orig:
+                self.check_word(word)
 
             for i in range(len(words_orig)):
                 if i in seen_words_time:
@@ -304,7 +305,7 @@ class RecalcAllLogs(ServiceRequestHandler):
     @staticmethod
     def delete_all_stat():
         TotalStatistics(id="total_statistics").put()
-        for t in ['DailyStatistics', 'GamesForHour', 'GamesForPlayerCount']:
+        for t in ['DailyStatistics', 'GamesForHour', 'GamesForPlayerCount', 'UnknownWord']:
             ndb.delete_multi(ndb.Query(kind=t).fetch(keys_only=True))
 
     def next_stage(self):

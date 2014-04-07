@@ -2,6 +2,66 @@
 {% block title %}Неизвестные слова{% endblock %}
 {% block header %}Неизвестные слова{% endblock %}
 {%block content%}
+<script type="application/javascript">
+
+    function getXmlHttp() {
+        var xmlhttp;
+        try {
+          xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (e) {
+        try {
+          xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        } catch (E) {
+          xmlhttp = false;
+        }
+        }
+        if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+          xmlhttp = new XMLHttpRequest();
+        }
+        return xmlhttp;
+      }
+
+    function post(url, word)
+    {
+        // alert(xmlhttp);
+        var xmlhttp = getXmlHttp();
+        xmlhttp.open('POST', url, true);
+        xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+        xmlhttp.send("word=" + word); // Отправляем POST-запрос
+    }
+
+    function ignore(word)
+    {
+        for (var i = 0; i < {{ quantity }}; i = i + 1)
+        {
+            try
+            {
+                document.getElementById(word).style.display = "none";
+            }
+            catch(err)
+            {
+                ;
+            }
+        }
+        post('/admin/unknown_word/ignore', word);
+    }
+    function add(word)
+    {
+        for (var i = 0; i < {{ quantity }}; i = i + 1)
+        {
+            try
+            {
+                document.getElementById(word).style.display = "none";
+            }
+            catch(err)
+            {
+                ;
+            }
+        }
+        post('/admin/unknown_word/add', word);
+    }
+</script>
+
 <table class="table table-hover">
     <thead>
         <td>Слово</td>
@@ -9,9 +69,21 @@
     </thead>
     <tbody>
         {% for word in word_list %}
-            <tr>
+            <tr id = "{{ word.word }}">
                 <td>{{ word.word }}</td>
                 <td>{{ word.times_used}}</td>
+                <td>
+                    <button class="btn btn-success" onclick="add('{{ word.word }}')">
+                        <span class="glyphicon glyphicon-plus"></span>
+                        добавить в словарь
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-warning" onclick="ignore('{{ word.word }}')">
+                        <span class="glyphicon glyphicon-minus"></span>
+                        игнорировать
+                    </button>
+                </td>
             </tr>
         {% endfor %}
     </tbody>
