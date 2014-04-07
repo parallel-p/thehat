@@ -14,6 +14,15 @@
     </button>
 </form>
 {% else %}
-{{ game }}
+<pre class="pre-scrollable">{{ game_string }}</pre>
+{% if game.ignored %}
+    <p class="lead">Игра игнорируется по следующей причине: {{ game.reason }}</p>
+    <a class="btn btn-success" href="/admin/ignore_game_log?key={{ key }}">Отменить игнорирование этой игры</a>
+{% else %}
+    {% if game.reason %}
+        <p>Возможная причина игнорирования: {{ game.reason }}</p>
+    {% endif %}
+    <a class="btn btn-warning" href="/admin/ignore_game_log?key={{ key }}">Проигнорировать эту игру</a>
+{% endif %}
 {% endif %}
 {% endblock %}

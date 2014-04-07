@@ -280,7 +280,7 @@ class AddGameHandler(ServiceRequestHandler):
             log_db.ignored = True
             log_db.reason = e.reason
             log_db.put()
-            logging.warning("Did not handle and marked this game as ignored: {}".format(str(log_db.reason)))
+            logging.warning("Did not handle and marked this game as ignored: {}".format(log_db.reason))
             self.abort(200)
 
 

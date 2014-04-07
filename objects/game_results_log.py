@@ -24,7 +24,8 @@ IGNORE_REASON = {
     'suspect_too_little_words': "Too little of words used in this game were explained",
     'format-error': "Log of this game isn't formatted properly",
     'not_hat': "This is not an original hat game",
-    'aborted': "This game was aborted on device"
+    'aborted': "This game was aborted on device",
+    'manual': "This game was marked as ignored by administrator"
 }
 
 

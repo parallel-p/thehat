@@ -10,6 +10,7 @@ class EnumProperty(IntegerProperty):
         self.values = []
         for k, v in enum.items():
             self.enum[k] = i
+            self.enum[v] = i
             self.values.append(v)
             i += 1
 
@@ -17,16 +18,14 @@ class EnumProperty(IntegerProperty):
         return self.enum[item]
 
     def _validate(self, value):
-        if isinstance(value, str):
-            if not value in self.enum:
-                raise ValueError('unknown enum key')
-            return self.enum[value]
-        elif not isinstance(value, int):
-            raise TypeError('expected an integer, got %s' % repr(value))
-        elif value < 0 or value > len(self.values):
-            raise ValueError('value is outside bounds')
-        else:
-            return value
+        if not isinstance(value, str):
+            raise TypeError('expected an string, got %s' % repr(value))
+        if not value in self.enum:
+            raise ValueError('unknown enum key')
+        return self.values[self.enum[value]]
 
-    def __str__(self):
-        return self.values[int(self)]
+    def _to_base_type(self, value):
+        return self.enum[value]
+
+    def _from_base_type(self, value):
+        return self.values[value]

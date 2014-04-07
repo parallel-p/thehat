@@ -146,6 +146,9 @@ routes = [
     webapp2.Route('/admin/view_game_log',
                   handler=handlers.game_log_viewer.GameLogViewer,
                   name='view_log'),
+    webapp2.Route('/admin/ignore_game_log',
+                  handler=handlers.game_log_viewer.IgnoreGameLogHandler,
+                  name='ignore_log'),
 
     #gamelog handlers
     webapp2.Route(r'/<device_id:[-\w]+>/game_log',
