@@ -72,29 +72,13 @@
 </script>
 
 <script type="text/javascript">
-    var word_count_data= [
-        {% for i, j in word_count_for_date %}
+    var daily_data= [
+        {% for a, b, c, d in daily %}
             {
-                "count": "{{i}}",
-                "date": "{{j}}"
-            },
-        {% endfor %}
-     ]
-
-    var game_count_data= [
-        {% for i, j in game_count_for_date %}
-            {
-                "count": "{{i}}",
-                "date": "{{j}}"
-            },
-        {% endfor %}
-     ]
-
-    var player_count_data= [
-        {% for i, j in player_count_for_date %}
-            {
-                "count": "{{i}}",
-                "date": "{{j}}"
+                "games": "{{a}}",
+                "words": "{{b}}",
+                "players": "{{c}}",
+                "date": "{{d}}"
             },
         {% endfor %}
      ]
@@ -108,36 +92,80 @@
         {% endfor %}
      ]
 
-    AmCharts.ready(function () {
-        var count_word_chart = make_serial_chart(word_count_data, "date", "Объяснено слов");
-        make_category_axis(count_word_chart, true, "DD");
-        count_word_chart.addValueAxis(create_value_axis(0.2, 1));
-        var word_graph = make_graph("Объяснено слов", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] слов</span></b>")
-        count_word_chart.addGraph(word_graph)
-        count_word_chart.addChartCursor(create_cursor());
-        count_word_chart.write("word_count_chartdiv");
-	});
-    AmCharts.ready(function () {
-        var count_game_chart = make_serial_chart(game_count_data, "date", "Сыграно партий");
-        make_category_axis(count_game_chart, true, "DD");
-        count_game_chart.addValueAxis(create_value_axis(0.2, 1));
-        var count_game_graph = make_graph("Сыграно партий", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] игр</span></b>")
-        count_game_chart.addGraph(count_game_graph)
-        count_game_chart.addChartCursor(create_cursor());
-        count_game_chart.write("game_count_chartdiv");
-	});
-    AmCharts.ready(function () {
-        var count_player_chart = make_serial_chart(player_count_data, "date", "Участвовало игроков");
-        make_category_axis(count_player_chart, true, "DD");
-        count_player_chart.addValueAxis(create_value_axis(0.2, 1));
-        var player_graph = make_graph("Участвовало игроков", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] игроков</span></b>")
-        count_player_chart.addGraph(player_graph)
-        count_player_chart.addChartCursor(create_cursor());
-        count_player_chart.write("player_count_chartdiv");
-	});
+    AmCharts.makeChart("daily_chartdiv", {
+        "type": "serial",
+        "theme": "none",
+        "pathToImages": "http://www.amcharts.com/lib/3/images/",
+        "legend": {
+            "useGraphSettings": true
+        },
+        "dataProvider": daily_data,
+        "valueAxes": [{
+            "id":"v1",
+            "axisColor": "#FF6600",
+            "axisThickness": 2,
+            "gridAlpha": 0,
+            "axisAlpha": 1,
+            "position": "left"
+        }, {
+            "id":"v2",
+            "axisColor": "#FCD202",
+            "axisThickness": 2,
+            "gridAlpha": 0,
+            "axisAlpha": 1,
+            "position": "right"
+        }, {
+            "id":"v3",
+            "axisColor": "#B0DE09",
+            "axisThickness": 2,
+            "gridAlpha": 0,
+            "offset": 50,
+            "axisAlpha": 1,
+            "position": "right"
+        }],
+        "graphs": [{
+            "valueAxis": "v1",
+            "lineColor": "#FF6600",
+            "bullet": "round",
+            "bulletBorderThickness": 1,
+            "hideBulletsCount": 30,
+            "title": "Сыграно партий",
+            "valueField": "games",
+            "fillAlphas": 0,
+            "balloonText": "<b><span style='font-size:14px;'>[[value]] игр</span></b>"
+        }, {
+            "valueAxis": "v2",
+            "lineColor": "#FCD202",
+            "bullet": "square",
+            "bulletBorderThickness": 1,
+            "hideBulletsCount": 30,
+            "title": "Объяснено слов",
+            "valueField": "words",
+            "fillAlphas": 0,
+            "balloonText": "<b><span style='font-size:14px;'>[[value]] слов</span></b>"
+        }, {
+            "valueAxis": "v3",
+            "lineColor": "#B0DE09",
+            "bullet": "triangleUp",
+            "bulletBorderThickness": 1,
+            "hideBulletsCount": 30,
+            "title": "Участововало игроков",
+            "valueField": "players",
+            "fillAlphas": 0,
+            "balloonText": "<b><span style='font-size:14px;'>[[value]] игроков</span></b>"
+        }],
+        "chartScrollbar": {},
+        "chartCursor": {
+            "cursorPosition": "mouse"
+        },
+        "categoryField": "date",
+        "categoryAxis": {
+            "parseDates": true,
+            "axisColor": "#DADADA",
+            "minorGridEnabled": true
+        }
+    });
+
     AmCharts.ready(function () {
         var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игры");
         make_category_axis(average_game_time_chart, true, "DD");
@@ -323,7 +351,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
               </tr>
 
               <tr>
-                <td><p class="text-info">В словаре слов</p></td>
+                <td><p class="text-info">Слов в словаре</p></td>
                 <td>{{ words_in_dictionary }}</td>
               </tr>
 
@@ -336,58 +364,20 @@ var chart_day = AmCharts.makeChart("day-chart", {
     </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 75% слов<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
-        </div> <!-- end col-md-4-->
-        <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 75% слов<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
-        </div> <!-- end col-md-4-->
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 30% слов<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/30" alt="" />
-        </div> <!-- end col-md-4-->
-        <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 30% слов<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/30" alt="" />
-        </div> <!-- end col-md-4-->
-    </div>
-    <div class="row">
-        <div class="col-md-6">
             <center><b>Зависимость сложности слова от частотности, для top 10% слов<b></center>
             <img class="img-responsive" src="/images/scatter_plot/10" alt="" />
-        </div> <!-- end col-md-4-->
+        </div>
         <div class="col-md-6">
             <center><b>Зависимость сложности слова от длины, для top 10% слов<b></center>
             <img class="img-responsive" src="/images/heatmap_plot/10" alt="" />
-        </div> <!-- end col-md-4-->
+        </div>
     </div>
-    {% if is_admin %}
     <div class="row">
-        <div class="col-md-6">
-            <center><b>Зависимость погрешности сложности (D) от количества игр<b></center>
-            <img class="img-responsive" src="/images/d_plot" alt="" />
-        </div> <!-- end col-md-4-->
+        <div class="col-md-12" id="daily_chartdiv" style="height: 400px;">
+        </div>
+        <div class="col-md-12" id="average_game_time_chartdiv" style="height: 400px;">
+        </div>
     </div>
-    {% endif %}
-    <div class="row">
-        <div class="col-md-6">
-            <div id="word_count_chartdiv" style="width: 100%; height: 400px;"></div>
-        </div> <!-- end col-md-4-->
-        <div class="col-md-6">
-            <div id="game_count_chartdiv" style="width: 100%; height: 400px;"></div>
-        </div> <!-- end col-md-6> -->
-    </div> <!-- end row -->
-    <div class="row">
-        <div class="col-md-6">
-            <div id="player_count_chartdiv" style="width: 100%; height: 400px;"></div>
-        </div> <!-- end col-md-4-->
-        <div class="col-md-6">
-            <div id="average_game_time_chartdiv" style="width: 100%; height: 400px;"></div>
-        </div> <!-- end col-md-6> -->
-    </div> <!-- end row -->
     <div class="row" style="margin-bottom: 0">
     <center><b>Распределение игр по дням недели и времени суток<b></center>
     <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
@@ -396,5 +386,32 @@ var chart_day = AmCharts.makeChart("day-chart", {
     <div class="row">
     <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
     </div>
-</div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для top 75% слов<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
+        </div>
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для top 75% слов<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от частотности, для top 30% слов<b></center>
+            <img class="img-responsive" src="/images/scatter_plot/30" alt="" />
+        </div>
+        <div class="col-md-6">
+            <center><b>Зависимость сложности слова от длины, для top 30% слов<b></center>
+            <img class="img-responsive" src="/images/heatmap_plot/30" alt="" />
+        </div>
+    </div>
+    {% if is_admin %}
+    <div class="row">
+        <div class="col-md-6">
+            <center><b>Зависимость погрешности сложности (D) от количества игр<b></center>
+            <img class="img-responsive" src="/images/d_plot" alt="" />
+        </div>
+    </div>
+    {% endif %}
 {% endblock %}
