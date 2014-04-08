@@ -1,6 +1,11 @@
 __author__ = 'ivan'
 
 from google.appengine.ext import ndb
+from google.appengine.api import memcache
+
+
+class WordLookup(ndb.Model):
+    proper_word = ndb.StringProperty(required=True)
 
 
 class GlobalDictionaryWord(ndb.Model):
@@ -17,3 +22,17 @@ class GlobalDictionaryWord(ndb.Model):
     used_games = ndb.StringProperty(indexed=False, repeated=True)
     tags = ndb.StringProperty(indexed=False)
     danger = ndb.ComputedProperty(lambda self: (self.failed_times / self.used_times) if self.used_times != 0 else 0)
+
+    @staticmethod
+    def get(word):
+        word = word.lower()
+        proper_word = memcache.get(u"word_lookup_{}".format(word)) or word
+        entity = ndb.Key(GlobalDictionaryWord, proper_word).get()
+        if entity:
+            return entity
+        proper_word = ndb.Key(WordLookup, word).get()
+        if not proper_word:
+            return None
+        proper_word = proper_word.proper_word
+        memcache.set(u"word_lookup_{}".format(word), proper_word, time=60*60*12)
+        return ndb.Key(GlobalDictionaryWord, proper_word).get()

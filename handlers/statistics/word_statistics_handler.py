@@ -16,7 +16,7 @@ class WordStatisticsHandler(WebRequestHandler):
         word = self.request.get('word', None)
         entity, games, top, bottom, rand, danger_top = None, None, None, None, None, None
         if word:
-            entity = ndb.Key(GlobalDictionaryWord, word.lower()).get()
+            entity = GlobalDictionaryWord.get(word)
         if not entity:
             danger_top = memcache.get("danger_top")
             if not danger_top:
@@ -41,5 +41,5 @@ class WordStatisticsHandler(WebRequestHandler):
                 rand = q.fetch(limit=10, offset=randint(0, c-10))
 
         self.draw_page('statistics/word_statistic', word=word, word_entity=entity,
-                       top=top, bottom=bottom, rand=rand, danger=danger_top, spidometer_max=min(120, entity.E + 2 * entity.D))
+                       top=top, bottom=bottom, rand=rand, danger=danger_top)
 
