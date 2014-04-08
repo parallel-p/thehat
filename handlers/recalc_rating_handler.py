@@ -11,7 +11,7 @@ import datetime
 from google.appengine.api import taskqueue
 from google.appengine.api import memcache
 
-from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.global_dictionary_word import GlobalDictionaryWord, WordLookup
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
 from objects.legacy_game_history import GameHistory
@@ -32,16 +32,15 @@ class RecalcRatingHandler(ServiceRequestHandler):
 
     @ndb.transactional()
     def update_word(self, word, E, D):
-        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db = GlobalDictionaryWord.get(word)
         word_db.E = E
         word_db.D = D
         word_db.put()
 
     @ndb.toplevel
     def post(self):
-        words = [ndb.Key(GlobalDictionaryWord, word) for word in json.loads(self.request.get("json"))]
+        words = [GlobalDictionaryWord.get(word) for word in json.loads(self.request.get("json"))]
         ratings = []
-        words = ndb.get_multi(words)
         words_db = []
         for word_db in words:
             if word_db is None:
@@ -70,7 +69,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     @staticmethod
     def check_word(word):
-        if ndb.Key(GlobalDictionaryWord, word).get() is None:
+        if GlobalDictionaryWord.get(word) is None:
             on_server = ndb.Key(UnknownWord, word).get()
             if on_server is None:
                 UnknownWord(word=word, id=word, times_used=1).put()
@@ -109,7 +108,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     @ndb.transactional()
     def update_word(self, word, word_outcome, explanation_time, game_key):
-        word_db = ndb.Key(GlobalDictionaryWord, word).get()
+        word_db = GlobalDictionaryWord.get(word)
         if not word_db:
             return
         word_db.used_times += 1

@@ -16,7 +16,7 @@ class WordStatisticsHandler(WebRequestHandler):
         word = self.request.get('word', None)
         entity, games, top, bottom, rand, danger_top = None, None, None, None, None, None
         if word:
-            entity = ndb.Key(GlobalDictionaryWord, word.lower()).get()
+            entity = GlobalDictionaryWord.get(word)
         if not entity:
             danger_top = memcache.get("danger_top")
             if not danger_top:
