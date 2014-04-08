@@ -1,11 +1,7 @@
 __author__ = 'ivan'
 
-import webapp2
-import logging
-
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.statistics.update_mathplotlib_plots import Plot
-from google.appengine.ext import ndb
 from objects.total_statistics_object import *
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
@@ -80,7 +76,6 @@ class TotalStatisticsHandler(WebRequestHandler):
                 player_count_classes[2] += el.games
             else:
                 player_count_classes[3] += el.games
-        logging.debug(total.by_hour)
         by_hour = [0 for i in range(24)]
         by_day = [0 for i in range(7)]
         for hour, games in enumerate(total.by_hour):
