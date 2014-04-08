@@ -61,26 +61,6 @@
         post('/admin/unknown_word/add', word);
     }
 </script>
-<script type="application/javascript">
-    jQuery(document).ready(function($) {
-        $(".clickableRow").click(function() {
-            var word_name = $(this).find("td").eq(0).text()
-            var baseURL = 'http://ru.wiktionary.org';
-            $.getJSON(baseURL+'/w/api.php?action=parse&format=json&prop=text|revid|displaytitle&callback=?&page='+word_name,
-                function(json) {
-                    if(json.parse.revid > 0) {
-                        $('#myModal').find('.modal-header').html(word_name);
-                        var data = json.parse.text['*']
-                        $('#myModal').find('.modal-body').html(data);
-                        $('#myModal').modal('show');
-                    } else {
-                        $('#wikiInfo').html('word not found');
-                        $('#licenseinfo').hide();
-                    }
-                });
-        });
-    });
-</script>
 
 <table class="table table-hover">
     <thead>
@@ -104,26 +84,14 @@
                         игнорировать
                     </button>
                 </td>
-            </tr>
+                <td>
+                    <button class="btn btn-info" onclick="location.href='http://ru.wiktionary.org/wiki/{{word.word}}'">
+                        <span class="glyphicon glyphicon-search"></span>
+                        Посмотреть в Wiktionary
+                    </button>
+                </td>
+             </tr>
         {% endfor %}
     </tbody>
 </table>
-
-<div class="modal" id="myModal">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">Обновление словаря</h4>
-        </div>
-        <div class="modal-body">
-          Обновление словаря запушено.
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-dismiss="modal"> Close </button>
-        </div>
-      </div>
-    </div>
-</div>
-
 {% endblock %}
