@@ -13,8 +13,14 @@ class GetWordPageHandler(AdminRequestHandler):
         super(GetWordPageHandler, self).__init__(*args, **kwargs)
 
     def get(self):
+        self.response.headers.add_header('Access-Control-Allow-Origin', '*')
         words = UnknownWord.query().order(-UnknownWord.times_used).filter(UnknownWord.ignored==False).fetch()
         self.draw_page('unknown_word_page', word_list=words, quantity=len(words))
+
+    def options(self):
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
 
 
 class IgnoreWordHanler(AdminRequestHandler):
