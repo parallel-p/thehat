@@ -37,6 +37,7 @@ import handlers.statistics.total_statistics_handler
 import handlers.frequency_dictionary_handlers
 import handlers.game_log_viewer
 import handlers.unknown_word_handler
+import handlers.word_lookup
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -77,6 +78,11 @@ routes = [
     webapp2.Route(r'/internal/frequency_dictionary/add/task_queue',
                   handler=handlers.frequency_dictionary_handlers.MakeDictionaryTaskQueueHandler,
                   name='add dict task_queue'),
+
+    #Word lookup handlers
+    webapp2.Route(r'/admin/word_lookup/add',
+                  handler=handlers.word_lookup.AddLookups,
+                  name="add_lookups"),
 
     #recalc rating & make_statistics handlers
     #web
