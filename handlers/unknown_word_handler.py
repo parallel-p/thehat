@@ -36,7 +36,7 @@ class AddWordHanler(AdminRequestHandler):
 
     def post(self):
         word = self.request.get("word")
-        GlobalDictionaryWord(word=word, cnt=0, tags="").put()
+        GlobalDictionaryWord(word=word, cnt=0, tags="", id=word).put()
         ndb.Key(UnknownWord, word).get().key.delete()
 
 
