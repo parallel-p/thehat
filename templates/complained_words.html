@@ -30,7 +30,7 @@
             xmlhttp.send("word=" + word); // Отправляем POST-запрос
         }
 
-        function delete_here(word, number)
+        function delete_here(word)
         {
             for (var i = 0; i < {{ quantity }}; i = i + 1)
             {
@@ -45,8 +45,9 @@
             }
             post('/admin/complain/cancel', word);
         }
-        function delete_global(word, number)
+        function delete_global(word)
         {
+            alert("fuck")
             for (var i = 0; i < {{ quantity }}; i = i + 1)
             {
                 try
@@ -60,28 +61,137 @@
             }
             post('/admin/complain/remove', word);
         }
+        function postpone(word)
+        {
+            for (var i = 1; i < {{ quantity }}; i = i + 1)
+            {
+                try
+                {
+                    document.getElementById(word + "_" + i).style.display = "none";
+                }
+                catch(err)
+                {
+                    ;
+                }
+            }
+            post('/admin/complain/postpone', word);
+        }
     </script>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            var word_name = ""
+            $(".clickableRow").click(function() {
+                var device_id = $(this).find("td").eq(1).text()
+                if(device_id =="")
+                    device_id = "undefined";
+                word_name = $.trim($(this).find("td").eq(2).text())
+                var reason = $(this).find("td").eq(3).text()
+                var $words = $('#word_table').find("tr")
+                $('#used').find("tr").remove()
+                $words.each(function (i, row) {
+                    var curr_device = $(this).find("td").eq(1).text();
+                    if(curr_device =="")
+                        curr_device = "undefined";
+                    var curr_word = $.trim($(this).find("td").eq(2).text());
+                    var curr_reason = $(this).find("td").eq(3).text();
+                    if(curr_word==word_name)
+                        $('#used').append('<tr><td>'+curr_device+'</td><td>'+curr_reason+'</td></tr>');
+                });
+                $('#complain_word_modal').find('.modal-header').html("<center><h1>"+word_name+"</center></h1>");
+                $('#complain_device_id').html(device_id);
+                $('#complain_reason').html(reason);
+                $('#complain_word_modal').modal('show');
+            });
+            $(".delete_button").click(function() {
+                delete_global(word_name);
+            });
+            $(".postpone_button").click(function() {
+                postpone(word_name);
+            });
+            $(".delete_here").click(function() {
+                delete_here(word_name);
+            })
+            $(".rename_button").click(function() {
+            });
+        });
+    </script>
+    <div class="modal" id="complain_word_modal">
+	    <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Удаление словаря</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <td>Устройство: </td>
+                            <td id="complain_device_id"></td>
+                        </tr>
+                        <tr>
+                            <td>Причина: </td>
+                            <td id="complain_reason"></td>
+                        </tr>
+                    </table>
+                    <h4>Другие жалобы по слову.</h4 >
+                    <table class="table table-striped" id="used">
+                    <th>устройство</th>
+                    <th>причина</th>
+                    </table>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" placeholder="Введите слово для переименования">
+                        </div>
+
+                        <div class="col-md-4">
+                           <button type="button" class="btn btn-block btn-warning rename_button"> Переименовать </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="row-fluid">
+                        <div class="col-md-4">
+                            <button id="remove_from_dict" type="button" class="btn btn-block btn-danger delete_button" data-dismiss="modal"> Удалить из словаря </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="postpone" type="button" class="btn btn-block btn-success postpone_button" data-dismiss="modal"> Подумать </button>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-block btn-danger delete_here" data-dismiss="modal"> Удалить жалобы </button>
+                        </div>
+                        <li class="divider"></li>
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-block btn-success" data-dismiss="modal"> Close </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
+
+         <form method="post" action="/admin/complain/clear"> <input class="btn btn-danger" type="submit" value="Игнорировать все"/> </form>
         <div class="left">
-          <table class="table table-striped">
+          <table class="table table-hover" id="word_table">
             <thead>
               <tr>
+                <th>#</th>
                 <th>Устройство</th>
                 <th>Слово</th>
                  <th>Причина</th>
                   <th>Замена</th>
-                  <th>     <br> <form method="post" action="/admin/complain/clear"> <input type="submit" value="Игнорировать все"/> </form> </th>
               </tr>
             </thead>
          <tbody>
         {% for word in words %}
-            <tr id="{{ word.word }}_{{ word.cnt }}" >
+            <tr class='clickableRow' id="{{ word.word }}_{{ word.cnt }}" >
+                <td>{{ word.cnt }}</td>
                 <td>{{ word.device_id }}</td>
                 <td>{{ word.word }} </td>
                 <td>{{ word.reason }}</td>
                 <td>{{ word.replacement_word }}</td>
-                <td align="center"> <button onclick="delete_here('{{ word.word }}', '{{ word.cnt }}')"> Игнорировать </button></td>
-                <td align="center"> <button onclick="delete_global('{{ word.word }}', '{{ word.cnt }}')"> Удалить из словаря </button> </td>
             </tr>
         {% endfor %}
         </tbody>

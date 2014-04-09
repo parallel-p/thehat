@@ -62,6 +62,15 @@ class DeleteComplainedWord(AdminRequestHandler):
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(keys_only=True))
 
 
+class PostponeComplainedWord(AdminRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(PostponeComplainedWord, self).__init__(*args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        deleted_word = self.request.get("word")
+        print(deleted_word)
+        ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(offset=1, keys_only=True))
+
 class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
     def __init__(self, *args, **kwargs):
         super(DeleteFromGlobalDictionaryHandler, self).__init__(*args, **kwargs)
