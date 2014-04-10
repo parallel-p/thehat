@@ -145,7 +145,7 @@ class AddGameHandler(ServiceRequestHandler):
         for i in events:
             if i["type"] == "end_game":
                 finish_timestamp = i["time"]
-                if i["aborted"]:
+                if 'aborted' in i and i['aborted']:
                     log_db.reason = 'aborted'
                     log_db.put()
         i = 0
@@ -282,11 +282,13 @@ class AddGameHandler(ServiceRequestHandler):
             self.update_total_statistics(len(seen_words_time), start_timestamp)
             if players_count:
                 self.update_statistics_by_player_count(players_count)
-        except (TypeError, ValueError):
-            raise BadGameError('format-error')
-        except BadGameError as e:
+        except (KeyError, ValueError, BadGameError) as e:
+            if isinstance(e, BadGameError):
+                reason = e.reason
+            else:
+                reason = 'format-error'
             log_db.ignored = True
-            log_db.reason = e.reason
+            log_db.reason = reason
             log_db.put()
             logging.warning("Did not handle and marked this game as ignored: {}".format(log_db.reason))
             self.abort(200)
