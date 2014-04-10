@@ -282,6 +282,7 @@ class AddGameHandler(ServiceRequestHandler):
             self.update_total_statistics(len(seen_words_time), start_timestamp)
             if players_count:
                 self.update_statistics_by_player_count(players_count)
+            memcache.delete_multi(["danger_top", "words_top", "words_bottom", "used_words_count"])
         except (KeyError, ValueError, BadGameError) as e:
             if isinstance(e, BadGameError):
                 reason = e.reason
@@ -340,7 +341,6 @@ class RecalcAllLogs(ServiceRequestHandler):
         queue = taskqueue.Queue('logs-processing')
         if self.stage == 1:
             RecalcAllLogs.delete_all_stat()
-            memcache.delete_multi(["danger_top", "words_top", "words_bottom", "used_words_count"])
             self.next_stage()
             self.abort(200)
         elif self.stage == 2:
