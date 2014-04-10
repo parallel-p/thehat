@@ -59,6 +59,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
 
 MAX_TIME = 5 * 60 * 1000  # 5 minutes
 MIN_TIME = 500  # 0.5 second
+DEFAULT_OFFSET = 4*60*60*1000
 
 
 def get_date(time):
@@ -183,6 +184,14 @@ class AddGameHandler(ServiceRequestHandler):
                 seen_words_time[word] += int(round(current_words_time[word] / 1000.0))
             current_words_time.clear()
         player_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
+        try:
+            offset = log['setup']['meta']['time.offset']
+        except KeyError:
+            offset = DEFAULT_OFFSET
+        if start_timestamp:
+            start_timestamp += offset
+        if finish_timestamp:
+            finish_timestamp += offset
         return (words_orig, seen_words_time, words_outcome, words_by_players_pair,
                 player_count, start_timestamp, finish_timestamp)
 
