@@ -175,12 +175,7 @@
       </div>
     </div>
 </div>
-
-
-
-   <td align="center" width=80%> <strong> При помощи этой формочки Вы можете добавить слова в словарь "Шляпы". Обратите вниание,
-        нельзя за один раз отправлять более 100 килобайт (около 2000 слов) </strong> </td>
-    <center>
+        <p>Здесь вы можете добавлять слова в словарь.</p>
         <div>
             <br/> <textarea class="form-control" name="text" rows="30"  id="words"></textarea>
         </div>
@@ -188,26 +183,24 @@
         <div id="alertion"></div>
 
         </div>
-    </center>
     {% if error is defined %}
         <p>
             {{ error }}
         </p>
     {% endif %}
-    </td>
     <div class="row">
         <div class="col-md-4">
-        <button type="button" class="btn btn-success btn-block" onclick="send_words()">
+        <button title="Только слова, разделённые пробелами или переводами строк" type="button" class="btn btn-success btn-block" onclick="send_words()">
             <span class="glyphicon glyphicon-plus"></span> Добавить
         </button>
             </div>
         <div class="col-md-4">
-        <button type="button" class="btn btn-success  btn-block" onclick="send_frequency_words()">
+        <button title="По одному слову на строке: через пробел само слово и его частота" type="button" class="btn btn-success  btn-block" onclick="send_frequency_words()">
             <span class="glyphicon glyphicon-plus"></span> Добавить в частотный словарь
         </button>
         </div>
         <div class="col-md-4">
-        <button type="button" class="btn btn-success  btn-block" onclick="send_lookups()">
+        <button title="По одному слову на строке: через пробел сначала слово, с которого нужно перенаправление, затем правильное слово" type="button" class="btn btn-success  btn-block" onclick="send_lookups()">
             <span class="glyphicon glyphicon-plus"></span> Добавить в таблицу замен
         </button>
         </div>
