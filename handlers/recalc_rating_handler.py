@@ -107,7 +107,7 @@ class AddGameHandler(ServiceRequestHandler):
             statistics.by_hour[hour] += 1
         statistics.put()
 
-    @ndb.transactional()
+    @ndb.transactional(xg=True)
     def update_word(self, word, word_outcome, explanation_time, game_key):
         word_db = GlobalDictionaryWord.get(word)
         if not word_db:
@@ -185,7 +185,7 @@ class AddGameHandler(ServiceRequestHandler):
             current_words_time.clear()
         player_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
         try:
-            offset = log['setup']['meta']['time.offset']
+            offset = int(log['setup']['meta']['time.offset'])
         except KeyError:
             offset = DEFAULT_OFFSET
         if start_timestamp:
