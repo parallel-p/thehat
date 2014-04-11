@@ -26,6 +26,15 @@ class ComplainWordHandler(AuthorizedAPIRequestHandler):
                     current_word_json["replace_word"]
             current_word.put()
 
+class word_class:
+
+    def __init__(self, x, cnt):
+        self.word = x.word
+        self.replacement_word = x.replacement_word
+        if x.replacement_word is None:
+            self.replacement_word = ''
+        self.cnt = cnt
+        self.device_id = x.device.get().device_id
 
 class ShowComplainedWords(AdminRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -35,11 +44,7 @@ class ShowComplainedWords(AdminRequestHandler):
         cnt = 0
         words = []
         for word in ComplainedWord.query():
-            word_render = word
-            word_render.cnt = cnt
-            if word.replacement_word is None:
-                word_render.replacement_word = ''
-            words.append(word_render)
+            words.append(word_class(word, cnt))
             cnt += 1
         self.draw_page('complained_words', quantity=len(words), words=words)
 
@@ -68,7 +73,6 @@ class PostponeComplainedWord(AdminRequestHandler):
 
     def post(self, *args, **kwargs):
         deleted_word = self.request.get("word")
-        print(deleted_word)
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(offset=1, keys_only=True))
 
 class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):

@@ -21,13 +21,13 @@
             return xmlhttp;
           }
 
-        function post(url, word)
+        function post(prefix, url, word)
         {
             // alert(xmlhttp);
             var xmlhttp = getXmlHttp();
             xmlhttp.open('POST', url, true);
             xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
-            xmlhttp.send("word=" + word); // Отправляем POST-запрос
+            xmlhttp.send(prefix+"=" + word); // Отправляем POST-запрос
         }
 
         function delete_here(word)
@@ -43,11 +43,10 @@
                     ;
                 }
             }
-            post('/admin/complain/cancel', word);
+            post("word", '/admin/complain/cancel', word);
         }
         function delete_global(word)
         {
-            alert("fuck")
             for (var i = 0; i < {{ quantity }}; i = i + 1)
             {
                 try
@@ -59,7 +58,7 @@
                     ;
                 }
             }
-            post('/admin/complain/remove', word);
+            post("word",'/admin/complain/remove', word);
         }
         function postpone(word)
         {
@@ -74,18 +73,20 @@
                     ;
                 }
             }
-            post('/admin/complain/postpone', word);
+            post("word", '/admin/complain/postpone', word);
         }
     </script>
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             var word_name = ""
+            var proper_word = ""
             $(".clickableRow").click(function() {
                 var device_id = $(this).find("td").eq(1).text()
                 if(device_id =="")
                     device_id = "undefined";
                 word_name = $.trim($(this).find("td").eq(2).text())
                 var reason = $(this).find("td").eq(3).text()
+                proper_word = $(this).find("td").eq(4).text()
                 var $words = $('#word_table').find("tr")
                 $('#used').find("tr").remove()
                 $words.each(function (i, row) {
@@ -97,6 +98,8 @@
                     if(curr_word==word_name)
                         $('#used').append('<tr><td>'+curr_device+'</td><td>'+curr_reason+'</td></tr>');
                 });
+                $(".rename_button").removeClass('glyphicon-ok-circle')
+                $("#proper_word").val(proper_word)
                 $('#complain_word_modal').find('.modal-header').html("<center><h1>"+word_name+"</center></h1>");
                 $('#complain_device_id').html(device_id);
                 $('#complain_reason').html(reason);
@@ -112,6 +115,12 @@
                 delete_here(word_name);
             })
             $(".rename_button").click(function() {
+                var typed_word = $('#proper_word').val()
+                if($.trim(typed_word) != ''){
+                    $(this).addClass('glyphicon glyphicon-ok-circle')
+                    post("json", '/admin/word_lookup/add', JSON.stringify([{"word":typed_word, "lookup":word_name}]))
+                    delete_here(word_name);
+                }
             });
         });
     </script>
@@ -134,15 +143,18 @@
                         </tr>
                     </table>
                     <h4>Другие жалобы по слову.</h4 >
-                    <table class="table table-striped" id="used">
+                    <table class="table table-striped">
                         <thead>
-                    <th>устройство</th>
-                    <th>причина</th>
+                            <th>устройство</th>
+                            <th>причина</th>
                         </thead>
+                        <tbody id="used">
+
+                        </tbody>
                     </table>
                     <div class="row">
                         <div class="col-md-8">
-                            <input type="text" class="form-control" placeholder="Введите слово для переименования">
+                            <input type="text" id="proper_word" class="form-control" placeholder="Введите слово для переименования">
                         </div>
 
                         <div class="col-md-4">
@@ -156,13 +168,9 @@
                             <button id="remove_from_dict" type="button" class="btn btn-block btn-danger delete_button" data-dismiss="modal"> Удалить из словаря </button>
                         </div>
                         <div class="col-md-4">
-                            <button id="postpone" type="button" class="btn btn-block btn-success postpone_button" data-dismiss="modal"> Подумать </button>
-                        </div>
-                        <div class="col-md-4">
                             <button type="button" class="btn btn-block btn-danger delete_here" data-dismiss="modal"> Удалить жалобы </button>
                         </div>
-                        <li class="divider"></li>
-                        <div class="col-md-12">
+                        <div class="col-md-4    ">
                             <button type="button" class="btn btn-block btn-success" data-dismiss="modal"> Close </button>
                         </div>
 
