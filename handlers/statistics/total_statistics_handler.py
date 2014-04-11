@@ -59,11 +59,12 @@ class TotalStatisticsHandler(WebRequestHandler):
         daily_statistics = DailyStatistics.query().order(DailyStatistics.date).fetch()
         total = TotalStatistics.get()
         games_for_player_count = GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch()
-        daily, d = [], []
+        daily = []
 
         for el in daily_statistics:
-            daily.append((el.games, el.words_used, el.players_participated, el.date.strftime("%Y-%m-%d")))
-            d.append((round(el.total_game_duration / el.games / 60.0, 2), el.date.strftime("%Y-%m-%d")))
+            daily.append((el.games, el.words_used,
+                          el.players_participated, round(el.total_game_duration / 60.0, 2),
+                          el.date.strftime("%Y-%m-%d")))
         player_count_classes = [0, 0, 0, 0]
         for el in games_for_player_count:
             if el.player_count <= 2:
@@ -82,7 +83,6 @@ class TotalStatisticsHandler(WebRequestHandler):
         words_in_dictionary = GlobalDictionaryWord.query().count()
         self.draw_page("statistics/total_statistic",
                        daily=daily,
-                       average_game_time=d,
                        games_for_time=total.by_hour,
                        by_hour=by_hour,
                        by_day=by_day,
