@@ -23,7 +23,6 @@ import handlers.userdictionary
 import handlers.log_n_res_handlers
 import handlers.complain_word_handlers
 import handlers.newsfeed_handlers
-import handlers.assign_device_handler
 import handlers.global_dictionary_word_handlers
 import handlers.recalc_rating_handler
 import handlers.web_game_creation_handler
@@ -232,11 +231,6 @@ routes = [
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
                   handler=handlers.pregame_handlers.PreGameAbortHandler,
                   name='pregame_abort'),
-
-    #assign device handlers
-    webapp2.Route(r'/<device_id:[-\w]+>/assign_device',
-                  handler=handlers.assign_device_handler.AssignDeviceHandler,
-                  name='assign_device'),
 
     #Newsfeed handlers
     webapp2.Route(r'/news/<id:[-\d]+>',
