@@ -73,21 +73,13 @@
 
 <script type="text/javascript">
     var daily_data= [
-        {% for a, b, c, d in daily %}
+        {% for a, b, c, d, e in daily %}
             {
-                "games": "{{a}}",
-                "words": "{{b}}",
-                "players": "{{c}}",
-                "date": "{{d}}"
-            },
-        {% endfor %}
-     ]
-
-    var average_game_time_data= [
-        {% for i, j in average_game_time %}
-            {
-                "count": "{{i}}",
-                "date": "{{j}}"
+                "games": {{ a }},
+                "words": {{ b }},
+                "players": {{ c }},
+                "time": {{ d }},
+                "date": "{{ e }}"
             },
         {% endfor %}
      ]
@@ -122,7 +114,16 @@
             "offset": 50,
             "axisAlpha": 1,
             "position": "right"
-        }],
+        },
+            {
+                "id": "v4",
+                "axisColor": "#42aaff",
+                "axisThickness": 2,
+                "gridAlpha": 0,
+                "offset": 50,
+                "axisAlpha": 1,
+                "position": "left"
+            }],
         "graphs": [{
             "valueAxis": "v1",
             "lineColor": "#FF6600",
@@ -153,7 +154,18 @@
             "valueField": "players",
             "fillAlphas": 0,
             "balloonText": "<b><span style='font-size:14px;'>[[value]] игроков</span></b>"
-        }],
+        },
+            {
+                "valueAxis": "v4",
+                "lineColor": "#42aaff",
+                "bullet": "triangleDown",
+                "bulletBorderThickness": 1,
+            "hideBulletsCount": 30,
+                "title": "Суммарная продолжительность игр",
+                "valueField": "time",
+                "fillAlphas": 0,
+                "balloonText": "<b><span style='font-size:14px;'>[[value]] часов</span></b>"
+            }],
         "chartScrollbar": {},
         "chartCursor": {
             "cursorPosition": "mouse"
@@ -166,16 +178,6 @@
         }
     });
 
-    AmCharts.ready(function () {
-        var average_game_time_chart = make_serial_chart(average_game_time_data, "date", "Средняя продолжительность игры");
-        make_category_axis(average_game_time_chart, true, "DD");
-        average_game_time_chart.addValueAxis(create_value_axis(0.2, 1));
-        var average_game_time_graph = make_graph("Средняя продолжительность игры", "count",
-                "[[category]]<br><b><span style='font-size:14px;'>[[value]] мин</span></b>")
-        average_game_time_chart.addGraph(average_game_time_graph)
-        average_game_time_chart.addChartCursor(create_cursor());
-        average_game_time_chart.write("average_game_time_chartdiv");
-	});
     colors = ["#CC3333", "#FF0F00", "#FF6600","#FF9E01","#FCD202","#F8FF01","#FFFF00","#B0DE09","#04D215","#66FFFF", "#0D8ECF","#0D52D1","#2A0CD0" ,"#8A0CCF",
     "#CD0D74", "#754DEB","#DDDDDD", "#999999","#444444","#333333","#222222","#111111","#000000","#000000"]
     days = ["в понедельник", "во вторник", "в среду", "в четверг", "в пятницу", "в субботу", "в воскресенье"]
@@ -336,7 +338,17 @@ var chart_day = AmCharts.makeChart("day-chart", {
 {% endblock %}
 
 {% block content %}
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#info_tab" data-toggle="tab">Общие цифры</a></li>
+        <li><a href="#daily_tab" data-toggle="tab">Статистика по времени</a></li>
+        <li><a href="#word_tab" data-toggle="tab">Зависимости сложности слов</a></li>
+        <li><a href="#extra_tab" data-toggle="tab">Дополнительная статистика</a></li>
+    </ul>
     <div class="row">
+        <div class="col-md-12">
+            <div class="tab-content">
+                <div class="tab-pane active" id="info_tab">
+                <div class="row">
         <div class="col-md-6">
             <br>
             <table class="table">
@@ -362,56 +374,62 @@ var chart_day = AmCharts.makeChart("day-chart", {
             <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 10% слов<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/10" alt="" />
-        </div>
-        <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 10% слов<b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/10" alt="" />
-        </div>
-    </div>
-    <div class="row">
+                </div>
+                <div class="tab-pane" id="daily_tab">
+                    <div class="row">
         <div class="col-md-12" id="daily_chartdiv" style="height: 400px;">
-        </div>
-        <div class="col-md-12" id="average_game_time_chartdiv" style="height: 400px;">
         </div>
     </div>
     <div class="row" style="margin-bottom: 0">
-    <center><b>Распределение игр по дням недели и времени суток<b></center>
-    <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
+        <center><b>Распределение игр по дням недели и времени суток</b></center>
+        <div class="col-md-6" id="hour-day-chart" style="height: 400px;"></div>
     <div class="col-md-6" id="day-chart" style="height: 400px;"></div>
     </div>
     <div class="row">
     <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
     </div>
-    <div class="row">
+                </div>
+                <div class="tab-pane" id="word_tab">
+                    <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 75% слов<b></center>
-            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
+            <center><b>Зависимость сложности слова от частотности, для top 10% слов</b></center>
+            <img class="img-responsive" src="/images/scatter_plot/10" alt=""/>
+        </div>
+                        <div class="col-md-6">
+                            <center><b>Зависимость сложности слова от длины, для top 10% слов</b></center>
+                            <img class="img-responsive" src="/images/heatmap_plot/10" alt=""/>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="extra_tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <center><b>Зависимость сложности слова от частотности, для top 75% слов</b></center>
+                            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
         </div>
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 75% слов<b></center>
+            <center><b>Зависимость сложности слова от длины, для top 75% слов</b></center>
             <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
         </div>
     </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 30% слов<b></center>
+            <center><b>Зависимость сложности слова от частотности, для top 30% слов</b></center>
             <img class="img-responsive" src="/images/scatter_plot/30" alt="" />
         </div>
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 30% слов<b></center>
+            <center><b>Зависимость сложности слова от длины, для top 30% слов</b></center>
             <img class="img-responsive" src="/images/heatmap_plot/30" alt="" />
         </div>
     </div>
-    {% if is_admin %}
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость погрешности сложности (D) от количества игр<b></center>
+            <center><b>Зависимость погрешности сложности (D) от количества игр</b></center>
             <img class="img-responsive" src="/images/d_plot" alt="" />
         </div>
     </div>
-    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
