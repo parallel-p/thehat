@@ -1,7 +1,9 @@
 {% extends "templates/base.html" %}
 {% block title %}Неизвестные слова{% endblock %}
-{% block header %}Неизвестные слова{% endblock %}
+{% block header %}Неизвестные слова
+{% endblock %}
 {%block content%}
+
 <script type="application/javascript">
 
     function getXmlHttp() {
@@ -85,10 +87,17 @@
                     </button>
                 </td>
                 <td>
-                    <button class="btn btn-info" onclick="location.href='http://ru.wiktionary.org/wiki/{{word.word}}'">
-                        <span class="glyphicon glyphicon-search"></span>
-                        Посмотреть в Wiktionary
+                    <div class="btn-group">
+                    <button data-toggle="dropdown" class="btn btn-default dropdown-toggle"> <span class="glyphicon glyphicon-question-sign"></span>
+                        <span class="caret"></span>
                     </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="http://ru.wiktionary.org/wiki/{{word.word}}">Посмотреть в Wiktionary</a></li>
+                            <li class="divider"></li>
+                            <li><a href="http://www.google.com/search?q={{ word.word }}">Поиск в Google</a></li>
+                            <li><a href="http://yandex.ru/yandsearch?text={{ word.word }}">Поиск в Yandex</a></li>
+                        </ul>
+                    </div>
                 </td>
              </tr>
         {% endfor %}
