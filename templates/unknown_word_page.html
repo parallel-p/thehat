@@ -63,6 +63,37 @@
         post('/admin/unknown_word/add', word);
     }
 </script>
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        var word_name = ""
+        $(".rename_button").click(function() {
+            word_name = $(this).attr('id');
+            $('#proper_word').val('');
+            $('#rename_word_modal').modal('show');
+        });
+        $(".send_button").click(function() {
+            var typed_word = $('#proper_word').val();
+            $('#rename_word_modal').modal('show');
+            if($.trim(typed_word) != ''){
+                $(this).addClass('glyphicon glyphicon-ok-circle')
+                post("json", '/admin/word_lookup/add', JSON.stringify([{"word":typed_word, "lookup":word_name}]))
+                add(typed_word);
+                ignore(word_name);
+                for (var i = 0; i < {{ quantity }}; i = i + 1)
+                {
+                    try
+                    {
+                        document.getElementById(word_name+"_row").style.display = "none";
+                    }
+                    catch(err)
+                    {
+                        ;
+                    }
+                }
+            }
+        });
+    });
+</script>
 
 <table class="table table-hover">
     <thead>
@@ -70,37 +101,76 @@
         <td>Встречалось раз</td>
     </thead>
     <tbody>
+
         {% for word in word_list %}
-            <tr class='clickableRow' id = "{{ word.word }}">
+            <tr id = "{{ word.word }}_row">
                 <td>{{ word.word }}</td>
                 <td>{{ word.times_used}}</td>
                 <td>
-                    <button class="btn btn-success" onclick="add('{{ word.word }}')">
-                        <span class="glyphicon glyphicon-plus"></span>
-                        добавить в словарь
-                    </button>
-                </td>
-                <td>
-                    <button class="btn btn-warning" onclick="ignore('{{ word.word }}')">
-                        <span class="glyphicon glyphicon-minus"></span>
-                        игнорировать
-                    </button>
-                </td>
-                <td>
-                    <div class="btn-group">
-                    <button data-toggle="dropdown" class="btn btn-default dropdown-toggle"> <span class="glyphicon glyphicon-question-sign"></span>
-                        <span class="caret"></span>
-                    </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="http://ru.wiktionary.org/wiki/{{word.word}}">Посмотреть в Wiktionary</a></li>
-                            <li class="divider"></li>
-                            <li><a href="http://www.google.com/search?q={{ word.word }}">Поиск в Google</a></li>
-                            <li><a href="http://yandex.ru/yandsearch?text={{ word.word }}">Поиск в Yandex</a></li>
-                        </ul>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-success" onclick="add('{{ word.word }}')">
+                                <span class="glyphicon glyphicon-plus"></span>
+                                добавить в словарь
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger ignore_button" onclick="ignore('{{ word.word }}')">
+                                <span class="glyphicon glyphicon-minus"></span>
+                                игнорировать
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-info rename_button" id = "{{ word.word }}">
+                                <span class="glyphicon glyphicon-edit"></span>
+                                Это опечатка
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="btn-group">
+                            <button data-toggle="dropdown" class="btn btn-default dropdown-toggle"> <span class="glyphicon glyphicon-question-sign"></span>
+                                <span class="caret"></span>
+                            </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="http://ru.wiktionary.org/wiki/{{word.word}}">Посмотреть в Wiktionary</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="http://www.google.com/search?q={{ word.word }}">Поиск в Google</a></li>
+                                    <li><a href="http://yandex.ru/yandsearch?text={{ word.word }}">Поиск в Yandex</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </td>
              </tr>
         {% endfor %}
     </tbody>
 </table>
+<div class="modal" id="rename_word_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Опечатка</h4>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <input type="text" id="proper_word" class="form-control" placeholder="Введите слово для переименования">
+                    </div>
+
+                    <div class="col-md-4">
+                       <button type="button" class="btn btn-block btn-warning send_button"> Переименовать </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row-fluid">
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-block btn-success" data-dismiss="modal"> Close </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

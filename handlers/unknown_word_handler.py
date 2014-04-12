@@ -7,6 +7,15 @@ __author__ = 'ivan'
 from objects.unknown_word import UnknownWord
 
 
+class page_word():
+
+    def __init__(self, x, cnt):
+        self.times_used = x.times_used
+        self.ignored = x.ignored
+        self.word = x.word
+        self.id = cnt
+
+
 class GetWordPageHandler(AdminRequestHandler):
 
     def __init(self, *args, **kwargs):
@@ -14,13 +23,8 @@ class GetWordPageHandler(AdminRequestHandler):
 
     def get(self):
         self.response.headers.add_header('Access-Control-Allow-Origin', '*')
-        words = UnknownWord.query().order(-UnknownWord.times_used).filter(UnknownWord.ignored==False).fetch()
+        words = [page_word(value, index) for index, value in enumerate(UnknownWord.query().order(-UnknownWord.times_used).filter(UnknownWord.ignored==False).fetch())]
         self.draw_page('unknown_word_page', word_list=words, quantity=len(words))
-
-    def options(self):
-        self.response.headers['Access-Control-Allow-Origin'] = '*'
-        self.response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
-        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
 
 
 class IgnoreWordHanler(AdminRequestHandler):
