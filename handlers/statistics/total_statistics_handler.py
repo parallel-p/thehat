@@ -56,6 +56,7 @@ class TotalStatisticsHandler(WebRequestHandler):
         super(TotalStatisticsHandler, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
+        tab = self.request.get('tab', 'info')
         daily_statistics = DailyStatistics.query().order(DailyStatistics.date).fetch()
         total = TotalStatistics.get()
         games_for_player_count = GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch()
@@ -82,6 +83,7 @@ class TotalStatisticsHandler(WebRequestHandler):
             by_day[(hour // 24 + 3) % 7] += games
         words_in_dictionary = GlobalDictionaryWord.query().count()
         self.draw_page("statistics/total_statistic",
+                       tab=tab,
                        daily=daily,
                        games_for_time=total.by_hour,
                        by_hour=by_hour,
