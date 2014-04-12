@@ -339,16 +339,13 @@ var chart_day = AmCharts.makeChart("day-chart", {
 
 {% block content %}
     <ul class="nav nav-tabs">
-        <li class="active"><a href="#info_tab" data-toggle="tab">Общие цифры</a></li>
-        <li><a href="#daily_tab" data-toggle="tab">Статистика по времени</a></li>
-        <li><a href="#word_tab" data-toggle="tab">Зависимости сложности слов</a></li>
-        <li><a href="#extra_tab" data-toggle="tab">Дополнительная статистика</a></li>
+        <li class="{{ "active" if tab == "info" else "" }}"><a href="?tab=info">Общие цифры</a></li>
+        <li class="{{ "active" if tab == "daily" else "" }}"><a href="?tab=daily">Статистика по времени</a></li>
+        <li class="{{ "active" if tab == "word" else "" }}"><a href="?tab=word">Зависимости сложности слов</a></li>
+        <li class="{{ "active" if tab == "extra" else "" }}"><a href="?tab=extra">Дополнительная статистика</a></li>
     </ul>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="tab-content">
-                <div class="tab-pane active" id="info_tab">
-                <div class="row">
+    {% if tab == 'info' %}
+        <div class="row">
         <div class="col-md-6">
             <br>
             <table class="table">
@@ -374,9 +371,8 @@ var chart_day = AmCharts.makeChart("day-chart", {
             <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
         </div>
     </div>
-                </div>
-                <div class="tab-pane" id="daily_tab">
-                    <div class="row">
+    {% elif tab == 'daily' %}
+        <div class="row">
         <div class="col-md-12" id="daily_chartdiv" style="height: 400px;">
         </div>
     </div>
@@ -388,26 +384,24 @@ var chart_day = AmCharts.makeChart("day-chart", {
     <div class="row">
     <div class="col-md-6" id="hour-chart" style="height: 400px;"></div>
     </div>
-                </div>
-                <div class="tab-pane" id="word_tab">
-                    <div class="row">
-        <div class="col-md-6">
+    {% elif tab == 'word' %}
+        <div class="row">
+            <div class="col-md-6">
             <center><b>Зависимость сложности слова от частотности, для top 10% слов</b></center>
             <img class="img-responsive" src="/images/scatter_plot/10" alt=""/>
         </div>
-                        <div class="col-md-6">
-                            <center><b>Зависимость сложности слова от длины, для top 10% слов</b></center>
-                            <img class="img-responsive" src="/images/heatmap_plot/10" alt=""/>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane" id="extra_tab">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <center><b>Зависимость сложности слова от частотности, для top 75% слов</b></center>
-                            <img class="img-responsive" src="/images/scatter_plot/75" alt="" />
+            <div class="col-md-6">
+                <center><b>Зависимость сложности слова от длины, для top 10% слов</b></center>
+                <img class="img-responsive" src="/images/heatmap_plot/10" alt=""/>
+            </div>
         </div>
-        <div class="col-md-6">
+    {% elif tab == 'extra' %}
+        <div class="row">
+            <div class="col-md-6">
+                <center><b>Зависимость сложности слова от частотности, для top 75% слов</b></center>
+                <img class="img-responsive" src="/images/scatter_plot/75" alt=""/>
+            </div>
+            <div class="col-md-6">
             <center><b>Зависимость сложности слова от длины, для top 75% слов</b></center>
             <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
         </div>
@@ -428,8 +422,5 @@ var chart_day = AmCharts.makeChart("day-chart", {
             <img class="img-responsive" src="/images/d_plot" alt="" />
         </div>
     </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% endif %}
 {% endblock %}
