@@ -8,6 +8,7 @@ from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.complained_word import ComplainedWord
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
+from objects.user_devices import get_device_and_user
 
 
 class ComplainWordHandler(AuthorizedAPIRequestHandler):
@@ -34,7 +35,11 @@ class word_class:
         if x.replacement_word is None:
             self.replacement_word = ''
         self.cnt = cnt
-        self.device_id = x.device.get().device_id
+        device, user = get_device_and_user(x.device.get().device_id)
+        if device == user:
+            self.device_id = device.get().device_id
+        else:
+            self.device_id = user.get().user_id
 
 class ShowComplainedWords(AdminRequestHandler):
     def __init__(self, *args, **kwargs):
