@@ -1,14 +1,12 @@
 __author__ = 'ivan'
 
+import StringIO
+import logging
 
 from google.appengine.ext import ndb
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
-import StringIO
-
 from google.appengine.api import taskqueue
 
-import logging
-from objects.global_dictionary_word import GlobalDictionaryWord
+from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
 class Plot(ndb.Model):
@@ -116,7 +114,8 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         super(UpdateScatterPlotTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
-        import numpy, matplotlib, matplotlib.pyplot
+        import matplotlib, matplotlib.pyplot
+
         N = self.request.get("N")
         scatter_plot = ndb.Key(Plot, "scatter_plot_"+N).get()
         if scatter_plot is not None:
@@ -136,11 +135,11 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
                 y.append(int(word.E))
         fig, ax = matplotlib.pyplot.subplots()
         ax.set_title("Scatter plot for words in top {0} % used times".format(N), fontsize=14)
-        ax.set_xlabel("frequency", fontsize=12)
+        ax.set_xlabel("uses per million words", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
         ax.grid(True, linestyle='-',color='0.75')
         ax.plot(x, y, 'o', color="green", markersize=2)
-        ax.set_xlim([0, 100])
+        ax.set_xscale('log')
         ax.set_ylim([0, 100])
         rv = StringIO.StringIO()
         fig.savefig(rv, format="png", dpi=100)

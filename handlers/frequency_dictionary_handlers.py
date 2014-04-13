@@ -1,31 +1,30 @@
 __author__ = 'ivan'
 
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
+import json
+
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
-import json
+
+from handlers.base_handlers.admin_request_handler import AdminRequestHandler
+from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
 class WordFrequency(ndb.Model):
-
     word = ndb.StringProperty()
-    frequency = ndb.IntegerProperty()
+    frequency = ndb.FloatProperty()
 
 
 class MakeDictionaryTaskQueueHandler(ServiceRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(MakeDictionaryTaskQueueHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
         words = json.loads(self.request.get("json"))
         for word in words:
-            WordFrequency(word=word["w"], frequency=int(word["d"]), id=word["w"]).put()
+            WordFrequency(word=word["w"], frequency=float(word["d"]), id=word["w"]).put()
 
 
 class MakeDictionaryHandler(AdminRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(MakeDictionaryHandler, self).__init__(*args, **kwargs)
 
@@ -38,7 +37,6 @@ class MakeDictionaryHandler(AdminRequestHandler):
 
 
 class DeleteDictionary(AdminRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(DeleteDictionary, self).__init__(*args, **kwargs)
 
@@ -47,7 +45,6 @@ class DeleteDictionary(AdminRequestHandler):
 
 
 class DeleteDictionaryTaskQueue(ServiceRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(DeleteDictionaryTaskQueue, self).__init__(*args, **kwargs)
 
