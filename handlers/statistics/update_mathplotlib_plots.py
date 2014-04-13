@@ -93,11 +93,11 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
             x.append(len(word.word))
             y.append(int(word.E))
 
-        heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[100, 100], range=[[0, 100], [0, 25]])
+        heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[30, 25], range=[[0, 100], [0, 25]])
         extent = [0, 25, 0, 100]
         matplotlib.pyplot.clf()
         matplotlib.pyplot.axis([0, 25, 0, 100])
-        matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto", origin="lower")
+        matplotlib.pyplot.imshow(heatmap, vmin=1, extent=extent, aspect="auto", origin="lower")
         matplotlib.pyplot.title("heatmap for words in top {0} % used times".format(N))
         matplotlib.pyplot.xlabel("word length", fontsize=12)
         matplotlib.pyplot.ylabel("word difficulty", fontsize=12)
