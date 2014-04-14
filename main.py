@@ -37,6 +37,7 @@ import handlers.frequency_dictionary_handlers
 import handlers.game_log_viewer
 import handlers.unknown_word_handler
 import handlers.word_lookup
+import handlers.base_handlers.api_request_handlers
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -52,6 +53,35 @@ routes = [
     webapp2.Route(r'/internal/linkdevice',
                   handler=handlers.link_device.LinkDeviceMaintainConsistency,
                   name='internal_linkdevice'),
+
+    #User api request handlers
+    #user
+    webapp2.Route(r'/api/user/get/all',
+                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.User,
+                  name='get all values'),
+    webapp2.Route(r'/api/user/update',
+                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.User,
+                  name='get all values'),
+    webapp2.Route(r'/api/user/delete',
+                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.User,
+                  name='delete values'),
+    webapp2.Route(r'/api/user/version',
+                  handler=handlers.base_handlers.api_request_handlers.GetLastUserVersion,
+                  name='get version'),
+    #this device
+    webapp2.Route(r'/api/this_device/get/all',
+                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.DevicePrivate,
+                  name='get all values'),
+    webapp2.Route(r'/api/this_device/update',
+                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.DevicePrivate,
+                  name='get all values'),
+    webapp2.Route(r'/api/this_device/delete',
+                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.DevicePrivate,
+                  name='delete values'),
+    webapp2.Route(r'/api/this_device/version',
+                  handler=handlers.base_handlers.api_request_handlers.GetLastUserVersion,
+                  name='get version'),
+    #end api andlers
 
     #Unknown words handlers
     webapp2.Route(r'/admin/unknown_word/list',

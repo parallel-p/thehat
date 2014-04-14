@@ -7,10 +7,19 @@ class User(ndb.Model):
     user_id = ndb.StringProperty()
     user_object = ndb.UserProperty()
     devices = ndb.KeyProperty(repeated=True)
+    values = ndb.JsonProperty(default={})
+    version = ndb.IntegerProperty(default=0)
+
+
+class UserDevices(ndb.Model):
+    values = ndb.JsonProperty(default={})
+    version = ndb.IntegerProperty(default=0)
 
 
 class Device(ndb.Model):
     device_id = ndb.StringProperty()
+    values = ndb.JsonProperty(default={})
+
 
 
 class OwnedModel(ndb.Model):

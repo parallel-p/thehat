@@ -15,8 +15,8 @@ def logoutCurrentUser():
     setCurrentUser(None, None)
 
 
-def make_request(url, type, admin=False, body=None):
-    request = webapp2.Request.blank(url)
+def make_request(url, type, admin=False, body=None, headers=None):
+    request = webapp2.Request.blank(url, headers=headers)
     request.method = type
     if body:
         request.body = body
