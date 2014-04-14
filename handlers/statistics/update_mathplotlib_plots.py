@@ -7,6 +7,7 @@ from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
+from objects.global_dictionary_word import GlobalDictionaryWord
 
 
 class Plot(ndb.Model):
@@ -23,7 +24,7 @@ class runUpdateAll(ServiceRequestHandler):
             '/internal/update_scatter/task_queue',
             '/internal/update_scatter/task_queue',
             '/internal/update_d/task_queue']
-    params = [{'N': '75'}, {'N': '30'}, {'N': '10'}, {'N': '75'}, {'N': '30'}, {'N': '10'}, {}]
+    params = [{'N': '100'}, {'N': '50'}, {'N': '20'}, {'N': '100'}, {'N': '50'}, {'N': '20'}, {}]
 
     def __init__(self, *args, **kwargs):
         super(runUpdateAll, self).__init__(*args, **kwargs)
@@ -81,11 +82,9 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         heatmap_plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
         if heatmap_plot is not None:
             heatmap_plot.key.delete()
-        words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord ORDER BY used_times').fetch()
-        logging.debug("words count before = {0}".format(len(words)))
-        count = int(len(words) / 100 * int(N))
-        words = words[-count:]
-        logging.debug("words count after = {0}".format(len(words)))
+        q = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).order(-GlobalDictionaryWord.used_times)
+        count = int(q.count() * int(N) / 100)
+        words = q.fetch(count)
         matplotlib.pyplot.title("heatmap")
         x = []
         y = []
@@ -120,10 +119,9 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         scatter_plot = ndb.Key(Plot, "scatter_plot_"+N).get()
         if scatter_plot is not None:
             scatter_plot.key.delete()
-        words = ndb.gql('SELECT word, E, used_times FROM GlobalDictionaryWord ORDER BY used_times').fetch()
-        count = int(len(words) / 100 * int(N))
-        words = words[-count:]
-
+        q = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).order(-GlobalDictionaryWord.used_times)
+        count = int(q.count() * int(N) / 100)
+        words = q.fetch(count)
         dict_words = {word.word:word.frequency for word
                       in ndb.gql('SELECT * FROM WordFrequency').fetch()}
         logging.info('{0} words in freq dictionary'.format(len(dict_words)))

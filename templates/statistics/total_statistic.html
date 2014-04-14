@@ -15,63 +15,8 @@
     margin-bottom: 50px;
 }
 </style>
-
-<script type="application/javascript" >
-	function make_serial_chart(chart_data, category_field, title) {
-		chart = new AmCharts.AmSerialChart();
-        chart.addTitle(title);
-		chart.dataProvider = chart_data;
-        chart.categoryField = category_field;
-        chart.dataDateFormat = "YYYY-MM-DD";
-        return chart;
-	}
-    function make_category_axis(chart, parse_dates, min_period){
-        var categoryAxis = chart.categoryAxis;
-        categoryAxis.parseDates = parse_dates; // as our data is date-based, we set parseDates to true
-        if(parse_dates)
-            categoryAxis.minPeriod = min_period; // our data is daily, so we set minPeriod to DD
-        categoryAxis.dashLength = 1;
-        categoryAxis.gridAlpha = 0.15;
-        categoryAxis.minorGridEnabled = true;
-        categoryAxis.axisColor = "#DADADA";
-    }
-    function create_value_axis(axis_alpha, axis_length){
-        var valueAxis = new AmCharts.ValueAxis();
-        valueAxis.axisAlpha = axis_alpha;
-        valueAxis.dashLength = axis_length;
-        return valueAxis;
-    }
-    function make_graph(title, valueField, balloonText){
-        var graph = new AmCharts.AmGraph();
-        graph.valueField = valueField;
-        graph.bullet = "round";
-        graph.bulletBorderColor = "#FFFFFF";
-        graph.bulletBorderThickness = 2;
-        graph.bulletBorderAlpha = 1;
-        graph.lineThickness = 2;
-        graph.lineColor = "#b5030d";
-        graph.negativeLineColor = "#0352b5";
-        graph.balloonText = balloonText;
-        graph.hideBulletsCount = 50; // this makes the chart to hide bullets when there are more than 50 series in selection
-        return graph;
-    }
-    function create_cursor()
-    {
-        chartCursor = new AmCharts.ChartCursor();
-        chartCursor.cursorPosition = "mouse";
-        return chartCursor;
-    }
-    function create_scrollbar(graph){
-        var chartScrollbar = new AmCharts.ChartScrollbar();
-        chartScrollbar.graph = graph;
-        chartScrollbar.scrollbarHeight = 40;
-        chartScrollbar.color = "#FFFFFF";
-        chartScrollbar.autoGridCount = true;
-        return chartScrollbar;
-    }
-</script>
-
 <script type="text/javascript">
+{% if tab == 'daily' %}
     var daily_data= [
         {% for a, b, c, d, e in daily %}
             {
@@ -302,8 +247,9 @@ var chart_day = AmCharts.makeChart("day-chart", {
         "maxBulletSize": 20
     }]
 });
- var games_for_player_chart = AmCharts.makeChart("games_for_player_chart_chartdiv", {
-    "type": "pie",
+{% elif tab == 'info' %}
+    var games_for_player_chart = AmCharts.makeChart("games_for_player_chart_chartdiv", {
+        "type": "pie",
 	"theme": "none",
     "titles": [{
         "text": "Количество игр с различным числом игроков",
@@ -332,9 +278,8 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]] игр</b> ([[percents]]%)</span>",
     "angle": 15
 });
+{% endif %}
 </script>
-
-<!--amcharts import end-->
 {% endblock %}
 
 {% block content %}
@@ -387,33 +332,33 @@ var chart_day = AmCharts.makeChart("day-chart", {
     {% elif tab == 'word' %}
         <div class="row">
             <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 10% слов</b></center>
-            <img class="img-responsive" src="/images/scatter_plot/10" alt=""/>
-        </div>
+                <center><b>Зависимость сложности слова от частотности, для top 20% слов</b></center>
+                <img class="img-responsive" src="/images/scatter_plot/20" alt=""/>
+            </div>
             <div class="col-md-6">
-                <center><b>Зависимость сложности слова от длины, для top 10% слов</b></center>
-                <img class="img-responsive" src="/images/heatmap_plot/10" alt=""/>
+                <center><b>Зависимость сложности слова от длины, для top 20% слов</b></center>
+                <img class="img-responsive" src="/images/heatmap_plot/20" alt=""/>
             </div>
         </div>
     {% elif tab == 'extra' %}
         <div class="row">
             <div class="col-md-6">
-                <center><b>Зависимость сложности слова от частотности, для top 75% слов</b></center>
-                <img class="img-responsive" src="/images/scatter_plot/75" alt=""/>
+                <center><b>Зависимость сложности слова от частотности, для использованных слов слов</b></center>
+                <img class="img-responsive" src="/images/scatter_plot/100" alt=""/>
             </div>
             <div class="col-md-6">
-            <center><b>Зависимость сложности слова от длины, для top 75% слов</b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/75" alt="" />
+                <center><b>Зависимость сложности слова от длины, для использованных слов слов</b></center>
+                <img class="img-responsive" src="/images/heatmap_plot/100" alt=""/>
+            </div>
         </div>
-    </div>
     <div class="row">
         <div class="col-md-6">
-            <center><b>Зависимость сложности слова от частотности, для top 30% слов</b></center>
-            <img class="img-responsive" src="/images/scatter_plot/30" alt="" />
+            <center><b>Зависимость сложности слова от частотности, для top 50% слов</b></center>
+            <img class="img-responsive" src="/images/scatter_plot/50" alt=""/>
         </div>
         <div class="col-md-6">
             <center><b>Зависимость сложности слова от длины, для top 30% слов</b></center>
-            <img class="img-responsive" src="/images/heatmap_plot/30" alt="" />
+            <img class="img-responsive" src="/images/heatmap_plot/50" alt=""/>
         </div>
     </div>
     <div class="row">
