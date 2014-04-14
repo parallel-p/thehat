@@ -3,7 +3,6 @@ import json
 
 from generic_handler import GenericHandler
 from objects.user_devices import get_device_and_user
-from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
 class APIRequestHandler(GenericHandler):
@@ -108,7 +107,7 @@ class DeleteValues:
             DeleteValues.delete(self.device_key, self.request.get("json"))
 
 
-class GetLastUserVersion(WebRequestHandler):
+class GetLastUserVersion(AuthorizedAPIRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super(GetLastUserVersion, self).__init__(*args, **kwargs)
@@ -117,7 +116,7 @@ class GetLastUserVersion(WebRequestHandler):
         self.response.write(self.user_key.get().version)
 
 
-class GetLastPrivateDeviceVersion(WebRequestHandler):
+class GetLastPrivateDeviceVersion(AuthorizedAPIRequestHandler):
 
     def __init__(self, *args, **kwargs):
         super(GetLastPrivateDeviceVersion, self).__init__(*args, **kwargs)
