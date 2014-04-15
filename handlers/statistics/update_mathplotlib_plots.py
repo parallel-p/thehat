@@ -11,19 +11,18 @@ from objects.global_dictionary_word import GlobalDictionaryWord
 
 
 class Plot(ndb.Model):
-
     plot = ndb.BlobProperty(indexed=False)
 
 
 class runUpdateAll(ServiceRequestHandler):
     urls = [
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_heatmap/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_scatter/task_queue',
-            '/internal/update_d/task_queue']
+        '/internal/update_heatmap/task_queue',
+        '/internal/update_heatmap/task_queue',
+        '/internal/update_heatmap/task_queue',
+        '/internal/update_scatter/task_queue',
+        '/internal/update_scatter/task_queue',
+        '/internal/update_scatter/task_queue',
+        '/internal/update_d/task_queue']
     params = [{'N': '100'}, {'N': '50'}, {'N': '20'}, {'N': '100'}, {'N': '50'}, {'N': '20'}, {}]
 
     def __init__(self, *args, **kwargs):
@@ -39,27 +38,28 @@ class runUpdateAll(ServiceRequestHandler):
 
 
 class UpdateDPlotHeatMapTaskQueue(ServiceRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(UpdateDPlotHeatMapTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
         import numpy, matplotlib, matplotlib.pyplot
+
         heatmap_plot = ndb.Key(Plot, "d_plot").get()
         if heatmap_plot is not None:
             heatmap_plot.key.delete()
-        words = ndb.gql('SELECT D, used_times FROM GlobalDictionaryWord').fetch()
+        words = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).fetch()
         matplotlib.pyplot.title("heatmap")
         x = []
         y = []
+        max_used = 0
         for word in words:
-            if word.used_times > 0:
-                x.append(word.used_times)
-                y.append(word.D)
-        heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[50, 50], range=[[0, 30], [0, 8]])
-        extent = [0, 8, 0, 30]
+            max_used = max(word.used_times, max_used)
+            x.append(word.used_times)
+            y.append(word.D)
+        heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[30, max_used], range=[[0, 30], [0, max_used]])
+        extent = [0, max_used, 0, 30]
         matplotlib.pyplot.clf()
-        matplotlib.pyplot.axis([0, 8, 0, 30])
+        matplotlib.pyplot.axis(extent)
         matplotlib.pyplot.imshow(heatmap, extent=extent, aspect="auto", origin="lower")
         matplotlib.pyplot.title("heatmap for word used times to D")
         matplotlib.pyplot.xlabel("times used", fontsize=12)
@@ -72,14 +72,14 @@ class UpdateDPlotHeatMapTaskQueue(ServiceRequestHandler):
 
 
 class UpdateHeatMapTaskQueue(ServiceRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(UpdateHeatMapTaskQueue, self).__init__(*args, **kwargs)
 
     def post(self):
         import numpy, matplotlib, matplotlib.pyplot
+
         N = self.request.get("N")
-        heatmap_plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
+        heatmap_plot = ndb.Key(Plot, "heatmap_plot_" + N).get()
         if heatmap_plot is not None:
             heatmap_plot.key.delete()
         q = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).order(-GlobalDictionaryWord.used_times)
@@ -102,13 +102,12 @@ class UpdateHeatMapTaskQueue(ServiceRequestHandler):
         matplotlib.pyplot.ylabel("word difficulty", fontsize=12)
         rv = StringIO.StringIO()
         matplotlib.pyplot.savefig(rv, format="png", dpi=100)
-        Plot(plot=rv.getvalue(), id="heatmap_plot_"+N).put()
+        Plot(plot=rv.getvalue(), id="heatmap_plot_" + N).put()
         matplotlib.pyplot.close()
         rv.close()
 
 
 class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(UpdateScatterPlotTaskQueue, self).__init__(*args, **kwargs)
 
@@ -116,13 +115,13 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         import matplotlib, matplotlib.pyplot
 
         N = self.request.get("N")
-        scatter_plot = ndb.Key(Plot, "scatter_plot_"+N).get()
+        scatter_plot = ndb.Key(Plot, "scatter_plot_" + N).get()
         if scatter_plot is not None:
             scatter_plot.key.delete()
         q = GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).order(-GlobalDictionaryWord.used_times)
         count = int(q.count() * int(N) / 100)
         words = q.fetch(count)
-        dict_words = {word.word:word.frequency for word
+        dict_words = {word.word: word.frequency for word
                       in ndb.gql('SELECT * FROM WordFrequency').fetch()}
         logging.info('{0} words in freq dictionary'.format(len(dict_words)))
         x = []
@@ -135,13 +134,13 @@ class UpdateScatterPlotTaskQueue(ServiceRequestHandler):
         ax.set_title("Scatter plot for words in top {0} % used times".format(N), fontsize=14)
         ax.set_xlabel("uses per million words", fontsize=12)
         ax.set_ylabel("difficulty", fontsize=12)
-        ax.grid(True, linestyle='-',color='0.75')
+        ax.grid(True, linestyle='-', color='0.75')
         ax.plot(x, y, 'o', color="green", markersize=2)
         ax.set_xscale('log')
         ax.set_ylim([0, 100])
         rv = StringIO.StringIO()
         fig.savefig(rv, format="png", dpi=100)
-        Plot(plot=rv.getvalue(), id="scatter_plot_"+N).put()
+        Plot(plot=rv.getvalue(), id="scatter_plot_" + N).put()
         matplotlib.pyplot.close()
         rv.close()
 

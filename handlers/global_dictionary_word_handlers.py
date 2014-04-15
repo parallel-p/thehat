@@ -4,13 +4,10 @@ import time
 import json
 
 from google.appengine.api import taskqueue
-from google.appengine.api import users
 from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-
-from environment import *
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from handlers.base_handlers.service_request_handler import ServiceRequestHandler
@@ -63,13 +60,12 @@ class TaskQueueUpdateJson(ServiceRequestHandler):
         timestamp = int(self.request.get("timestamp"))
         max_timestamp = 0
         word_list = []
-        for word in ndb.gql(u"SELECT word, timestamp FROM GlobalDictionaryWord"):
+        for word in GlobalDictionaryWord.query().fetch():
             word_time = int(time.mktime(word.timestamp.timetuple()) * 1000)
             if word_time > timestamp:
                 max_timestamp = max(max_timestamp, word_time)
-                downloaded_word = ndb.gql(u"SELECT * from GlobalDictionaryWord WHERE word = '{0}'".format(word.word)).get()
-                word_list.append({"word": word.word, "E": downloaded_word.E, "D": downloaded_word.D, "U": downloaded_word.used_times, "tags": downloaded_word.tags})
-        if word_list != []:
+                word_list.append({"word": word.word, "E": word.E, "D": word.D, "U": word.used_times, "tags": word.tags})
+        if word_list:
             GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
 
 
@@ -125,7 +121,7 @@ class GlobalDictionaryGetWordsHandler(APIRequestHandler):
     def get(self, *args, **kwargs):
         device_timestamp = int(kwargs.get("timestamp"))
         max_timestamp = 0
-        response_json = {"words":[]}
+        response_json = {"words": []}
         for diff_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson "
                                  "ORDER BY timestamp"):
             max_timestamp = max(max_timestamp, diff_json.timestamp)
