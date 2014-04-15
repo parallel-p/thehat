@@ -3,6 +3,7 @@ import json
 
 from generic_handler import GenericHandler
 from objects.user_devices import get_device_and_user
+import logging
 
 
 class APIRequestHandler(GenericHandler):
@@ -31,8 +32,8 @@ class GetAllValues:
 
     @staticmethod
     def get(object):
-        curr_user = object.get()
-        return json.dumps({"json": curr_user.values, "version": curr_user.version})
+        curr_obj = object.get()
+        return json.dumps({"json": curr_obj.values, "version": curr_obj.version})
 
     class User(AuthorizedAPIRequestHandler):
 
@@ -42,13 +43,24 @@ class GetAllValues:
         def get(self):
             self.response.write(GetAllValues.get(self.user_key))
 
-    class DevicePrivate(AuthorizedAPIRequestHandler):
+    class Device(AuthorizedAPIRequestHandler):
 
         def __init__(self, *args, **kwargs):
-            super(GetAllValues.DevicePrivate, self).__init__(*args, **kwargs)
+            super(GetAllValues.Device, self).__init__(*args, **kwargs)
 
         def get(self):
-            self.response.write(GetAllValues.get(self.device_id))
+            self.response.write(GetAllValues.get(self.device_key))
+
+    class Devices(AuthorizedAPIRequestHandler):
+
+        def __init__(self, *args, **kwargs):
+            super(GetAllValues.Devices, self).__init__(*args, **kwargs)
+
+        def get(self):
+            curr_user = self.user_key.get()
+            if curr_user is None:
+                self.error(403)
+            self.response.write({"json": curr_user.devices_values, "version": curr_user.devices_version})
 
 
 class UpdateValues:
@@ -69,13 +81,35 @@ class UpdateValues:
         def post(self):
             UpdateValues.update(self.user_key, self.request.get("json"))
 
-    class DevicePrivate(AuthorizedAPIRequestHandler):
+    class Device(AuthorizedAPIRequestHandler):
 
         def __init__(self, *args, **kwargs):
-            super(UpdateValues.DevicePrivate, self).__init__(*args, **kwargs)
+            super(UpdateValues.Device, self).__init__(*args, **kwargs)
 
         def post(self):
             UpdateValues.update(self.device_key, self.request.get("json"))
+
+    class Devices(AuthorizedAPIRequestHandler):
+
+        def __init__(self, *args, **kwargs):
+            super(UpdateValues.Devices, self).__init__(*args, **kwargs)
+
+        def post(self, *args, **kwargs):
+            curr_user = self.user_key.get()
+            if curr_user is None:
+                self.error(403)
+            this_user_devices = [device.get().device_id for device in curr_user.devices]
+            add = json.loads(self.request.get("json"))
+            for device_id in add:
+                if device_id in this_user_devices:
+                    if device_id not in curr_user.devices_values:
+                        curr_user.devices_values[device_id] = {}
+                    for elem in add[device_id]:
+                        curr_user.devices_values[device_id][elem] = add[device_id][elem]
+                else:
+                    logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
+            curr_user.devices_version += 1
+            curr_user.put()
 
 
 class DeleteValues:
@@ -98,13 +132,35 @@ class DeleteValues:
         def post(self):
             DeleteValues.delete(self.user_key, self.request.get("json"))
 
-    class DevicePrivate(AuthorizedAPIRequestHandler):
+    class Device(AuthorizedAPIRequestHandler):
 
         def __init__(self, *args, **kwargs):
-            super(DeleteValues.DevicePrivate, self).__init__(*args, **kwargs)
+            super(DeleteValues.Device, self).__init__(*args, **kwargs)
 
         def post(self):
             DeleteValues.delete(self.device_key, self.request.get("json"))
+
+    class Devices(AuthorizedAPIRequestHandler):
+
+        def __init__(self, *args, **kwargs):
+            super(DeleteValues.Devices, self).__init__(*args, **kwargs)
+
+        def post(self, *args, **kwargs):
+            to_delete = json.loads(self.request.get("json"))
+            curr_user = self.user_key.get()
+            this_user_devices = [device.get().device_id for device in curr_user.devices]
+            if curr_user is None:
+                self.error(403)
+            for device_id in to_delete:
+                if device_id in this_user_devices:
+                    if device_id in curr_user.devices_values:
+                        for elem in to_delete[device_id]:
+                            if elem in curr_user.devices_values[device_id]:
+                                del curr_user.devices_values[device_id][elem]
+                else:
+                    logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
+            curr_user.devices_version += 1
+            curr_user.put()
 
 
 class GetLastUserVersion(AuthorizedAPIRequestHandler):
@@ -116,10 +172,19 @@ class GetLastUserVersion(AuthorizedAPIRequestHandler):
         self.response.write(self.user_key.get().version)
 
 
-class GetLastPrivateDeviceVersion(AuthorizedAPIRequestHandler):
+class GetLastDeviceVersion(AuthorizedAPIRequestHandler):
 
     def __init__(self, *args, **kwargs):
-        super(GetLastPrivateDeviceVersion, self).__init__(*args, **kwargs)
+        super(GetLastDeviceVersion, self).__init__(*args, **kwargs)
 
     def get(self):
         self.response.write(self.device_key.get().version)
+
+
+class GetLastDevicesVersion(AuthorizedAPIRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(GetLastDevicesVersion, self).__init__(*args, **kwargs)
+
+    def get(self):
+        self.response.write(self.user_key.get().devices_version)

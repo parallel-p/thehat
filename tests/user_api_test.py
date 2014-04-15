@@ -6,7 +6,6 @@ import json
 import base64
 from google.appengine.ext import testbed
 from tests.base_functions import *
-from objects.user_devices import User
 import main
 
 
@@ -41,21 +40,21 @@ class UserAPITest(unittest2.TestCase):
         response = request.get_response(main.app)
         self.run_tasks(1)
 
-        request = make_request("/api/user/get/all", "GET", True)
+        request = make_request("/api/settings/user/get/all", "GET", True)
         request.headers['TheHat-Device-Identity'] = 'aaa'
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         self.assertEqual(json.loads(response.body), {'json': {}, 'version': 0})
 
-    def add(self, to_add, admin, device_id):
-        request = make_request("/api/user/update", "POST", admin, "json={0}".format(to_add))
+    def add(self, api_type, to_add, admin, device_id):
+        request = make_request("/api/settings/{0}/update".format(api_type), "POST", admin, "json={0}".format(to_add))
         request.headers['TheHat-Device-Identity'] = device_id
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
         return response
 
-    def get(self, device_id):
-        request = make_request("/api/user/get/all", "GET", True)
+    def get(self, api_type, device_id):
+        request = make_request("/api/settings/{0}/get/all".format(api_type), "GET", True)
         request.headers['TheHat-Device-Identity'] = device_id
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
@@ -68,31 +67,87 @@ class UserAPITest(unittest2.TestCase):
         self.assertEquals(response.status_int, 200)
         self.run_tasks(1)
 
-    def delete(self, to_delete, device_id):
-        request = make_request("/api/user/delete", "POST", True, "json={0}".format(to_delete))
+    def delete(self, api_type, to_delete, device_id):
+        request = make_request("/api/settings/{0}/delete".format(api_type), "POST", True, "json={0}".format(to_delete))
         request.headers['TheHat-Device-Identity'] = device_id
         response = request.get_response(main.app)
         self.assertEqual(response.status_int, 200)
 
+    def get_version(self, api_type, device_id):
+        request = make_request("/api/settings/{0}/version".format(api_type), "GET", True)
+        request.headers['TheHat-Device-Identity'] = device_id
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+        return response
 
     def test_update(self):
         #assign device aaa with default user
         self.assign_device('aaa')
 
         #add first params from this device
-        self.add('{"name": "petya", "sis": "true"}', False, 'aaa')
+        self.add("user", '{"name": "petya", "sis": "true"}', False, 'aaa')
 
-        response = self.get("aaa")
+        response = self.get("user", "aaa")
         self.assertEqual(json.loads(response.body), {"json": {"name": "petya", "sis": "true"}, "version": 1})
 
-        self.add('{"ttt": "a", "ahaha": "b", "name": "vasya"}', False, 'aaa')
+        self.add("user", '{"ttt": "a", "ahaha": "b", "name": "vasya"}', False, 'aaa')
 
-        response = self.get("aaa")
+        response = self.get("user", "aaa")
         self.assertEqual(json.loads(response.body), {"json": {"name": "vasya", "sis": "true", "ttt": "a", "ahaha": "b"},
                                                      "version": 2})
-        self.delete('["ttt", "ffff"]', 'aaa')
+        self.delete("user", '["ttt", "ffff"]', 'aaa')
 
-        response = self.get("aaa")
+        response = self.get("user", "aaa")
         self.assertEqual(json.loads(response.body), {"json": {"name": "vasya", "sis": "true", "ahaha": "b"},
                                                      "version": 3})
+        response = self.get_version("user", "aaa")
+        self.assertEquals(response.body, '3')
 
+        #and with second device
+
+        self.assign_device('bbb')
+        self.add("user", '{"a": "1", "name": "kostya"}', False, 'bbb')
+        response = self.get_version("user", "aaa")
+        self.assertEquals(response.body, '4')
+        response = self.get_version("user", "bbb")
+        self.assertEquals(response.body, '4')
+
+        response = self.get("user", "aaa")
+        self.assertEqual(json.loads(response.body), {"json": {"name": "kostya", "sis": "true", "ahaha": "b", "a": "1"},
+                                                     "version": 4})
+
+    def test_device(self):
+        #assign device aaa with default user
+        self.assign_device('aaa')
+
+        #add first params from this device
+        self.add("device", '{"name": "petya", "sis": "true"}', False, 'aaa')
+
+        response = self.get_version("device", "aaa")
+        self.assertEquals(response.body, '1')
+
+        response = self.get("device", "aaa")
+        self.assertEqual(json.loads(response.body), {"json": {"name": "petya", "sis": "true"}, "version": 1})
+
+        self.add("device", '{"ttt": "a", "ahaha": "b", "name": "vasya"}', False, 'aaa')
+
+        response = self.get("device", "aaa")
+        self.assertEqual(json.loads(response.body), {"json": {"name": "vasya", "sis": "true", "ttt": "a", "ahaha": "b"},
+                                                     "version": 2})
+        self.delete("device", '["ttt", "ffff"]', 'aaa')
+
+        response = self.get("device", "aaa")
+        self.assertEqual(json.loads(response.body), {"json": {"name": "vasya", "sis": "true", "ahaha": "b"},
+                                                     "version": 3})
+        response = self.get_version("device", "aaa")
+        self.assertEquals(response.body, '3')
+
+        #and with second device
+
+        self.assign_device('bbb')
+        self.add("device", '{"a": "1", "b": "2"}', False, 'bbb')
+        response = self.get("device", "bbb")
+        self.assertEqual(json.loads(response.body), {"json": {"a": "1", "b": "2"}, "version": 1})
+
+        response = self.get_version("device", "bbb")
+        self.assertEquals(response.body, '1')

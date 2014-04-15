@@ -9,17 +9,14 @@ class User(ndb.Model):
     devices = ndb.KeyProperty(repeated=True)
     values = ndb.JsonProperty(default={})
     version = ndb.IntegerProperty(default=0)
-
-
-class UserDevices(ndb.Model):
-    values = ndb.JsonProperty(default={})
-    version = ndb.IntegerProperty(default=0)
+    devices_values = ndb.JsonProperty(default={})
+    devices_version = ndb.IntegerProperty(default=0)
 
 
 class Device(ndb.Model):
     device_id = ndb.StringProperty()
     values = ndb.JsonProperty(default={})
-
+    version = ndb.IntegerProperty(default=0)
 
 
 class OwnedModel(ndb.Model):
