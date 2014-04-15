@@ -81,6 +81,19 @@ routes = [
     webapp2.Route(r'/api/settings/device/version',
                   handler=handlers.base_handlers.api_request_handlers.GetLastDeviceVersion,
                   name='get version'),
+    #devices
+    webapp2.Route(r'/api/settings/user_devices/get/all',
+                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.Devices,
+                  name='get all values'),
+    webapp2.Route(r'/api/settings/user_devices/update',
+                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.Devices,
+                  name='get all values'),
+    webapp2.Route(r'/api/settings/user_devices/delete',
+                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.Devices,
+                  name='delete values'),
+    webapp2.Route(r'/api/settings/user_devices/version',
+                  handler=handlers.base_handlers.api_request_handlers.GetLastDevicesVersion,
+                  name='get version'),
     #end api andlers
 
     #Unknown words handlers

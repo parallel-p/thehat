@@ -60,7 +60,7 @@ class GetAllValues:
             curr_user = self.user_key.get()
             if curr_user is None:
                 self.error(403)
-            self.response.write({"json": curr_user.devices_values, "version": curr_user.devices_version})
+            self.response.write(json.dumps({"json": curr_user.devices_values, "version": curr_user.devices_version}))
 
 
 class UpdateValues:
@@ -115,8 +115,8 @@ class UpdateValues:
 class DeleteValues:
 
     @staticmethod
-    def delete(object, to_delete):
-        to_delete = json.loads(to_delete)
+    def delete(object, delete):
+        to_delete = json.loads(delete)
         curr = object.get()
         for elem in to_delete:
             if elem in curr.values:
@@ -147,20 +147,23 @@ class DeleteValues:
 
         def post(self, *args, **kwargs):
             to_delete = json.loads(self.request.get("json"))
-            curr_user = self.user_key.get()
-            this_user_devices = [device.get().device_id for device in curr_user.devices]
-            if curr_user is None:
-                self.error(403)
-            for device_id in to_delete:
-                if device_id in this_user_devices:
-                    if device_id in curr_user.devices_values:
-                        for elem in to_delete[device_id]:
-                            if elem in curr_user.devices_values[device_id]:
-                                del curr_user.devices_values[device_id][elem]
-                else:
-                    logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
-            curr_user.devices_version += 1
-            curr_user.put()
+            if self.user_key != self.device_key:
+                curr_user = self.user_key.get()
+                this_user_devices = [device.get().device_id for device in curr_user.devices]
+                if curr_user is None:
+                    self.error(403)
+                for device_id in to_delete:
+                    if device_id in this_user_devices:
+                        if device_id in curr_user.devices_values:
+                            for elem in to_delete[device_id]:
+                                if elem in curr_user.devices_values[device_id]:
+                                    del curr_user.devices_values[device_id][elem]
+                    else:
+                        logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
+                curr_user.devices_version += 1
+                curr_user.put()
+            else:
+                logging.error("No User")
 
 
 class GetLastUserVersion(AuthorizedAPIRequestHandler):
