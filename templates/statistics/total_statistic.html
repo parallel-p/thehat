@@ -1,4 +1,26 @@
 {% extends "templates/base.html" %}
+{% macro label(num, one, two, five) -%}
+    {{ num }} {% if num % 100 in (11, 12) -%}
+    {{ five }}
+{%- elif num % 10 == 1 -%}
+    {{ one }}
+{%- elif num % 10 in (2, 3, 4) -%}
+    {{ two }}
+{%- else -%}
+    {{ five }}
+{%- endif -%}
+{% endmacro %}
+{% macro time(sec) %}
+    {%- if sec >= 60*60*24 -%}
+        {{ label(sec // (60*60*24), "день", "дня", "дней") }} {% endif %}
+    {%- if sec % (60*60*24) // (60*60) -%}
+        {{ label(sec % (60*60*24) // (60*60) , "час", "часа", "часов") }} {% endif %}
+    {%- if sec % (60*60) // 60 -%}
+        {{ label(sec % (60*60) // 60 , "минуту", "минуты", "минут") }} {% endif %}
+    {%- if sec % 60 -%}
+        {{ label(sec % 60 , "секунду", "секунды", "секунд") }}
+    {%- endif -%}
+{% endmacro %}
 {% block title %}Общая статистика{% endblock %}
 {% block header %}Статистика{% endblock %}
 {% block head %}
@@ -24,6 +46,10 @@
                 "words": {{ b }},
                 "players": {{ c }},
                 "time": {{ d }},
+                "games_balloon": "{{ label(a, "игра", "игры", "игр") }}",
+                "words_balloon": "{{ label(b, "слово", "слова", "слов") }}",
+                "players_balloon": "{{ label(c, "игрок", "игрока", "игроков") }}",
+                "time_balloon": "{{ time(d) }}",
                 "date": "{{ e }}"
             },
         {% endfor %}
@@ -78,7 +104,7 @@
             "title": "Сыграно партий",
             "valueField": "games",
             "fillAlphas": 0,
-            "balloonText": "<b><span style='font-size:14px;'>[[value]] игр</span></b>"
+            "balloonText": "<b><span style='font-size:14px;'>[[games_balloon]]</span></b>"
         }, {
             "valueAxis": "v2",
             "lineColor": "#FCD202",
@@ -88,7 +114,7 @@
             "title": "Объяснено слов",
             "valueField": "words",
             "fillAlphas": 0,
-            "balloonText": "<b><span style='font-size:14px;'>[[value]] слов</span></b>"
+            "balloonText": "<b><span style='font-size:14px;'>[[words_balloon]]</span></b>"
         }, {
             "valueAxis": "v3",
             "lineColor": "#B0DE09",
@@ -98,7 +124,7 @@
             "title": "Участововало игроков",
             "valueField": "players",
             "fillAlphas": 0,
-            "balloonText": "<b><span style='font-size:14px;'>[[value]] игроков</span></b>"
+            "balloonText": "<b><span style='font-size:14px;'>[[players_balloon]]</span></b>"
         },
             {
                 "valueAxis": "v4",
@@ -109,7 +135,7 @@
                 "title": "Суммарная продолжительность игр",
                 "valueField": "time",
                 "fillAlphas": 0,
-                "balloonText": "<b><span style='font-size:14px;'>[[value]] часов</span></b>"
+                "balloonText": "<b><span style='font-size:14px;'>[[time_balloon]]</span></b>"
             }],
         "chartScrollbar": {},
         "chartCursor": {
@@ -248,36 +274,6 @@ var chart_day = AmCharts.makeChart("day-chart", {
     }]
 });
 {% elif tab == 'info' %}
-    var games_for_player_chart = AmCharts.makeChart("games_for_player_chart_chartdiv", {
-        "type": "pie",
-	"theme": "none",
-    "titles": [{
-        "text": "Количество игр с различным числом игроков",
-        "size": 16
-    }],
-    "dataProvider": [{
-        "count": "2 игрока",
-        "players": {{ player_count[0] }}
-    }, {
-        "count": "3-4 игрока",
-        "players": {{ player_count[1] }}
-    }, {
-        "count": "5-10 игроков",
-        "players": {{ player_count[2] }}
-    }, {
-        "count": "> 10 игроков",
-        "players": {{ player_count[3] }}
-    }],
-    "valueField": "players",
-    "titleField": "count",
-    "startEffect": "elastic",
-    "startDuration": 2,
-    "labelRadius": 15,
-    "innerRadius": "50%",
-    "depth3D": 10,
-    "balloonText": "[[title]]<br><span style='font-size:14px'><b>[[value]] игр</b> ([[percents]]%)</span>",
-    "angle": 15
-});
 {% endif %}
 </script>
 {% endblock %}
@@ -291,28 +287,22 @@ var chart_day = AmCharts.makeChart("day-chart", {
     </ul>
     {% if tab == 'info' %}
         <div class="row">
-        <div class="col-md-6">
-            <br>
-            <table class="table">
-            <tbody>
-              <tr>
-                <td><p class="text-info">Общее количество игр</p></td>
-                <td>{{ all_game }}</td>
-              </tr>
-              <tr>
-                <td><p class="text-info">Общее количество разыгранных слов</p></td>
-                <td>{{ all_word }}</td>
-              </tr>
+            <div class="col-md-12">
+                <p>
+                    Наш сервер обработал статистику {{ label(total_games, "игры", "игр", "игр") }}
+                    и {{ label(total_words, "объяснение слова", "объяснения слов", "объяснений слов") }}.
+                </p>
 
-              <tr>
-                <td><p class="text-info">Слов в словаре</p></td>
-                <td>{{ words_in_dictionary }}</td>
-              </tr>
+                <p>
+                    В нашем словаре содержится {{ label(words_in_dictionary, "слово", "слова", "слов") }}.
+                    Из них {{ used_words }} когда-либо использовано</p>
 
-            </tbody>
-          </table>
-        </div>
-         <div class="col-md-6">
+                <p>
+                    Представьте себе, слово "{{ longest_word }}" наши пользователи объясняли в
+                    течении {{ time(longest_time) }}
+                </p>
+            </div>
+            <div class="col-md-12">
             <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
         </div>
     </div>

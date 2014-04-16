@@ -56,6 +56,7 @@ class UpdateDPlotHeatMapTaskQueue(ServiceRequestHandler):
             max_used = max(word.used_times, max_used)
             x.append(word.used_times)
             y.append(word.D)
+        max_used = 8
         heatmap, xedges, yedges = numpy.histogram2d(y, x, bins=[30, max_used], range=[[0, 30], [0, max_used]])
         extent = [0, max_used, 0, 30]
         matplotlib.pyplot.clf()
