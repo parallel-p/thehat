@@ -74,6 +74,10 @@ class TotalStatisticsHandler(WebRequestHandler):
             if longest:
                 data['longest_word'], data['longest_time'] = longest.word, longest.total_explanation_time
             data['total_words'], data['total_games'] = total.words_used, total.games
+            data['games_for_players'] = cache('for_player_count',
+                                              lambda:
+                                              GamesForPlayerCount.query().order(
+                                                  GamesForPlayerCount.player_count).fetch())
         elif tab == 'daily':
             data['daily_statistics'] = cache('daily',
                                              lambda: DailyStatistics.query().order(DailyStatistics.date).fetch())
@@ -91,9 +95,6 @@ class TotalStatisticsHandler(WebRequestHandler):
             data['by_hour'] = by_hour
             data['by_day'] = by_day
             data['by_hour_and_day'] = total.by_hour
-        games_for_player_count = cache('for_player_count',
-                                       lambda:
-                                       GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch())
 
         self.draw_page("statistics/total_statistic",
                        tab=tab, **data)

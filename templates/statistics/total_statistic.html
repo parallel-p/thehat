@@ -229,7 +229,7 @@ var chart_day = AmCharts.makeChart("day-chart", {
     "pathToImages": "http://www.amcharts.com/lib/3/images/",
     "theme": "light",
     "dataProvider": [
-        {%for games in games_for_time%}
+        {%for games in by_hour_and_day%}
             {% if games > 0 %}
                 {
                     "day": {{ ((loop.index - 1) // 24 + 3) % 7}},
@@ -274,6 +274,47 @@ var chart_day = AmCharts.makeChart("day-chart", {
     }]
 });
 {% elif tab == 'info' %}
+    AmCharts.makeChart("games_for_players", {
+        "type": "serial",
+        "theme": "none",
+        "dataProvider": [
+            {% for el in games_for_players %}
+                {
+                    "players": {{ el.player_count }},
+                    "label": "{{ label(el.player_count, "игрок", "игрока", "игроков") }}",
+                    "games": {{ el.games }}
+                },
+            {% endfor %}
+        ],
+        "valueAxes": [
+            {
+                "gridColor": "#FFFFFF",
+                "gridAlpha": 0.2,
+                "dashLength": 0
+            }
+        ],
+        "gridAboveGraphs": true,
+        "startDuration": 1,
+        "graphs": [
+            {
+                "balloonText": "[[label]]: <b>[[value]]</b>",
+                "fillAlphas": 0.8,
+                "lineAlpha": 0.2,
+                "type": "column",
+                "valueField": "games"
+            }
+        ],
+        "chartCursor": {
+            "categoryBalloonEnabled": false,
+            "cursorAlpha": 0,
+            "zoomable": false
+        },
+        "categoryField": "players",
+        "categoryAxis": {
+            "gridPosition": "start",
+            "gridAlpha": 0
+        }
+    });
 {% endif %}
 </script>
 {% endblock %}
@@ -287,25 +328,22 @@ var chart_day = AmCharts.makeChart("day-chart", {
     </ul>
     {% if tab == 'info' %}
         <div class="row">
-            <div class="col-md-12">
-                <p>
-                    Наш сервер обработал статистику {{ label(total_games, "игры", "игр", "игр") }}
+            <div class="col-md-6">
+                <p class="lead">
+                Наш сервер обработал статистику {{ label(total_games, "игры", "игр", "игр") }}
                     и {{ label(total_words, "объяснение слова", "объяснения слов", "объяснений слов") }}.
                 </p>
 
                 <p>
                     В нашем словаре содержится {{ label(words_in_dictionary, "слово", "слова", "слов") }}.
-                    Из них {{ used_words }} когда-либо использовано</p>
+                    Из них {{ used_words }} когда-либо объяснялось нашими пользователями.</p>
 
                 <p>
-                    Представьте себе, слово "{{ longest_word }}" наши пользователи объясняли в
-                    течении {{ time(longest_time) }}
+                    Дольше всего наши пользователи объясняли слово "{{ longest_word }}": {{ time(longest_time) }}
                 </p>
             </div>
-            <div class="col-md-12">
-            <div id="games_for_player_chart_chartdiv" style="width: 100%; height: 400px;"></div>
+            <div class="col-md-6" id="games_for_players" style="height: 400px;"></div>
         </div>
-    </div>
     {% elif tab == 'daily' %}
         <div class="row">
         <div class="col-md-12" id="daily_chartdiv" style="height: 400px;">
