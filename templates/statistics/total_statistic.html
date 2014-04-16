@@ -1,6 +1,6 @@
 {% extends "templates/base.html" %}
 {% macro label(num, one, two, five) -%}
-    {{ num }} {% if num % 100 in (11, 12) -%}
+    {{ num }} {% if num % 100 in (11, 12, 13, 14) -%}
     {{ five }}
 {%- elif num % 10 == 1 -%}
     {{ one }}
