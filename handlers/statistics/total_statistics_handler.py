@@ -1,20 +1,22 @@
 __author__ = 'ivan'
 
+from google.appengine.api import memcache
+
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 from handlers.statistics.update_mathplotlib_plots import Plot
 from objects.total_statistics_object import *
 from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 
-class ScattedPlotHandler(APIRequestHandler):
 
+class ScattedPlotHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(ScattedPlotHandler, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         N = kwargs.get("N")
         self.response.headers['Content-Type'] = "image/png"
-        plot = ndb.Key(Plot, "scatter_plot_" +N).get()
+        plot = ndb.Key(Plot, "scatter_plot_" + N).get()
         if plot is not None:
             self.response.write(plot.plot)
         else:
@@ -22,14 +24,13 @@ class ScattedPlotHandler(APIRequestHandler):
 
 
 class HeatmapPlotHandler(APIRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(HeatmapPlotHandler, self).__init__(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         N = kwargs.get("N")
         self.response.headers['Content-Type'] = "image/png"
-        plot = ndb.Key(Plot, "heatmap_plot_"+N).get()
+        plot = ndb.Key(Plot, "heatmap_plot_" + N).get()
         if plot is not None:
             self.response.write(plot.plot)
         else:
@@ -37,7 +38,6 @@ class HeatmapPlotHandler(APIRequestHandler):
 
 
 class DPlotHandler(APIRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(DPlotHandler, self).__init__(*args, **kwargs)
 
@@ -50,43 +50,51 @@ class DPlotHandler(APIRequestHandler):
             self.response.write(None)
 
 
+def cache(key, func):
+    key = '{}_total_statistics'.format(key)
+    val = memcache.get(key)
+    if not val:
+        val = func()
+        memcache.set(key=key, value=val, time=60 * 60)
+    return val
+
+
 class TotalStatisticsHandler(WebRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(TotalStatisticsHandler, self).__init__(*args, **kwargs)
-
     def get(self, *args, **kwargs):
         tab = self.request.get('tab', 'info')
-        daily_statistics = DailyStatistics.query().order(DailyStatistics.date).fetch()
+        data = {}
         total = TotalStatistics.get()
-        games_for_player_count = GamesForPlayerCount.query().order(GamesForPlayerCount.player_count).fetch()
-        daily = []
+        if tab == 'info':
+            data['words_in_dictionary'] = cache('dict_word', lambda: GlobalDictionaryWord.query().count())
+            data['used_words'] = cache('used_words',
+                                       lambda: GlobalDictionaryWord.query(GlobalDictionaryWord.used_times > 0).count())
+            longest = cache('longest_explanation',
+                            lambda: GlobalDictionaryWord.query().order(
+                                -GlobalDictionaryWord.total_explanation_time).get())
+            if longest:
+                data['longest_word'], data['longest_time'] = longest.word, longest.total_explanation_time
+            data['total_words'], data['total_games'] = total.words_used, total.games
+            data['games_for_players'] = cache('for_player_count',
+                                              lambda:
+                                              GamesForPlayerCount.query().order(
+                                                  GamesForPlayerCount.player_count).fetch())
+        elif tab == 'daily':
+            data['daily_statistics'] = cache('daily',
+                                             lambda: DailyStatistics.query().order(DailyStatistics.date).fetch())
+            daily = []
+            for el in data['daily_statistics']:
+                daily.append((el.games, el.words_used,
+                              el.players_participated, el.total_game_duration // 60 * 60,
+                              el.date.strftime("%Y-%m-%d")))
+            by_hour = [0 for i in range(24)]
+            by_day = [0 for i in range(7)]
+            for hour, games in enumerate(total.by_hour):
+                by_hour[hour % 24] += games
+                by_day[(hour // 24 + 3) % 7] += games
+            data['daily'] = daily
+            data['by_hour'] = by_hour
+            data['by_day'] = by_day
+            data['by_hour_and_day'] = total.by_hour
 
-        for el in daily_statistics:
-            daily.append((el.games, el.words_used,
-                          el.players_participated, round(el.total_game_duration / 60.0, 2),
-                          el.date.strftime("%Y-%m-%d")))
-        player_count_classes = [0, 0, 0, 0]
-        for el in games_for_player_count:
-            if el.player_count <= 2:
-                player_count_classes[0] += el.games
-            elif el.player_count <= 4:
-                player_count_classes[1] += el.games
-            elif el.player_count <= 10:
-                player_count_classes[2] += el.games
-            else:
-                player_count_classes[3] += el.games
-        by_hour = [0 for i in range(24)]
-        by_day = [0 for i in range(7)]
-        for hour, games in enumerate(total.by_hour):
-            by_hour[hour % 24] += games
-            by_day[(hour // 24 + 3) % 7] += games
-        words_in_dictionary = GlobalDictionaryWord.query().count()
         self.draw_page("statistics/total_statistic",
-                       tab=tab,
-                       daily=daily,
-                       games_for_time=total.by_hour,
-                       by_hour=by_hour,
-                       by_day=by_day,
-                       player_count=player_count_classes, all_word=total.words_used,
-                       all_game=total.games, words_in_dictionary=words_in_dictionary)
+                       tab=tab, **data)
