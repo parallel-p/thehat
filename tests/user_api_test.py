@@ -154,41 +154,33 @@ class UserAPITest(unittest2.TestCase):
     def test_devices(self):
         self.assign_device('aaa')
 
-        self.add("user_devices", {"aaa": {"name": "petya", "sis": "true"}}, False, 'aaa')
+        self.add("user_devices", {"name": "petya", "sis": "true"}, False, 'aaa')
         response = self.get_version("user_devices", "aaa")
         self.assertEquals(response.body, '1')
 
         response = self.get("user_devices", "aaa")
         self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "petya", "sis": "true"}}, "version": 1})
 
-        self.add("user_devices", {"aaa": {"name": "vasya", "a": "t1"}}, False, 'aaa')
+        self.add("user_devices", {"name": "vasya", "a": "t1"}, False, 'aaa')
 
         response = self.get("user_devices", "aaa")
         self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true", "a": "t1"}}, "version": 2})
 
-        self.add("user_devices", {"bbb": {"name": "vasya", "a": "t1"}}, False, 'aaa')
-        response = self.get_version("user_devices", "aaa")
-        self.assertEquals(response.body, '3')
-
         self.assign_device('bbb')
 
-        self.add("user_devices", {"bbb": {"name": "vasya", "a": "t1"}}, False, 'aaa')
-
-        response = self.get("user_devices", "aaa")
-        self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true", "a": "t1"}, "bbb": {"name": "vasya", "a": "t1"}}, "version": 4})
-
         response = self.get("user_devices", "bbb")
-        self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true", "a": "t1"}, "bbb": {"name": "vasya", "a": "t1"}}, "version": 4})
+        self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true", "a": "t1"}}, "version": 2})
+        response = self.get_version("user_devices", "aaa")
+        self.assertEquals(response.body, '2')
+
+        self.add("user_devices", {"name": "vasya", "a": "t1"}, False, 'bbb')
+
+        self.delete("user_devices", ["a", "ffff"], 'bbb')
         response = self.get_version("user_devices", "aaa")
         self.assertEquals(response.body, '4')
 
-        self.delete("user_devices", {"aaa": ["a", "ffff"]}, 'ccc')
-        response = self.get_version("user_devices", "aaa")
-        self.assertEquals(response.body, '4')
 
-        self.delete("user_devices", {"aaa": ["a", "ffff"]}, 'bbb')
-        response = self.get_version("user_devices", "aaa")
-        self.assertEquals(response.body, '5')
+
 
         response = self.get("user_devices", "bbb")
-        self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true"}, "bbb": {"name": "vasya", "a": "t1"}}, "version": 5})
+        self.assertEqual(json.loads(response.body), {"json": {"aaa": {"name": "vasya", "sis": "true", "a":"t1"}, "bbb": {"name": "vasya"}}, "version": 4})

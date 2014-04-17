@@ -98,16 +98,13 @@ class UpdateValues:
             curr_user = self.user_key.get()
             if curr_user is None:
                 self.error(403)
-            this_user_devices = [device.get().device_id for device in curr_user.devices]
             add = json.loads(self.request.get("json"))
-            for device_id in add:
-                if device_id in this_user_devices:
-                    if device_id not in curr_user.devices_values:
-                        curr_user.devices_values[device_id] = {}
-                    for elem in add[device_id]:
-                        curr_user.devices_values[device_id][elem] = add[device_id][elem]
-                else:
-                    logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
+            device_id = self.device_id
+            if device_id not in curr_user.devices_values:
+                curr_user.devices_values[device_id] = {}
+            for elem in add:
+                curr_user.devices_values[device_id][elem] = add[elem]
+
             curr_user.devices_version += 1
             curr_user.put()
 
@@ -149,17 +146,14 @@ class DeleteValues:
             to_delete = json.loads(self.request.get("json"))
             if self.user_key != self.device_key:
                 curr_user = self.user_key.get()
-                this_user_devices = [device.get().device_id for device in curr_user.devices]
                 if curr_user is None:
                     self.error(403)
-                for device_id in to_delete:
-                    if device_id in this_user_devices:
-                        if device_id in curr_user.devices_values:
-                            for elem in to_delete[device_id]:
-                                if elem in curr_user.devices_values[device_id]:
-                                    del curr_user.devices_values[device_id][elem]
-                    else:
-                        logging.error("Incorrect device_id {0}. Only current user devices are allowed.".format(device_id))
+                device_id = self.device_id
+                if device_id in curr_user.devices_values:
+                    for elem in to_delete:
+                        if elem in curr_user.devices_values[device_id]:
+                            del curr_user.devices_values[device_id][elem]
+
                 curr_user.devices_version += 1
                 curr_user.put()
             else:
