@@ -416,7 +416,7 @@ class TrueSkill(object):
             f.up()
         return layers
 
-    def rate(self, rating_groups, ranks=None, weights=None, min_delta=DELTA):
+    def rate(self, rating_groups, ranks=None, weights=None, min_delta=DELTA, partial_update=None):
         """Recalculates ratings by the ranking table::
 
            env = TrueSkill()  # uses default settings
@@ -452,6 +452,7 @@ class TrueSkill(object):
         :param weights: weights of each players for "partial play".
         :param min_delta: each loop checks a delta of changes and the loop
                           will stop if the delta is less then this argument.
+        :param partial_update: if set to small values players ratings would change not so much.
         :returns: recalculated ratings same structure as ``rating_groups``.
         :raises: :exc:`FloatingPointError` occurs when winners have too lower
                  rating than losers. higher floating-point precision couls
@@ -459,6 +460,8 @@ class TrueSkill(object):
 
         .. versionadded:: 0.2
         """
+        if partial_update and not 0. < partial_update <= 1.:
+            raise ValueError('Wrong partial_update value')
         rating_groups, keys = self.validate_rating_groups(rating_groups)
         weights = self.validate_weights(weights, rating_groups)
         group_size = len(rating_groups)
@@ -483,6 +486,11 @@ class TrueSkill(object):
         layers = self.run_schedule(*args)
         # make result
         rating_layer, team_sizes = layers[0], _team_sizes(sorted_rating_groups)
+        if partial_update:
+            for f in rating_layer:
+                old_val = Gaussian(f.val.mu, f.val.sigma)
+                f.var.pi = old_val.pi + partial_update * (f.var.pi - old_val.pi)
+                f.var.tau = old_val.tau + partial_update * (f.var.tau - old_val.tau)
         transformed_groups = []
         for start, end in izip([0] + team_sizes[:-1], team_sizes):
             group = []

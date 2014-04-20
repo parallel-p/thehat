@@ -182,6 +182,7 @@ class RecalcRatingTest(unittest.TestCase):
             self.assertIsNotNone(word_db)
             self.assertGreater(last_rating, word_db.E)
             last_rating = word_db.E
+            print last_rating,
 
     def test_add_game_log(self):
         key = GameLog(json=LOG_JSON, id="test_log").put().urlsafe()
