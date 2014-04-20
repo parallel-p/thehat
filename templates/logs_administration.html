@@ -12,11 +12,14 @@
 <form class="form" role="form" method="POST">
     <div class="form-group"><label class="col-sm-2 control-label">{{ a }} + {{ b }} = </label><div class="col-md-2"><input type="text" class="form-control" name="code" placeholder="Введите ответ"></div></div>
     <input type="hidden" name="ans" value="{{ a+b }}">
-    <div class="form-group"><select required name="action">
+    <div class="form-group"><select id="action_select" required name="action">
     {% for el in names %}
         <option value="{{ loop.index }}">{{ el }}</option>
     {% endfor %}
-    </select></div>
+    </select>
+    <script>
+        $("#action_select").prop("selectedIndex", -1);
+    </script></div>
     <button type="submit" class="btn btn-danger">Выполнить действие</button>
 </form>
 {% endblock %}
