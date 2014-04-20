@@ -1,0 +1,120 @@
+{% extends "templates/base.html" %}
+{% block title %}Sombrero-admin{% endblock %}
+{% block header %}Add function{% endblock %}
+{%block content%}
+
+<script type="application/javascript">
+
+    function getXmlHttp() {
+        var xmlhttp;
+        try {
+          xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        } catch (e) {
+        try {
+          xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        } catch (E) {
+          xmlhttp = false;
+        }
+        }
+        if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+          xmlhttp = new XMLHttpRequest();
+        }
+        return xmlhttp;
+    }
+
+    function post(url, json, name)
+    {
+        //alert(xmlhttp);
+        var xmlhttp = getXmlHttp();
+        xmlhttp.open('POST', url, true);
+        xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
+        xmlhttp.send("code="+json+"&name="+name); // Отправляем POST-запрос
+    }
+
+    function send_func()
+    {
+        var url = "/admin/statistics/functions/add";
+        var text = document.getElementById("code").value;
+        var name = document.getElementById("name").value;
+        post(url, text, name);
+        $('#myModal').modal({show:true})
+    }
+
+    function update()
+    {
+        var url = "/admin/statistics/functions/update";
+        post(url, '', '');
+        $('#updatemyModal').modal({show:true})
+    }
+</script>
+
+    <input type="text" class="form-control" placeholder="Function name" id="name">
+    <br>
+    <textarea class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
+
+     <button type="button" class="btn btn-success"  btn-block  onclick="send_func()">
+                Add
+     </button>
+    <button type="button" class="btn btn-success"  btn-block  onclick="update()">
+                update
+     </button>
+
+
+    <script>
+    $("textarea").keydown(function(e) {
+    if(e.keyCode === 9) { // tab was pressed
+        // get caret position/selection
+        var start = this.selectionStart;
+        var end = this.selectionEnd;
+
+        var $this = $(this);
+        var value = $this.val();
+
+        // set textarea value to: text before caret + tab + text after caret
+        $this.val(value.substring(0, start)
+                    + "\t"
+                    + value.substring(end));
+
+        // put caret at right position again (add one for the tab)
+        this.selectionStart = this.selectionEnd = start + 1;
+
+        // prevent the focus lose
+        e.preventDefault();
+    }
+});
+    </script>
+
+    <div class="modal" id="myModal">
+	<div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Добавление функции</h4>
+        </div>
+        <div class="modal-body">
+          Функция добавлена
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/statistics/functions/add'"> Close </button>
+        </div>
+      </div>
+    </div>
+</div>
+    <div class="modal" id="updatemyModal">
+	<div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h4 class="modal-title">Обновление</h4>
+        </div>
+        <div class="modal-body">
+          Обновление запущено
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/statistics/functions/add'"> Close </button>
+        </div>
+      </div>
+    </div>
+</div>
+
+{% endblock %}

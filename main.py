@@ -37,6 +37,7 @@ import handlers.frequency_dictionary_handlers
 import handlers.game_log_viewer
 import handlers.unknown_word_handler
 import handlers.word_lookup
+import handlers.statistics.function_statistics_handler
 import handlers.base_handlers.api_request_handlers
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
@@ -53,6 +54,21 @@ routes = [
     webapp2.Route(r'/internal/linkdevice',
                   handler=handlers.link_device.LinkDeviceMaintainConsistency,
                   name='internal_linkdevice'),
+
+    #function statistics handler
+    webapp2.Route(r'/admin/statistics/functions/add',
+                  handler=handlers.statistics.function_statistics_handler.AddFunctionHandler,
+                  name='add function'),
+    webapp2.Route(r'/admin/statistics/functions/update',
+                  handler=handlers.statistics.function_statistics_handler.UpdateFunctionsStatisticsHandler,
+                  name='update stat'),
+    webapp2.Route(r'/internal/statistics/functions/update/task_queue',
+                  handler=handlers.statistics.function_statistics_handler.UpdateFunctionsStatisticsHandlerTaskQueue,
+                  name='update stat'),
+    webapp2.Route(r'/internal/statistics/functions/update/task_queue/push_results',
+                  handler=handlers.statistics.function_statistics_handler.push_results_task_queue,
+                  name='push results'),
+
 
     #User api request handlers
     #user
