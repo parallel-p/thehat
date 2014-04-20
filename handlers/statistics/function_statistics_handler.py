@@ -13,17 +13,17 @@ import json
 class Function(ndb.Model):
     name = ndb.StringProperty(repeated=False)
     description = ndb.StringProperty(indexed=False)
-    code = ndb.StringProperty(indexed=False, repeated=False)
+    code = ndb.TextProperty(indexed=False, repeated=False)
 
 
 class Result(ndb.Model):
     function_name = ndb.StringProperty()
-    json = ndb.StringProperty()
+    json = ndb.TextProperty(indexed=False)
 
 
 class push_results_task_queue(ServiceRequestHandler):
 
-    def post(selfg):
+    def post(self):
         function_name = self.request.get("name")
         top50 = self.request.get("top")
         curr_result = ndb.Key(Result, function_name).get()
@@ -72,6 +72,7 @@ class AddFunctionHandler(AdminRequestHandler):
     def post(self):
         code = self.request.get("code")
         name = self.request.get("name")
+        description = self.request.get("descr")
         curr = ndb.Key(Function, name).get()
         if curr is None:
-            Function(name=name, code=code, id=name).put()
+            Function(name=name, code=code, description=description, id=name).put()

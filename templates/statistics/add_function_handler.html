@@ -22,13 +22,13 @@
         return xmlhttp;
     }
 
-    function post(url, json, name)
+    function post(url, json, name, descr)
     {
         //alert(xmlhttp);
         var xmlhttp = getXmlHttp();
         xmlhttp.open('POST', url, true);
         xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
-        xmlhttp.send("code="+json+"&name="+name); // Отправляем POST-запрос
+        xmlhttp.send("code="+json+"&name="+name+"&descr="+descr); // Отправляем POST-запрос
     }
 
     function send_func()
@@ -36,7 +36,8 @@
         var url = "/admin/statistics/functions/add";
         var text = document.getElementById("code").value;
         var name = document.getElementById("name").value;
-        post(url, text, name);
+        var descr = document.getElementById("descr").value;
+        post(url, text, name, descr);
         $('#myModal').modal({show:true})
     }
 
@@ -49,6 +50,8 @@
 </script>
 
     <input type="text" class="form-control" placeholder="Function name" id="name">
+    <br>
+    <input type="text" class="form-control" placeholder="Function description" id="descr">
     <br>
     <textarea class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
 
