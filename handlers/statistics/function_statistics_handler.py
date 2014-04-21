@@ -82,6 +82,15 @@ class AddFunctionHandler(AdminRequestHandler):
             Function(name=name, code=code, description=description, id=name).put()
 
 
+class CronUpdateResHandlers(ServiceRequestHandler):
+
+    def init(self, *args, **kwargs):
+        super(CronUpdateResHandlers, self).__init__(*args, **kwargs)
+
+    def get(self):
+        taskqueue.add(url='/internal/statistics/functions/update/task_queue')
+
+
 class ResultShowHandler(AdminRequestHandler):
 
     def __init__(self, *args, **kwargs):
