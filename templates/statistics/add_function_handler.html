@@ -1,7 +1,25 @@
 {% extends "templates/base.html" %}
 {% block title %}Sombrero-admin{% endblock %}
 {% block header %}Add function{% endblock %}
+{% block head %}
+     <script language="Javascript" type="text/javascript" src="http://www.cdolivet.com/editarea/editarea/edit_area/edit_area_full.js"></script>
+
+	<script language="Javascript" type="text/javascript">
+		// initialisation
+		editAreaLoader.init({
+			id: "example_1"
+			,start_highlight: true
+			,allow_resize: "both"
+			,allow_toggle: true
+			,word_wrap: true
+            ,syntax: "python"
+			,language: "ru"
+		});
+	</script>
+
+{% endblock %}
 {%block content%}
+
 
 <script type="application/javascript">
 
@@ -34,7 +52,7 @@
     function send_func()
     {
         var url = "/admin/statistics/functions/add";
-        var text = document.getElementById("code").value;
+        var text = editAreaLoader.getValue("example_1");
         var name = document.getElementById("name").value;
         var descr = document.getElementById("descr").value;
         post(url, text, name, descr);
@@ -53,7 +71,7 @@
     <br>
     <input type="text" class="form-control" placeholder="Function description" id="descr">
     <br>
-    <textarea class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
+    <textarea id="example_1" class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
 
      <button type="button" class="btn btn-success"  btn-block  onclick="send_func()">
                 Add
