@@ -15,21 +15,40 @@
                 <span class="glyphicon glyphicon-search"></span>Найти
             </button>
         </form>
+        <div class="row">
 
-    {% if function%}
-    <table class="table">
-    <tr>
-        <th>#</th>
-        <th>Слово</th>
-        <th>{{ function.name }}(word)</th>
-    </tr>
-    {% for word, value in result %}
-        <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ word }} </td>
-            <td>{{value|round(1) }} </td>
-        </tr>
-    {% endfor %}
-</table>
-    {% endif %}
+            <div class="col-md-4">
+                <table class="table">
+                <tr>
+                    <th>#</th>
+                    <th>Function</th>
+                </tr>
+                {% for name in all %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><a href="/admin/statistics/functions/show?function={{ name }}">{{ name }}</a></td>
+                    </tr>
+                {% endfor %}
+                </table>
+            </div>
+            {% if result %}
+                <div class="col-md-8">
+                    <table class="table">
+                    <tr>
+                        <th>#</th>
+                        <th>Слово</th>
+                        <th>{{ function.name }}(word)</th>
+                    </tr>
+                    {% for word, value in result %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ word }} </td>
+                            <td>{{value|round(1) }} </td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
 {% endblock %}

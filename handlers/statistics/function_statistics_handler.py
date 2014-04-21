@@ -85,6 +85,7 @@ class ResultShowHandler(AdminRequestHandler):
 
     def get(self, *args, **kwargs):
         function_name = self.request.get('function', None)
+        all = [i.name for i in ndb.gql("SELECT name FROM Function").fetch()]
         result, function = None, None
         if function_name is not None:
             _result = ndb.Key(Result, function_name).get()
@@ -92,4 +93,4 @@ class ResultShowHandler(AdminRequestHandler):
             if _result is not None:
                 result = json.loads(_result.json)
 
-        self.draw_page('statistics/show_results_screen', function=function, result=result)
+        self.draw_page('statistics/show_results_screen', function=function, result=result, all=all)
