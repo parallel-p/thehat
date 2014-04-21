@@ -135,6 +135,7 @@ class AddGameHandler(ServiceRequestHandler):
             raise BadGameError('old_version')
         events = log['events']
         words_orig = [el['word'] for el in log['setup']['words']]
+        seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
         words_outcome = {}
         current_words_time = {}
@@ -167,13 +168,17 @@ class AddGameHandler(ServiceRequestHandler):
                     current_words_time[event['word']] = event['time'] + event['timeExtra']
                 elif event['type'] == 'outcome_override':
                     if not event['word'] in words_outcome:
-                        raise BadGameError("Overriding not existing outcome")
+                        raise BadGameError("format-error")
                     words_outcome[event['word']] = event['outcome']
                 else:
                     if event['type'] not in ('finish_round', 'end_game', 'pick_stripe'):
                         logging.warning("Event of unknown type {}".format(event['type']))
                 i += 1
             for word in current_words_time.keys():
+                if word in seen_by_player[current_pair[0]]:
+                    del seen_words_time[word]
+                    seen_by_player[current_pair[0]].remove(word)
+                    continue
                 if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
                     words_outcome[word] = 'removed'
                 elif words_outcome[word] in ('guessed', 'failed'):
@@ -182,6 +187,7 @@ class AddGameHandler(ServiceRequestHandler):
                                                                     if words_outcome[word] == 'guessed'
                                                                     else MAX_TIME, words_orig[word]))
                 seen_words_time[word] += int(round(current_words_time[word] / 1000.0))
+                seen_by_player[current_pair[0]].add(word)
             current_words_time.clear()
         player_count = len(log["setup"]["players"]) if "players" in log["setup"] else 0
         try:
@@ -202,6 +208,7 @@ class AddGameHandler(ServiceRequestHandler):
             raise BadGameError('not_hat')
         words_orig = [el.text for el in hist.words]
         words_by_players_pair = {}
+        seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
         words_outcome = {}
         pick_time = 0
@@ -212,16 +219,22 @@ class AddGameHandler(ServiceRequestHandler):
                 cur_round = res.round_
             res.time_sec -= pick_time
             pick_time += res.time_sec
+            r = hist.rounds[cur_round]
             if res.result in [0, 1]:
-                r = hist.rounds[res.round_]
                 if not res.word in seen_words_time:
-                    if not (r.player_explain, r.player_guess) in words_by_players_pair:
-                        words_by_players_pair[(r.player_explain, r.player_guess)] = []
-                    words_by_players_pair[(r.player_explain, r.player_guess)].append(
+                    current_pair = (r.player_explain, r.player_guess)
+                    if not current_pair in words_by_players_pair:
+                        words_by_players_pair[current_pair] = []
+                    words_by_players_pair[current_pair].append(
                         (res.time_sec if res.result == 0 else 5*60, words_orig[res.word])
                     )
+            if res.word in seen_by_player[r.player_explain]:
+                del seen_words_time[res.word]
+                seen_by_player[r.player_explain].remove(res.word)
+                continue
             seen_words_time[res.word] += int(round(res.time_sec))
             words_outcome[res.word] = hist.string_repr[res.result]
+            seen_by_player[r.player_explain].add(res.word)
         player_count = len(hist.players)
         return words_orig, seen_words_time, words_outcome, words_by_players_pair, player_count, None, None
 
@@ -350,9 +363,9 @@ class RecalcAllLogs(ServiceRequestHandler):
         elif self.stage == 3:
             logs = self.fetch_portion(GameLog.query())
             for el in logs:
-                #if not el.ignored:
-                el.ignored = False
-                el.put()
+                if not el.ignored:
+                    el.ignored = False
+                    el.put()
         elif self.stage == 4:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
                                                          params={'game_key': k.urlsafe()})),
