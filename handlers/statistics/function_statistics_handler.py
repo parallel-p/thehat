@@ -73,7 +73,9 @@ class AddFunctionHandler(AdminRequestHandler):
 
     def post(self):
         code = self.request.get("code")
-        name = self.request.get("name")
+        first = code.find("def")
+        last = code.find("(")
+        name = code[first+3:last].strip()
         description = self.request.get("descr")
         curr = ndb.Key(Function, name).get()
         if curr is None:
