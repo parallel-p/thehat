@@ -53,7 +53,9 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
             names.append(function.name)
         for word in GlobalDictionaryWord.query().fetch():
             for function_name in names:
-                results[function_name][word.word] = functions[function_name](word)
+                res = functions[function_name](word)
+                if res is not None:
+                    results[function_name][word.word] = functions[function_name](word)
         for function_name in results:
             top50 = [(key, results[function_name][key]) for key in heapq.nlargest(50, results[function_name],
                                                                                 key=results[function_name].get)]
