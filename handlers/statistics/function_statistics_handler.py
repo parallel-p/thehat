@@ -55,8 +55,8 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
             for function_name in names:
                 results[function_name][word.word] = functions[function_name](word)
         for function_name in results:
-            top50 = {key: results[function_name][key] for key in heapq.nlargest(50, results[function_name],
-                                                                                key=results[function_name].get)}
+            top50 = [(key, results[function_name][key]) for key in heapq.nlargest(50, results[function_name],
+                                                                                key=results[function_name].get)]
             taskqueue.add(url='/internal/statistics/functions/update/task_queue/push_results',
                               params={'name': function_name, 'top': json.dumps(top50)})
 
@@ -76,3 +76,20 @@ class AddFunctionHandler(AdminRequestHandler):
         curr = ndb.Key(Function, name).get()
         if curr is None:
             Function(name=name, code=code, description=description, id=name).put()
+
+
+class ResultShowHandler(AdminRequestHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(ResultShowHandler, self).__init__(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        function_name = self.request.get('function', None)
+        result, function = None, None
+        if function_name is not None:
+            _result = ndb.Key(Result, function_name).get()
+            function = ndb.Key(Function, function_name).get()
+            if _result is not None:
+                result = json.loads(_result.json)
+
+        self.draw_page('statistics/show_results_screen', function=function, result=result)

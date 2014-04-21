@@ -68,6 +68,9 @@ routes = [
     webapp2.Route(r'/internal/statistics/functions/update/task_queue/push_results',
                   handler=handlers.statistics.function_statistics_handler.push_results_task_queue,
                   name='push results'),
+    webapp2.Route(r'/admin/statistics/functions/show',
+                  handler=handlers.statistics.function_statistics_handler.ResultShowHandler,
+                  name='push results'),
 
 
     #User api request handlers

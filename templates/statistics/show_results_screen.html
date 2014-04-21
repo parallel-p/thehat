@@ -1,0 +1,35 @@
+{% extends "templates/base.html" %}
+{% block title %}Cтатистика по слову {% if word %}"{{ word }}" {% endif %} {% endblock %}
+
+{% block header %}Статистика{% endblock %}
+{% block head %}
+
+{% endblock %}
+{% block content %}
+
+        <form class="form-inline" method="get" action="show">
+            <div class="form-group">
+                <input type="search" class="form-control" name="function" placeholder="Слово">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <span class="glyphicon glyphicon-search"></span>Найти
+            </button>
+        </form>
+
+    {% if function%}
+    <table class="table">
+    <tr>
+        <th>#</th>
+        <th>Слово</th>
+        <th>{{ function.name }}(word)</th>
+    </tr>
+    {% for word, value in result %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ word }} </td>
+            <td>{{value|round(1) }} </td>
+        </tr>
+    {% endfor %}
+</table>
+    {% endif %}
+{% endblock %}
