@@ -1,7 +1,25 @@
 {% extends "templates/base.html" %}
 {% block title %}Sombrero-admin{% endblock %}
-{% block header %}Add function{% endblock %}
+{% block header %}Добавление функции{% endblock %}
+{% block head %}
+     <script language="Javascript" type="text/javascript" src="http://www.cdolivet.com/editarea/editarea/edit_area/edit_area_full.js"></script>
+
+	<script language="Javascript" type="text/javascript">
+		// initialisation
+		editAreaLoader.init({
+			id: "example_1"
+			,start_highlight: true
+			,allow_resize: "both"
+			,allow_toggle: true
+			,word_wrap: true
+            ,syntax: "python"
+			,language: "ru"
+		});
+	</script>
+
+{% endblock %}
 {%block content%}
+
 
 <script type="application/javascript">
 
@@ -22,22 +40,21 @@
         return xmlhttp;
     }
 
-    function post(url, json, name, descr)
+    function post(url, json, descr)
     {
         //alert(xmlhttp);
         var xmlhttp = getXmlHttp();
         xmlhttp.open('POST', url, true);
         xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
-        xmlhttp.send("code="+json+"&name="+name+"&descr="+descr); // Отправляем POST-запрос
+        xmlhttp.send("code="+json+"&descr="+descr); // Отправляем POST-запрос
     }
 
     function send_func()
     {
         var url = "/admin/statistics/functions/add";
-        var text = document.getElementById("code").value;
-        var name = document.getElementById("name").value;
+        var text = editAreaLoader.getValue("example_1");
         var descr = document.getElementById("descr").value;
-        post(url, text, name, descr);
+        post(url, text, descr);
         $('#myModal').modal({show:true})
     }
 
@@ -49,18 +66,23 @@
     }
 </script>
 
-    <input type="text" class="form-control" placeholder="Function name" id="name">
-    <br>
     <input type="text" class="form-control" placeholder="Function description" id="descr">
     <br>
-    <textarea class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
-
-     <button type="button" class="btn btn-success"  btn-block  onclick="send_func()">
-                Add
-     </button>
-    <button type="button" class="btn btn-success"  btn-block  onclick="update()">
-                update
-     </button>
+    Функция, принимающая в качестве параметра экземпляр класса <a href="https://github.com/parallel-p/thehat/wiki/GlobalDictionaryWord-class">GlobalDictionaryWord</a>,
+    возвращающая некоторое числовое значение. 50 слов, с максимальным значением функции будут показаны на странице со статистикой.
+    <textarea id="example_1" class="form-control" name="text" rows="30"  id="code" placeholder="Function code"></textarea>
+    <div class="row">
+        <div class="col-md-6">
+             <button type="button" class="btn btn-block btn-success"  btn-block  onclick="send_func()">
+                        Добавить
+             </button>
+         </div>
+        <div class="col-md-6">
+            <button type="button" class="btn btn-block btn-danger"  btn-block  onclick="update()">
+                        Обновить статистику
+             </button>
+        </div>
+    </div>
 
 
     <script>

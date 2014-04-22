@@ -41,6 +41,19 @@ class UpdateFunctionsStatisticsHandler(ServiceRequestHandler):
         taskqueue.add(url='/internal/statistics/functions/update/task_queue')
 
 
+class elem:
+
+    def __init__(self, res, word):
+        self.word = word
+        self.res = res
+
+    def __lt__(self, other):
+        if self.res == other.res:
+            return self.word < other.word
+        else:
+            return self.res < other.res
+
+
 class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
 
     def post(self):
@@ -49,14 +62,20 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
         names = []
         for function in Function.query().fetch():
             exec function.code in functions
-            results[function.name] = {}
+            results[function.name] = []
             names.append(function.name)
-        for word in GlobalDictionaryWord.query().fetch():
+        cnt = 0
+        for index, word in enumerate(GlobalDictionaryWord.query().fetch()):
+            cnt += 1
             for function_name in names:
-                results[function_name][word.word] = functions[function_name](word)
+                res = functions[function_name](word)
+                if res is not None:
+                    if cnt <= 50:
+                        results[function_name].append(elem(res, word.word))
+                    else:
+                        heapq.heapreplace(results[function_name], elem(res, word.word))
         for function_name in results:
-            top50 = [(key, results[function_name][key]) for key in heapq.nlargest(50, results[function_name],
-                                                                                key=results[function_name].get)]
+            top50 = {i.word: i.res for i in results[function_name]}
             taskqueue.add(url='/internal/statistics/functions/update/task_queue/push_results',
                               params={'name': function_name, 'top': json.dumps(top50)})
 
@@ -71,11 +90,22 @@ class AddFunctionHandler(AdminRequestHandler):
 
     def post(self):
         code = self.request.get("code")
-        name = self.request.get("name")
+        first = code.find("def")
+        last = code.find("(")
+        name = code[first+3:last].strip()
         description = self.request.get("descr")
         curr = ndb.Key(Function, name).get()
         if curr is None:
             Function(name=name, code=code, description=description, id=name).put()
+
+
+class CronUpdateResHandlers(ServiceRequestHandler):
+
+    def init(self, *args, **kwargs):
+        super(CronUpdateResHandlers, self).__init__(*args, **kwargs)
+
+    def get(self):
+        taskqueue.add(url='/internal/statistics/functions/update/task_queue')
 
 
 class ResultShowHandler(AdminRequestHandler):
@@ -92,5 +122,6 @@ class ResultShowHandler(AdminRequestHandler):
             function = ndb.Key(Function, function_name).get()
             if _result is not None:
                 result = json.loads(_result.json)
+                result = [(i, result[i]) for i in result]
 
         self.draw_page('statistics/show_results_screen', function=function, result=result, all=all)
