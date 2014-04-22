@@ -258,7 +258,7 @@ class AddGameHandler(ServiceRequestHandler):
                 if explained_at_once[word]:
                     d[explained_pair[word]].append(word)
             for l in d.values():
-                l.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+                l.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
                 self.rate(l)
 
             d.clear()
@@ -267,7 +267,7 @@ class AddGameHandler(ServiceRequestHandler):
                 if words_outcome[word] in ('guessed', 'failed'):
                     d[explained_pair[word][0]].append(word)
             for l in d.values():
-                l.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+                l.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
                 self.rate(l, coef=0.3)
 
             d.clear()
@@ -282,7 +282,7 @@ class AddGameHandler(ServiceRequestHandler):
             for word in seen_words_time:
                 if words_outcome[word] in ('guessed', 'failed'):
                     words.append(word)
-            words.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+            words.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
             self.rate(words, coef=0.6)
             for i in range(len(words_orig)):
                 if i in seen_words_time:
