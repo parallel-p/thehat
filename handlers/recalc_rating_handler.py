@@ -37,24 +37,7 @@ class RecalcRatingHandler(ServiceRequestHandler):
         word_db.D = D
         word_db.put()
 
-    @ndb.toplevel
-    def post(self):
-        words = [GlobalDictionaryWord.get(word) for word in json.loads(self.request.get("json"))]
-        ratings = []
-        words_db = []
-        for word_db in words:
-            if word_db is None:
-                continue
-            words_db.append(word_db)
-            ratings.append((TRUESKILL_ENVIRONMENT.create_rating(mu=word_db.E, sigma=word_db.D), ))
-        if len(ratings) > 1:
-            rated = TRUESKILL_ENVIRONMENT.rate(ratings)
-            for i in xrange(len(rated)):
-                self.update_word(words_db[i].word, rated[i][0].mu, rated[i][0].sigma)
-            logging.info(u"Updated rating of {} word".format(len(ratings)))
-        else:
-            logging.warning("No word from pair is in our dictionary")
-        self.response.set_status(200)
+
 
 
 MAX_TIME = 5 * 60 * 1000  # 5 minutes
@@ -67,7 +50,7 @@ def get_date(time):
 
 
 class AddGameHandler(ServiceRequestHandler):
-
+    ratings = []
     @staticmethod
     def check_word(word):
         if GlobalDictionaryWord.get(word) is None:
@@ -108,7 +91,7 @@ class AddGameHandler(ServiceRequestHandler):
         statistics.put()
 
     @ndb.transactional(xg=True)
-    def update_word(self, word, word_outcome, explanation_time, game_key):
+    def update_word(self, word, word_outcome, explanation_time, rating, game_key):
         word_db = GlobalDictionaryWord.get(word)
         if not word_db:
             return
@@ -126,7 +109,17 @@ class AddGameHandler(ServiceRequestHandler):
                 l.append(0)
             l[pos] += 1
         word_db.used_games.append(game_key.urlsafe())
+        word_db.E = rating.mu
+        word_db.D = rating.sigma
         word_db.put()
+
+    def rate(self, words, coef=None):
+        ratings = [{word: self.ratings[word]} for word in words if self.ratings[word]]
+        if len(ratings) > 1:
+            rated = TRUESKILL_ENVIRONMENT.rate(ratings, partial_update=coef)
+            for d in rated:
+                word, rate = d.items()[0]
+                self.ratings[word] = rate
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
@@ -135,11 +128,12 @@ class AddGameHandler(ServiceRequestHandler):
             raise BadGameError('old_version')
         events = log['events']
         words_orig = [el['word'] for el in log['setup']['words']]
+        explained_at_once = [False]*len(words_orig)
         seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
         words_outcome = {}
+        explained_pair = {}
         current_words_time = {}
-        words_by_players_pair = {}
         start_timestamp = None
         finish_timestamp = None
 
@@ -158,8 +152,6 @@ class AddGameHandler(ServiceRequestHandler):
             i += 1
         while i < len(events):
             current_pair = (events[i]['from'], events[i]['to'])
-            if current_pair not in words_by_players_pair:
-                words_by_players_pair[current_pair] = []
             i += 1
             while i < len(events) and events[i]['type'] != 'round_start':
                 event = events[i]
@@ -176,16 +168,14 @@ class AddGameHandler(ServiceRequestHandler):
                 i += 1
             for word in current_words_time.keys():
                 if word in seen_by_player[current_pair[0]]:
-                    del seen_words_time[word]
-                    seen_by_player[current_pair[0]].remove(word)
+                    seen_words_time.pop(word, None)
                     continue
                 if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
                     words_outcome[word] = 'removed'
                 elif words_outcome[word] in ('guessed', 'failed'):
                     if not word in seen_words_time:
-                        words_by_players_pair[current_pair].append((current_words_time[word]
-                                                                    if words_outcome[word] == 'guessed'
-                                                                    else MAX_TIME, words_orig[word]))
+                        explained_at_once[word] = True
+                    explained_pair[word] = current_pair
                 seen_words_time[word] += int(round(current_words_time[word] / 1000.0))
                 seen_by_player[current_pair[0]].add(word)
             current_words_time.clear()
@@ -198,8 +188,8 @@ class AddGameHandler(ServiceRequestHandler):
             start_timestamp += offset
         if finish_timestamp:
             finish_timestamp += offset
-        return (words_orig, seen_words_time, words_outcome, words_by_players_pair,
-                player_count, start_timestamp, finish_timestamp)
+        return (words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, player_count,
+                start_timestamp, finish_timestamp)
 
     def parse_history(self, hist):
         if hist.game_type is None:
@@ -207,7 +197,8 @@ class AddGameHandler(ServiceRequestHandler):
         if hist.game_type != GameHistory.HAT_STANDART:
             raise BadGameError('not_hat')
         words_orig = [el.text for el in hist.words]
-        words_by_players_pair = {}
+        explained_at_once = [False]*len(words_orig)
+        explained_pair = {}
         seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
         words_outcome = {}
@@ -221,22 +212,17 @@ class AddGameHandler(ServiceRequestHandler):
             pick_time += res.time_sec
             r = hist.rounds[cur_round]
             if res.result in [0, 1]:
+                explained_pair[res.word] = (r.player_explain, r.player_guess)
                 if not res.word in seen_words_time:
-                    current_pair = (r.player_explain, r.player_guess)
-                    if not current_pair in words_by_players_pair:
-                        words_by_players_pair[current_pair] = []
-                    words_by_players_pair[current_pair].append(
-                        (res.time_sec if res.result == 0 else 5*60, words_orig[res.word])
-                    )
+                    explained_at_once[res.word] = True
             if res.word in seen_by_player[r.player_explain]:
-                del seen_words_time[res.word]
-                seen_by_player[r.player_explain].remove(res.word)
+                seen_words_time.pop(res.word, None)
                 continue
             seen_words_time[res.word] += int(round(res.time_sec))
             words_outcome[res.word] = hist.string_repr[res.result]
             seen_by_player[r.player_explain].add(res.word)
         player_count = len(hist.players)
-        return words_orig, seen_words_time, words_outcome, words_by_players_pair, player_count, None, None
+        return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, player_count, None, None
 
     @ndb.toplevel
     def post(self):
@@ -250,7 +236,7 @@ class AddGameHandler(ServiceRequestHandler):
             self.abort(200)
         is_legacy = game_key.kind() == 'GameHistory'
         try:
-            words_orig, seen_words_time, words_outcome, words_by_players_pair, players_count,\
+            words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count,\
                 start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
             bad_words_count = 0
             for k, v in seen_words_time.items():
@@ -264,24 +250,43 @@ class AddGameHandler(ServiceRequestHandler):
             for word in words_orig:
                 self.check_word(word)
 
+            word_db = [GlobalDictionaryWord.get(word) for word in words_orig]
+            self.ratings = [TRUESKILL_ENVIRONMENT.create_rating(word.E, word.D) if word else None for word in word_db]
+
+            d = defaultdict(list)
+            for word in seen_words_time:
+                if explained_at_once[word]:
+                    d[explained_pair[word]].append(word)
+            for l in d.values():
+                l.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+                self.rate(l)
+
+            d.clear()
+            d = defaultdict(list)
+            for word in seen_words_time:
+                if words_outcome[word] in ('guessed', 'failed'):
+                    d[explained_pair[word][0]].append(word)
+            for l in d.values():
+                l.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+                self.rate(l, coef=0.3)
+
+            d.clear()
+            for word in seen_words_time:
+                if words_outcome[word] == 'guessed':
+                    d[explained_pair[word][1]].append(word)
+            for l in d.values():
+                l.sort(key=lambda item: -seen_words_time[item])
+                self.rate(l, coef=0.8)
+
+            words = []
+            for word in seen_words_time:
+                if words_outcome[word] in ('guessed', 'failed'):
+                    words.append(word)
+            words.sort(key=lambda item: (words_outcome[item] == 'failed', -seen_words_time[item]))
+            self.rate(words, coef=0.6)
             for i in range(len(words_orig)):
                 if i in seen_words_time:
-                    self.update_word(words_orig[i], words_outcome[i], seen_words_time[i], game_key)
-
-            if len(seen_words_time) > 1:
-                words = [words_orig[w] for w in sorted(filter(lambda w: words_outcome[w] == 'guessed',
-                                                              seen_words_time.keys()),
-                                                       key=lambda w: -seen_words_time[w])]
-                taskqueue.add(url='/internal/recalc_rating_after_game',
-                              params={'json': json.dumps(words)},
-                              queue_name='rating-calculation')
-            for players_pair, words in words_by_players_pair.items():
-                if len(words) > 1:
-                    words = sorted(words, key=lambda w: -w[0])
-                    to_recalc = [w[1] for w in words]
-                    taskqueue.add(url='/internal/recalc_rating_after_game',
-                                  params={'json': json.dumps(to_recalc)},
-                                  queue_name='rating-calculation')
+                    self.update_word(words_orig[i], words_outcome[i], seen_words_time[i], self.ratings[i], game_key)
 
             if start_timestamp:
                 start_timestamp //= 1000
@@ -296,7 +301,7 @@ class AddGameHandler(ServiceRequestHandler):
             if players_count:
                 self.update_statistics_by_player_count(players_count)
             memcache.delete_multi(["danger_top", "words_top", "words_bottom", "used_words_count"])
-        except (KeyError, ValueError, BadGameError) as e:
+        except BadGameError as e:
             if isinstance(e, BadGameError):
                 reason = e.reason
             else:
