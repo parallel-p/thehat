@@ -92,9 +92,7 @@ class AddFunctionHandler(AdminRequestHandler):
         last = code.find("(")
         name = code[first+3:last].strip()
         description = self.request.get("descr")
-        curr = ndb.Key(Function, name).get()
-        if curr is None:
-            Function(name=name, code=code, description=description, id=name).put()
+        Function(name=name, code=code, description=description, id=name).put()
 
 
 class CronUpdateResHandlers(ServiceRequestHandler):
