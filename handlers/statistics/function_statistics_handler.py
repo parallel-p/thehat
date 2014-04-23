@@ -64,13 +64,11 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
             exec function.code in functions
             results[function.name] = []
             names.append(function.name)
-        cnt = 0
         for index, word in enumerate(GlobalDictionaryWord.query().fetch()):
             for function_name in names:
                 res = functions[function_name](word)
                 if res is not None:
-                    cnt += 1
-                    if cnt <= 50:
+                    if len(results[function_name]) <= 50:
                         results[function_name].append(elem(res, word.word))
                     else:
                         heapq.heappushpop(results[function_name], elem(res, word.word))
