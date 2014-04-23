@@ -66,10 +66,10 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
             names.append(function.name)
         cnt = 0
         for index, word in enumerate(GlobalDictionaryWord.query().fetch()):
-            cnt += 1
             for function_name in names:
                 res = functions[function_name](word)
                 if res is not None:
+                    cnt += 1
                     if cnt <= 50:
                         results[function_name].append(elem(res, word.word))
                     else:
