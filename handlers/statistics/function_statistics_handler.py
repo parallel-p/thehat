@@ -73,7 +73,7 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
                     if cnt <= 50:
                         results[function_name].append(elem(res, word.word))
                     else:
-                        heapq.heapreplace(results[function_name], elem(res, word.word))
+                        heapq.heappushpop(results[function_name], elem(res, word.word))
         for function_name in results:
             top50 = {i.word: i.res for i in results[function_name]}
             taskqueue.add(url='/internal/statistics/functions/update/task_queue/push_results',
