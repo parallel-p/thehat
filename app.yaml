@@ -5,6 +5,13 @@ api_version: 1
 threadsafe: yes
 
 handlers:
+- url: /landing
+  static_files: templates/landing.html
+  upload: template/landing.html
+
+- url: /android/beta
+  static_files: templates/android_beta.html
+  upload: templates/android_beta.html
 
 - url: /favicon\.ico
   static_files: favicon.ico
@@ -12,9 +19,6 @@ handlers:
 
 - url: /img
   static_dir: img
-
-- url: /js
-  static_dir: js
 
 - url: /internal/.*
   script: main.app
