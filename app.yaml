@@ -6,8 +6,8 @@ threadsafe: yes
 
 handlers:
 - url: /landing
-  static_files: templates/android_beta.html
-  upload: templates/android_beta.html
+  static_files: templates/landing.html
+  upload: templates/landing.html
 
 - url: /android/beta
   static_files: templates/android_beta.html
