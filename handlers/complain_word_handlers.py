@@ -16,30 +16,31 @@ class ComplainWordHandler(AuthorizedAPIRequestHandler):
         super(ComplainWordHandler, self).__init__(*args, **kwargs)
 
     def post(self, *args, **kwargs):
-        complained_word_json_list = \
-            json.loads(self.request.get("json"))
-        for current_word_json in complained_word_json_list:
+        words = json.loads(self.request.get("json"))
+        for word in words:
+            g_word = GlobalDictionaryWord.get(word)
+            if not g_word or g_word.tags.find("-deleted") >= 0:
+                continue
             current_word = ComplainedWord(device=self.device_key,
-                                          word=current_word_json["word"],
-                                          reason=current_word_json["reason"])
-            if "replace_word" in current_word_json:
+                                          word=word["word"],
+                                          reason=word["reason"])
+            if "replace_word" in word:
                 current_word.replacement_word = \
-                    current_word_json["replace_word"]
+                    word["replace_word"]
             current_word.put()
 
-class word_class:
 
+class WordRow:
     def __init__(self, x, cnt):
         self.word = x.word
-        self.replacement_word = x.replacement_word
-        if x.replacement_word is None:
-            self.replacement_word = ''
+        self.replacement_word = x.replacement_word or ''
         self.cnt = cnt
         device, user = get_device_and_user(x.device.get().device_id)
         if device == user:
             self.device_id = device.get().device_id
         else:
             self.device_id = user.get().user_id
+
 
 class ShowComplainedWords(AdminRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -49,7 +50,7 @@ class ShowComplainedWords(AdminRequestHandler):
         cnt = 0
         words = []
         for word in ComplainedWord.query():
-            words.append(word_class(word, cnt))
+            words.append(WordRow(word, cnt))
             cnt += 1
         self.draw_page('complained_words', quantity=len(words), words=words)
 
@@ -80,6 +81,7 @@ class PostponeComplainedWord(AdminRequestHandler):
         deleted_word = self.request.get("word")
         ndb.delete_multi(ComplainedWord.query(ComplainedWord.word == deleted_word).fetch(offset=1, keys_only=True))
 
+
 class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
     def __init__(self, *args, **kwargs):
         super(DeleteFromGlobalDictionaryHandler, self).__init__(*args, **kwargs)
@@ -87,7 +89,7 @@ class DeleteFromGlobalDictionaryHandler(AdminRequestHandler):
     def post(self, *args, **kwargs):
         data = self.request.get("word")
         word = ndb.Key(GlobalDictionaryWord, data).get()
-        if word is not None:
+        if word:
             if word.tags.find("-deleted") == -1:
                 word.tags += "-deleted"
             word.put()
