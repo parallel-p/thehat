@@ -26,20 +26,6 @@ class BadGameError(Exception):
         self.reason = reason
 
 
-class RecalcRatingHandler(ServiceRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super(RecalcRatingHandler, self).__init__(*args, **kwargs)
-
-    @ndb.transactional()
-    def update_word(self, word, E, D):
-        word_db = GlobalDictionaryWord.get(word)
-        word_db.E = E
-        word_db.D = D
-        word_db.put()
-
-
-
-
 MAX_TIME = 5 * 60 * 1000  # 5 minutes
 MIN_TIME = 500  # 0.5 second
 DEFAULT_OFFSET = 4*60*60*1000
