@@ -1,0 +1,24 @@
+{% extends "templates/base.html" %}
+{% block title %}Sombrero-admin{% endblock %}
+{% block header %}Предполагаемая длительнсоть игры{% endblock %}
+
+{%block content%}
+
+    <table class="table">
+    <tr>
+        <th>#</th>
+        <th>Количество игроков</th>
+        <th>M</th>
+        <th>D</th>
+    </tr>
+    {% for a, b, c in elems %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ a }}</td>
+            <td>{{ b }} </td>
+            <td>{{ c }} </td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}
