@@ -39,4 +39,5 @@ class GameLenPredictionHandler(AdminRequestHandler):
             expected = datetime.datetime.fromtimestamp(self.count_expected_value(game)).strftime('%H:%M:%S')
             dispersion = datetime.datetime.fromtimestamp(self.count_dispersion(game)).strftime('%H:%M:%S')
             elems.append((game.player_count, expected, dispersion))
+        elems.sort()
         self.draw_page('statistics/prediction_handler', elems=elems)
