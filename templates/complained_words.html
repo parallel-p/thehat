@@ -30,49 +30,23 @@
             xmlhttp.send(prefix+"=" + word); // Отправляем POST-запрос
         }
 
+        function delete_rows(word, i)
+        {
+            $("[data-word=" + word + "]").slice(i).remove();
+        }
         function delete_here(word)
         {
-            for (var i = 0; i < {{ quantity }}; i = i + 1)
-            {
-                try
-                {
-                    document.getElementById(word + "_" + i).style.display = "none";
-                }
-                catch(err)
-                {
-                    ;
-                }
-            }
+            delete_rows(word, 0);
             post("word", '/admin/complain/cancel', word);
         }
         function delete_global(word)
         {
-            for (var i = 0; i < {{ quantity }}; i = i + 1)
-            {
-                try
-                {
-                    document.getElementById(word + "_" + i).style.display = "none";
-                }
-                catch(err)
-                {
-                    ;
-                }
-            }
+            delete_rows(word, 0);
             post("word",'/admin/complain/remove', word);
         }
         function postpone(word)
         {
-            for (var i = 1; i < {{ quantity }}; i = i + 1)
-            {
-                try
-                {
-                    document.getElementById(word + "_" + i).style.display = "none";
-                }
-                catch(err)
-                {
-                    ;
-                }
-            }
+            delete_rows(word, 1);
             post("word", '/admin/complain/postpone', word);
         }
     </script>
@@ -168,7 +142,7 @@
                         <div class="col-md-4">
                             <button type="button" class="btn btn-block btn-danger delete_here" data-dismiss="modal"> Удалить жалобы </button>
                         </div>
-                        <div class="col-md-4    ">
+                        <div class="col-md-4">
                             <button type="button" class="btn btn-block btn-success" data-dismiss="modal"> Close </button>
                         </div>
 

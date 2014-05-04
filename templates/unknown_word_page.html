@@ -5,7 +5,7 @@
 {%block content%}
 
 <script type="application/javascript">
-
+    var current_word;
     function getXmlHttp() {
         var xmlhttp;
         try {
@@ -31,119 +31,89 @@
         xmlhttp.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Отправляем кодировку
         xmlhttp.send("word=" + word); // Отправляем POST-запрос
     }
-
+    function pop_row(word)
+    {
+        $("#"+word).remove();
+    }
     function ignore(word)
     {
-        for (var i = 0; i < {{ quantity }}; i = i + 1)
-        {
-            try
-            {
-                document.getElementById(word).style.display = "none";
-            }
-            catch(err)
-            {
-                ;
-            }
-        }
         post('/admin/unknown_word/ignore', word);
+        pop_row(word);
     }
     function add(word)
     {
-        for (var i = 0; i < {{ quantity }}; i = i + 1)
-        {
-            try
-            {
-                document.getElementById(word).style.display = "none";
-            }
-            catch(err)
-            {
-                ;
-            }
-        }
         post('/admin/unknown_word/add', word);
+        pop_row(word);
+    }
+    function rename(word)
+    {
+        current_word = word;
+        $('#proper_word').val('');
+        $('#rename_word_modal').modal('show');
     }
 </script>
 <script type="text/javascript">
     jQuery(document).ready(function($) {
-        var word_name = ""
-        $(".rename_button").click(function() {
-            word_name = $(this).attr('id');
-            $('#proper_word').val('');
-            $('#rename_word_modal').modal('show');
-        });
         $(".send_button").click(function() {
             var typed_word = $('#proper_word').val();
-            $('#rename_word_modal').modal('show');
+            $('#rename_word_modal').modal('hide');
             if($.trim(typed_word) != ''){
-                $(this).addClass('glyphicon glyphicon-ok-circle')
-                post("json", '/admin/word_lookup/add', JSON.stringify([{"word":typed_word, "lookup":word_name}]))
-                add(typed_word);
-                ignore(word_name);
-                for (var i = 0; i < {{ quantity }}; i = i + 1)
-                {
-                    try
-                    {
-                        document.getElementById(word_name+"_row").style.display = "none";
-                    }
-                    catch(err)
-                    {
-                        ;
-                    }
-                }
+                $(this).addClass('glyphicon glyphicon-ok-circle');
+                post("json",
+                     '/admin/word_lookup/add',
+                     JSON.stringify([{"word": typed_word, "lookup": current_word}]));
+                ignore(current_word);
             }
         });
     });
 </script>
 
 <table class="table table-hover">
-    <thead>
-        <td>Слово</td>
-        <td>Встречалось раз</td>
-    </thead>
-    <tbody>
-
-        {% for word in word_list %}
-            <tr id = "{{ word.word }}_row">
-                <td>{{ word.word }}</td>
-                <td>{{ word.times_used}}</td>
-                <td>
-                    <div class="row">
-                        <div class="col-md-3">
-                            <button class="btn btn-success" onclick="add('{{ word.word }}')">
-                                <span class="glyphicon glyphicon-plus"></span>
-                                добавить в словарь
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-danger ignore_button" onclick="ignore('{{ word.word }}')">
-                                <span class="glyphicon glyphicon-minus"></span>
-                                игнорировать
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <button class="btn btn-info rename_button" id = "{{ word.word }}">
-                                <span class="glyphicon glyphicon-edit"></span>
-                                Это опечатка
-                            </button>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="btn-group">
-                            <button data-toggle="dropdown" class="btn btn-default dropdown-toggle"> <span class="glyphicon glyphicon-question-sign"></span>
-                                <span class="caret"></span>
-                            </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="http://ru.wiktionary.org/wiki/{{word.word}}">Посмотреть в Wiktionary</a></li>
-                                    <li class="divider"></li>
-                                    <li><a href="http://www.google.com/search?q={{ word.word }}">Поиск в Google</a></li>
-                                    <li><a href="http://yandex.ru/yandsearch?text={{ word.word }}">Поиск в Yandex</a></li>
-                                </ul>
-                            </div>
-                        </div>
+    <tr>
+        <th>Слово</th>
+        <th>Встречалось раз</th>
+    </tr>
+{% for word in word_list %}
+    <tr id = "{{ word.word }}">
+        <td>{{ word.word }}</td>
+        <td>{{ word.times_used}}</td>
+        <td>
+            <div class="row">
+                <div class="col-md-3">
+                    <button class="btn btn-success" onclick="add('{{ word.word }}')">
+                        <span class="glyphicon glyphicon-plus"></span>
+                        Добавить в словарь
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-danger ignore_button" onclick="ignore('{{ word.word }}')">
+                        <span class="glyphicon glyphicon-minus"></span>
+                        Игнорировать
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-info rename_button" onclick="rename('{{ word.word }}')">
+                        <span class="glyphicon glyphicon-edit"></span>
+                        Это опечатка
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <div class="btn-group">
+                    <button data-toggle="dropdown" class="btn btn-default dropdown-toggle"> <span class="glyphicon glyphicon-question-sign"></span>
+                        <span class="caret"></span>
+                    </button>
+                        <ul class="dropdown-menu">
+                            <li><a target="_blank" href="http://ru.wiktionary.org/wiki/{{word.word}}">Посмотреть в Wiktionary</a></li>
+                            <li class="divider"></li>
+                            <li><a target="_blank" href="http://www.google.com/search?q={{ word.word }}">Поиск в Google</a></li>
+                            <li><a target="_blank" href="http://yandex.ru/yandsearch?text={{ word.word }}">Поиск в Yandex</a></li>
+                        </ul>
                     </div>
-                </td>
-             </tr>
-        {% endfor %}
-    </tbody>
+                </div>
+            </div>
+        </td>
+     </tr>
+{% endfor %}
 </table>
 <div class="modal" id="rename_word_modal">
     <div class="modal-dialog">
