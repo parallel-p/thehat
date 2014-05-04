@@ -19,6 +19,7 @@ from base_handlers.service_request_handler import ServiceRequestHandler
 from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
 from objects.unknown_word import UnknownWord
+from handlers.statistics.game_len_prediction_handler import GameLength
 
 
 class BadGameError(Exception):
@@ -98,6 +99,15 @@ class AddGameHandler(ServiceRequestHandler):
         word_db.E = rating.mu
         word_db.D = rating.sigma
         word_db.put()
+
+    def update_game_len_prediction(self, player_count, game_type, game_len):
+        key = "{0}_{1}".format(game_type, player_count)
+        prediction_db = ndb.Key(GameLength, key).get()
+        if prediction_db is None:
+            GameLength(lens=[game_len], player_count=player_count, type=game_type, id=key).put()
+        else:
+            prediction_db.lens.append(game_len)
+            prediction_db.put()
 
     def rate(self, words, coef=None):
         ratings = [{word: self.ratings[word]} for word in words if self.ratings[word]]
@@ -224,6 +234,8 @@ class AddGameHandler(ServiceRequestHandler):
         try:
             words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count,\
                 start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
+            if start_timestamp and finish_timestamp:
+                self.update_game_len_prediction(players_count, 'game', finish_timestamp - start_timestamp)
             bad_words_count = 0
             for k, v in seen_words_time.items():
                 if v < 2:

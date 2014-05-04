@@ -39,6 +39,7 @@ import handlers.unknown_word_handler
 import handlers.word_lookup
 import handlers.statistics.function_statistics_handler
 import handlers.base_handlers.api_request_handlers
+import handlers.statistics.game_len_prediction_handler
 from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
@@ -48,6 +49,13 @@ class MainPage(WebRequestHandler):
 
 
 routes = [
+
+    #prediction handlers
+    webapp2.Route(r'/admin/statistics/prediction',
+                  handler=handlers.statistics.game_len_prediction_handler.GameLenPredictionHandler,
+                  name='prediction'),
+
+
     webapp2.Route(r'/<device_id:[-\w]+>/api/linkdevice',
                   handler=handlers.link_device.LinkDevice,
                   name='linkdevice'),
@@ -74,7 +82,6 @@ routes = [
     webapp2.Route(r'/admin/statistics/functions/show',
                   handler=handlers.statistics.function_statistics_handler.ResultShowHandler,
                   name='push results'),
-
 
     #User api request handlers
     #user
