@@ -337,10 +337,11 @@ var chart_day = AmCharts.makeChart("day-chart", {
                 <p>
                     В нашем словаре содержится {{ label(words_in_dictionary, "слово", "слова", "слов") }}.
                     Из них {{ used_words }} когда-либо объяснялось нашими пользователями.</p>
-
+                {% if longest_time %}
                 <p>
                     Дольше всего наши пользователи объясняли слово "{{ longest_word }}": {{ time(longest_time) }}
                 </p>
+                {% endif %}
             </div>
             <div class="col-md-6" id="games_for_players" style="height: 400px;"></div>
         </div>
