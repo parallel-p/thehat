@@ -38,6 +38,7 @@ def get_date(time):
 
 class AddGameHandler(ServiceRequestHandler):
     ratings = []
+
     @staticmethod
     def check_word(word):
         if GlobalDictionaryWord.get(word) is None:
