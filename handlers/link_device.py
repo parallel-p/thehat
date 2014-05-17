@@ -1,13 +1,13 @@
+from handlers import AuthorizedAPIRequestHandler, ServiceRequestHandler
+
 __author__ = 'denspb'
 
 from google.appengine.api import users
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from handlers.base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 from objects.user_devices import get_user
-from handlers.userdictionary import merge_user_dictionary_data
+from handlers.user_dictionary import merge_user_dictionary_data
 
 
 class LinkDevice(AuthorizedAPIRequestHandler):

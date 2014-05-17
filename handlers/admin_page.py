@@ -1,9 +1,6 @@
-__author__ = 'ivan'
-from google.appengine.api import users
-import webapp2
+from handlers import AdminRequestHandler
 
-from environment import JINJA_ENVIRONMENT
-from base_handlers.admin_request_handler import AdminRequestHandler
+__author__ = 'ivan'
 
 
 class AdminPage(AdminRequestHandler):

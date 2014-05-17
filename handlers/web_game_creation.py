@@ -1,8 +1,6 @@
+from handlers import WebRequestHandler
+
 __author__ = 'ivan'
-
-
-from environment import JINJA_ENVIRONMENT
-from handlers.base_handlers.web_request_handler import WebRequestHandler
 
 
 class WebGameCreationHandler(WebRequestHandler):

@@ -1,5 +1,5 @@
 from google.appengine.ext import ndb
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
+from handlers import AdminRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 
 __author__ = 'ivan'

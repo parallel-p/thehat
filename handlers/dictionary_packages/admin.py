@@ -1,8 +1,8 @@
 from google.appengine.api import users
+from handlers import AdminRequestHandler
 
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
 from environment import *
-from base_handlers.admin_request_handler import AdminRequestHandler
 
 
 def get_streams():

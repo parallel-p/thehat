@@ -1,11 +1,12 @@
+#TODO: this file is obsolete and must be rewritten
+from handlers import AdminRequestHandler
+
 __author__ = 'ivan'
 
 import json
-import time
 
 from environment import JINJA_ENVIRONMENT
 from objects.global_dictionary_word import GlobalDictionaryWord
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
 
 

@@ -1,10 +1,11 @@
+from handlers import ServiceRequestHandler
+
 __author__ = 'nikolay'
 import hashlib
 
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 from objects.legacy_game_history import GameHistory
 
 

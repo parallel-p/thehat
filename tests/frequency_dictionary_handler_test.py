@@ -1,12 +1,12 @@
 __author__ = 'ivan'
 
-import unittest2
 import json
 import base64
 
+import unittest2
 from google.appengine.ext import testbed
 
-from handlers.frequency_dictionary_handlers import WordFrequency
+from global_dictionary.frequency import WordFrequency
 from tests.base_functions import *
 import main
 

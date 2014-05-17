@@ -1,11 +1,11 @@
+from handlers import APIRequestHandler, WebRequestHandler
+
 __author__ = 'ivan'
 
 from google.appengine.api import memcache
 
-from handlers.base_handlers.web_request_handler import WebRequestHandler
-from handlers.statistics.update_mathplotlib_plots import Plot
+from handlers.statistics.plots import Plot
 from objects.total_statistics_object import *
-from handlers.base_handlers.api_request_handlers import APIRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 
 

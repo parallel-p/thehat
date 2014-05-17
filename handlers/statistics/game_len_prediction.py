@@ -1,7 +1,8 @@
+from handlers import AdminRequestHandler
+
 __author__ = 'ivan'
 
 from google.appengine.ext import ndb
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 import math
 import datetime
 

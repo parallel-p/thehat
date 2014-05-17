@@ -1,3 +1,5 @@
+from handlers import ServiceRequestHandler
+
 __author__ = 'ivan'
 
 import StringIO
@@ -6,7 +8,6 @@ import logging
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 
 

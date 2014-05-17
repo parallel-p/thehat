@@ -1,8 +1,9 @@
+__author__ = 'nikolay'
 import json
-from objects.user_devices import get_device_and_user
+
+from handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 from objects.user_streams import UserStreams
 from objects.dictionaries_packages import PackagesStream, PackageDictionary
-from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 
 
 class GetStreamsListHandler(APIRequestHandler):

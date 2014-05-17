@@ -1,5 +1,6 @@
+from handlers import AdminRequestHandler
+
 __author__ = 'nikolay'
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 from google.appengine.ext import ndb
 import json
 

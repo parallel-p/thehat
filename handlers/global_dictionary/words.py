@@ -1,3 +1,5 @@
+from handlers import AdminRequestHandler, APIRequestHandler, ServiceRequestHandler
+
 __author__ = 'ivan'
 
 import time
@@ -8,9 +10,6 @@ from google.appengine.ext import ndb
 
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.GlobalDictionaryJSON import GlobalDictionaryJson
-from handlers.base_handlers.api_request_handlers import APIRequestHandler
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
 StrategyTypeChooseConstant = 200

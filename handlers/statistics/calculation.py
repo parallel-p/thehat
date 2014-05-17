@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from handlers import AdminRequestHandler, ServiceRequestHandler
+
 __author__ = 'nikolay'
 
 
@@ -11,15 +13,13 @@ import datetime
 from google.appengine.api import taskqueue
 from google.appengine.api import memcache
 
-from objects.global_dictionary_word import GlobalDictionaryWord, WordLookup
+from objects.global_dictionary_word import GlobalDictionaryWord
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
 from objects.legacy_game_history import GameHistory
-from base_handlers.service_request_handler import ServiceRequestHandler
-from base_handlers.admin_request_handler import AdminRequestHandler
 from objects.total_statistics_object import *
 from objects.unknown_word import UnknownWord
-from handlers.statistics.game_len_prediction_handler import GameLength
+from handlers.statistics.game_len_prediction import GameLength
 
 
 class BadGameError(Exception):

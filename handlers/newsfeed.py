@@ -3,16 +3,12 @@
 # v 0.2
 
 
-import os
 import time
-import webapp2
 
 from google.appengine.ext import db
 from webapp2_extras import json
-from base_handlers.admin_request_handler import AdminRequestHandler
-from base_handlers.api_request_handlers import APIRequestHandler
 
-
+from handlers import AdminRequestHandler, APIRequestHandler
 from environment import *
 
 

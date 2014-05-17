@@ -4,10 +4,9 @@ import json
 
 from google.appengine.ext import ndb
 
+from handlers import AdminRequestHandler, AuthorizedAPIRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from objects.complained_word import ComplainedWord
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
-from handlers.base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 from objects.user_devices import get_device_and_user
 
 

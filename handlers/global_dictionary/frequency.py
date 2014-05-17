@@ -1,12 +1,11 @@
+
 __author__ = 'ivan'
 
 import json
 
+from handlers import AdminRequestHandler, ServiceRequestHandler
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
-
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
-from handlers.base_handlers.service_request_handler import ServiceRequestHandler
 
 
 class WordFrequency(ndb.Model):

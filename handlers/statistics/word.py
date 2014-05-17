@@ -1,6 +1,7 @@
+from handlers import WebRequestHandler
+
 __author__ = 'ivan'
 
-from handlers.base_handlers.web_request_handler import WebRequestHandler
 from objects.global_dictionary_word import GlobalDictionaryWord
 from google.appengine.api import memcache
 from random import randint

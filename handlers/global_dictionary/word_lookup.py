@@ -1,8 +1,8 @@
+from handlers import AdminRequestHandler
+
 __author__ = 'nikolay'
 from objects.global_dictionary_word import WordLookup
-from handlers.base_handlers.admin_request_handler import AdminRequestHandler
 import json
-from google.appengine.ext import ndb
 
 
 class AddLookups(AdminRequestHandler):

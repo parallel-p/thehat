@@ -1,3 +1,5 @@
+from handlers import AuthorizedAPIRequestHandler
+
 __author__ = 'nikolay'
 
 import random
@@ -6,7 +8,6 @@ import json
 from google.appengine.ext import ndb
 
 from objects.pregame import PreGame, CurrentGame
-from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
 
 
 class PreGameCreateHandler(AuthorizedAPIRequestHandler):

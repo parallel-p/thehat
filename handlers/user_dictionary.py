@@ -1,8 +1,7 @@
 import json
+from handlers import AuthorizedAPIRequestHandler, WebRequestHandler
 
 from objects.user_dictionary_word import UserDictionaryWord
-from base_handlers.api_request_handlers import AuthorizedAPIRequestHandler
-from base_handlers.web_request_handler import WebRequestHandler
 
 
 class UserDictionaryHandler(AuthorizedAPIRequestHandler):

@@ -16,31 +16,31 @@
 #
 import webapp2
 
+from handlers import WebRequestHandler
 import handlers
-import handlers.dictionaries_packages_handlers
-import handlers.dictionaries_packages_admin_handlers
-import handlers.userdictionary
-import handlers.log_n_res_handlers
-import handlers.complain_word_handlers
-import handlers.newsfeed_handlers
-import handlers.global_dictionary_word_handlers
-import handlers.recalc_rating_handler
-import handlers.web_game_creation_handler
+import handlers.dictionary_packages
+import handlers.dictionary_packages.admin
+import handlers.user_dictionary
+import handlers.log_saving
+import handlers.global_dictionary.complain_word
+import handlers.newsfeed
+import handlers.global_dictionary.words
+import handlers.statistics.calculation
+import handlers.web_game_creation
 import handlers.link_device
-import handlers.statistics.word_statistics_handler
-import handlers.statistics.update_mathplotlib_plots
-import handlers.remove_duplicates
-import handlers.admin_page_handler
-import handlers.pregame_handlers
-import handlers.statistics.total_statistics_handler
-import handlers.frequency_dictionary_handlers
+import handlers.statistics.word
+import handlers.statistics.plots
+import handlers.service.remove_duplicates
+import handlers.admin_page
+import handlers.pregame
+import handlers.statistics.total
+import handlers.global_dictionary.frequency
 import handlers.game_log_viewer
-import handlers.unknown_word_handler
-import handlers.word_lookup
-import handlers.statistics.function_statistics_handler
-import handlers.base_handlers.api_request_handlers
-import handlers.statistics.game_len_prediction_handler
-from handlers.base_handlers.web_request_handler import WebRequestHandler
+import handlers.global_dictionary.unknown_words
+import handlers.global_dictionary.word_lookup
+import handlers.statistics.functions
+import handlers.user_properies
+import handlers.statistics.game_len_prediction
 
 
 class MainPage(WebRequestHandler):
@@ -52,7 +52,7 @@ routes = [
 
     #prediction handlers
     webapp2.Route(r'/admin/statistics/prediction',
-                  handler=handlers.statistics.game_len_prediction_handler.GameLenPredictionHandler,
+                  handler=handlers.statistics.game_len_prediction.GameLenPredictionHandler,
                   name='prediction'),
 
 
@@ -65,157 +65,157 @@ routes = [
 
     #function statistics handler
     webapp2.Route(r'/admin/statistics/functions/add',
-                  handler=handlers.statistics.function_statistics_handler.AddFunctionHandler,
+                  handler=handlers.statistics.functions.AddFunctionHandler,
                   name='add function'),
     webapp2.Route(r'/admin/statistics/functions/update',
-                  handler=handlers.statistics.function_statistics_handler.UpdateFunctionsStatisticsHandler,
+                  handler=handlers.statistics.functions.UpdateFunctionsStatisticsHandler,
                   name='update stat'),
     webapp2.Route(r'/cron/statistics/functions/update',
-                  handler=handlers.statistics.function_statistics_handler.CronUpdateResHandlers,
+                  handler=handlers.statistics.functions.CronUpdateResHandlers,
                   name='update stat cron'),
     webapp2.Route(r'/internal/statistics/functions/update/task_queue',
-                  handler=handlers.statistics.function_statistics_handler.UpdateFunctionsStatisticsHandlerTaskQueue,
+                  handler=handlers.statistics.functions.UpdateFunctionsStatisticsHandlerTaskQueue,
                   name='update stat'),
     webapp2.Route(r'/internal/statistics/functions/update/task_queue/push_results',
-                  handler=handlers.statistics.function_statistics_handler.push_results_task_queue,
+                  handler=handlers.statistics.functions.push_results_task_queue,
                   name='push results'),
     webapp2.Route(r'/admin/statistics/functions/show',
-                  handler=handlers.statistics.function_statistics_handler.ResultShowHandler,
+                  handler=handlers.statistics.functions.ResultShowHandler,
                   name='push results'),
 
     #User api request handlers
     #user
     webapp2.Route(r'/api/settings/user/get/all',
-                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.User,
+                  handler=handlers.user_properies.GetAllValues.User,
                   name='get all values'),
     webapp2.Route(r'/api/settings/user/update',
-                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.User,
+                  handler=handlers.user_properies.UpdateValues.User,
                   name='get all values'),
     webapp2.Route(r'/api/settings/user/delete',
-                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.User,
+                  handler=handlers.user_properies.DeleteValues.User,
                   name='delete values'),
     webapp2.Route(r'/api/settings/user/version',
-                  handler=handlers.base_handlers.api_request_handlers.GetLastUserVersion,
+                  handler=handlers.user_properies.GetLastUserVersion,
                   name='get version'),
     #this device
     webapp2.Route(r'/api/settings/device/get/all',
-                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.Device,
+                  handler=handlers.user_properies.GetAllValues.Device,
                   name='get all values'),
     webapp2.Route(r'/api/settings/device/update',
-                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.Device,
+                  handler=handlers.user_properies.UpdateValues.Device,
                   name='get all values'),
     webapp2.Route(r'/api/settings/device/delete',
-                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.Device,
+                  handler=handlers.user_properies.DeleteValues.Device,
                   name='delete values'),
     webapp2.Route(r'/api/settings/device/version',
-                  handler=handlers.base_handlers.api_request_handlers.GetLastDeviceVersion,
+                  handler=handlers.user_properies.GetLastDeviceVersion,
                   name='get version'),
     #devices
     webapp2.Route(r'/api/settings/user_devices/get/all',
-                  handler=handlers.base_handlers.api_request_handlers.GetAllValues.Devices,
+                  handler=handlers.user_properies.GetAllValues.Devices,
                   name='get all values'),
     webapp2.Route(r'/api/settings/user_devices/update',
-                  handler=handlers.base_handlers.api_request_handlers.UpdateValues.Devices,
+                  handler=handlers.user_properies.UpdateValues.Devices,
                   name='get all values'),
     webapp2.Route(r'/api/settings/user_devices/delete',
-                  handler=handlers.base_handlers.api_request_handlers.DeleteValues.Devices,
+                  handler=handlers.user_properies.DeleteValues.Devices,
                   name='delete values'),
     webapp2.Route(r'/api/settings/user_devices/version',
-                  handler=handlers.base_handlers.api_request_handlers.GetLastDevicesVersion,
+                  handler=handlers.user_properies.GetLastDevicesVersion,
                   name='get version'),
     #end api andlers
 
     #Unknown words handlers
     webapp2.Route(r'/admin/unknown_word/list',
-                  handler=handlers.unknown_word_handler.GetWordPageHandler,
+                  handler=handlers.global_dictionary.unknown_words.GetWordPageHandler,
                   name='get unknown words list'),
     webapp2.Route(r'/admin/unknown_word/add',
-                  handler=handlers.unknown_word_handler.AddWordHanler,
+                  handler=handlers.global_dictionary.unknown_words.AddWordHanler,
                   name='add word'),
     webapp2.Route(r'/admin/unknown_word/ignore',
-                  handler=handlers.unknown_word_handler.IgnoreWordHanler,
+                  handler=handlers.global_dictionary.unknown_words.IgnoreWordHanler,
                   name='ignore word'),
 
     #Frequency dictionary handlers
     webapp2.Route(r'/admin/frequency_dictionary/add',
-                  handler=handlers.frequency_dictionary_handlers.MakeDictionaryHandler,
+                  handler=handlers.global_dictionary.frequency.MakeDictionaryHandler,
                   name='add dict'),
     webapp2.Route(r'/admin/frequency_dictionary/delete',
-                  handler=handlers.frequency_dictionary_handlers.DeleteDictionary,
+                  handler=handlers.global_dictionary.frequency.DeleteDictionary,
                   name='delete dict'),
     webapp2.Route(r'/internal/frequency_dictionary/delete/task_queue',
-                  handler=handlers.frequency_dictionary_handlers.DeleteDictionaryTaskQueue,
+                  handler=handlers.global_dictionary.frequency.DeleteDictionaryTaskQueue,
                   name='delete dict'),
     webapp2.Route(r'/internal/frequency_dictionary/add/task_queue',
-                  handler=handlers.frequency_dictionary_handlers.MakeDictionaryTaskQueueHandler,
+                  handler=handlers.global_dictionary.frequency.MakeDictionaryTaskQueueHandler,
                   name='add dict task_queue'),
 
     #Word lookup handlers
     webapp2.Route(r'/admin/word_lookup/add',
-                  handler=handlers.word_lookup.AddLookups,
+                  handler=handlers.global_dictionary.word_lookup.AddLookups,
                   name="add_lookups"),
 
     #recalc rating & make_statistics handlers
     #web
     webapp2.Route(r'/admin/logs_processing',
-                  handler=handlers.recalc_rating_handler.LogsAdminPage),
+                  handler=handlers.statistics.calculation.LogsAdminPage),
     webapp2.Route(r'/cron/update_plots/start/<admin:[-\w]*>',
-                  handler=handlers.statistics.update_mathplotlib_plots.runUpdateAll),
+                  handler=handlers.statistics.plots.runUpdateAll),
     #service
     webapp2.Route(r'/internal/update_heatmap/task_queue',
-                  handler=handlers.statistics.update_mathplotlib_plots.UpdateHeatMapTaskQueue,
+                  handler=handlers.statistics.plots.UpdateHeatMapTaskQueue,
                   name='update heatmap task queue'),
     webapp2.Route(r'/internal/update_scatter/task_queue',
-                  handler=handlers.statistics.update_mathplotlib_plots.UpdateScatterPlotTaskQueue,
+                  handler=handlers.statistics.plots.UpdateScatterPlotTaskQueue,
                   name='update heatmap task queue'),
     webapp2.Route(r'/internal/update_d/task_queue',
-                  handler=handlers.statistics.update_mathplotlib_plots.UpdateDPlotHeatMapTaskQueue,
+                  handler=handlers.statistics.plots.UpdateDPlotHeatMapTaskQueue,
                   name='update d task queue'),
     webapp2.Route(r'/internal/add_game_to_statistic',
-                  handler=handlers.recalc_rating_handler.AddGameHandler,
+                  handler=handlers.statistics.calculation.AddGameHandler,
                   name='add_game_Statistic'),
     webapp2.Route(r'/internal/recalc_all_logs',
-                  handler=handlers.recalc_rating_handler.RecalcAllLogs),
+                  handler=handlers.statistics.calculation.RecalcAllLogs),
 
     #User dictionary handlers
-    (r'/html/udict/edit', handlers.userdictionary.DrawWebpage),
-    (r'/html/udict/proc', handlers.userdictionary.ProcWebpage),
+    (r'/html/udict/edit', handlers.user_dictionary.DrawWebpage),
+    (r'/html/udict/proc', handlers.user_dictionary.ProcWebpage),
     webapp2.Route(r'/<device_id:[-\w]+>/api/udict/',
-                  handler=handlers.userdictionary.UserDictionaryHandler,
+                  handler=handlers.user_dictionary.UserDictionaryHandler,
                   name='udict_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/api/udict/since/<version:[-\w]+>',
-                  handler=handlers.userdictionary.UserDictionaryHandler,
+                  handler=handlers.user_dictionary.UserDictionaryHandler,
                   name='udict_since'),
     webapp2.Route(r'/<device_id:[-\w]+>/api/udict',
-                  handler=handlers.userdictionary.UserDictionaryHandler,
+                  handler=handlers.user_dictionary.UserDictionaryHandler,
                   name='udict_get'),
 
     #Web handlers
     (r'/', MainPage),
-    (r'/admin', handlers.admin_page_handler.AdminPage),
+    (r'/admin', handlers.admin_page.AdminPage),
     webapp2.Route(r'/user/create_game',
-                  handler=handlers.web_game_creation_handler.WebGameCreationHandler,
+                  handler=handlers.web_game_creation.WebGameCreationHandler,
                   name='create_game'),
     webapp2.Route(r'/remove_duplicates',
-                  handler=handlers.remove_duplicates.RemoveDuplicates,
+                  handler=handlers.service.remove_duplicates.RemoveDuplicates,
                   name='remove_duplicates'),
     webapp2.Route(r'/images/scatter_plot/<N:[-\d]+>',
-                  handler=handlers.statistics.total_statistics_handler.ScattedPlotHandler,
+                  handler=handlers.statistics.total.ScattedPlotHandler,
                   name='scatter_plot'),
     webapp2.Route(r'/images/heatmap_plot/<N:[-\d]+>',
-                  handler=handlers.statistics.total_statistics_handler.HeatmapPlotHandler,
+                  handler=handlers.statistics.total.HeatmapPlotHandler,
                   name='heatmap_plot'),
     webapp2.Route(r'/images/d_plot',
-                  handler=handlers.statistics.total_statistics_handler.DPlotHandler,
+                  handler=handlers.statistics.total.DPlotHandler,
                   name='d_plot'),
 
 
     #Statistics web handlers
     webapp2.Route(r'/statistics/word_statistics',
-                  handler=handlers.statistics.word_statistics_handler.WordStatisticsHandler,
+                  handler=handlers.statistics.word.WordStatisticsHandler,
                   name='stats'),
     webapp2.Route('/statistics/total_statistics',
-                  handler=handlers.statistics.total_statistics_handler.TotalStatisticsHandler,
+                  handler=handlers.statistics.total.TotalStatisticsHandler,
                   name="total statistics handler"),
     webapp2.Route('/admin/view_game_log',
                   handler=handlers.game_log_viewer.GameLogViewer,
@@ -226,147 +226,147 @@ routes = [
 
     #gamelog handlers
     webapp2.Route(r'/<device_id:[-\w]+>/game_log',
-                  handler=handlers.log_n_res_handlers.GameLogHandler,
+                  handler=handlers.log_saving.GameLogHandler,
                   name='upload_log'),
     #migration route: to be removed
     webapp2.Route(r'/<device_id:[-\w]+>/game_log/<game_id:[-\w]+>',
-                  handler=handlers.log_n_res_handlers.GameLogHandler),
+                  handler=handlers.log_saving.GameLogHandler),
     webapp2.Route(r'/<device_id:[-\w]+>/game_results/<game_id:[-\w]+>',
-                  handler=handlers.log_n_res_handlers.GameResultsHandler,
+                  handler=handlers.log_saving.GameResultsHandler,
                   name='upload_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/game_results/since/<timestamp:[-\w]+>',
-                  handler=handlers.log_n_res_handlers.GameResultsUpdateHandler,
+                  handler=handlers.log_saving.GameResultsUpdateHandler,
                   name='check_for_results'),
     webapp2.Route(r'/<device_id:[-\w]+>/get_results/<game_id:[-\w]+>',
-                  handler=handlers.log_n_res_handlers.GameResultsHandler,
+                  handler=handlers.log_saving.GameResultsHandler,
                   name='get_results'),
     webapp2.Route(r'/save_game',
-                  handler=handlers.log_n_res_handlers.SaveGameHandler,
+                  handler=handlers.log_saving.SaveGameHandler,
                   name='save_game'),
     webapp2.Route(r'/save_game/<pin:[-\w]+>',
-                  handler=handlers.log_n_res_handlers.SaveGameHandler,
+                  handler=handlers.log_saving.SaveGameHandler,
                   name='load_game'),
 
 
     #Word streams handlers
     webapp2.Route(r'/admin/streams',
-                  handler=handlers.dictionaries_packages_admin_handlers.AddStreamHandler,
+                  handler=handlers.dictionary_packages.admin.AddStreamHandler,
                   name='edit_words'),
-    webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=handlers.dictionaries_packages_handlers.GetStreamsListHandler,
+    webapp2.Route(r'/<device_id:[-\w]+>/streams', handler=handlers.dictionary_packages.GetStreamsListHandler,
                   name='stream_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>'
                   r'/to/<on:(true)|(false)>',
-                  handler=handlers.dictionaries_packages_handlers.ChangeStreamStateHandler,
+                  handler=handlers.dictionary_packages.ChangeStreamStateHandler,
                   name='change_stream_state'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/<stream_id:[-\w]+>',
-                  handler=handlers.dictionaries_packages_handlers.GetPackagesListHandler,
+                  handler=handlers.dictionary_packages.GetPackagesListHandler,
                   name='package_list'),
     webapp2.Route(r'/<device_id:[-\w]+>/streams/packages/<package_id:[-\w]+>',
-                  handler=handlers.dictionaries_packages_handlers.GetPackageHandler,
+                  handler=handlers.dictionary_packages.GetPackageHandler,
                   name='get_package'),
     webapp2.Route(r'/admin/streams/<stream_id:[-\w]+>/packages/add',
-                  handler=handlers.dictionaries_packages_admin_handlers.AddPackageHandler,
+                  handler=handlers.dictionary_packages.admin.AddPackageHandler,
                   name='add_package'),
     webapp2.Route(r'/admin/streams/packages/<package_id:[-\w]+>/words',
-                  handler=handlers.dictionaries_packages_admin_handlers.ChangeWordsHandler,
+                  handler=handlers.dictionary_packages.admin.ChangeWordsHandler,
                   name='change_words'),
 
     #Pregame handlers
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/create',
-                  handler=handlers.pregame_handlers.PreGameCreateHandler,
+                  handler=handlers.pregame.PreGameCreateHandler,
                   name='pregame_create'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/join',
-                  handler=handlers.pregame_handlers.PreGameJoinHandler,
+                  handler=handlers.pregame.PreGameJoinHandler,
                   name='pregame_join'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/get_current_game',
-                  handler=handlers.pregame_handlers.PreGameCurrentHandler,
+                  handler=handlers.pregame.PreGameCurrentHandler,
                   name='pregame_current'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>',
-                  handler=handlers.pregame_handlers.PreGameHandler,
+                  handler=handlers.pregame.PreGameHandler,
                   name='pregame_get'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/update',
-                  handler=handlers.pregame_handlers.PreGameUpdateHandler,
+                  handler=handlers.pregame.PreGameUpdateHandler,
                   name='pregame_update'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/version',
-                  handler=handlers.pregame_handlers.PreGameVersionHandler,
+                  handler=handlers.pregame.PreGameVersionHandler,
                   name='pregame_version'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>'
                   r'/since/<version:[\d]+>',
-                  handler=handlers.pregame_handlers.PreGameSinceHandler,
+                  handler=handlers.pregame.PreGameSinceHandler,
                   name='pregame_since'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/start',
-                  handler=handlers.pregame_handlers.PreGameStartHandler,
+                  handler=handlers.pregame.PreGameStartHandler,
                   name='pregame_start'),
     webapp2.Route(r'/<device_id:[-\w]+>/pregame/<game_id:[-\w]+>/abort',
-                  handler=handlers.pregame_handlers.PreGameAbortHandler,
+                  handler=handlers.pregame.PreGameAbortHandler,
                   name='pregame_abort'),
 
     #Newsfeed handlers
     webapp2.Route(r'/news/<id:[-\d]+>',
-                  handler=handlers.newsfeed_handlers.ShowNewsHandler,
+                  handler=handlers.newsfeed.ShowNewsHandler,
                   name="show news"),
     webapp2.Route(r'/news/login',
-                  handler=handlers.newsfeed_handlers.LoginPageHandler,
+                  handler=handlers.newsfeed.LoginPageHandler,
                   name='login to news'),
     webapp2.Route(r'/news/add',
-                  handler=handlers.newsfeed_handlers.AddNewsHandler,
+                  handler=handlers.newsfeed.AddNewsHandler,
                   name='add news'),
     webapp2.Route(r'/news/list',
-                  handler=handlers.newsfeed_handlers.ListOfNewsHandler,
+                  handler=handlers.newsfeed.ListOfNewsHandler,
                   name="list of news"),
     webapp2.Route(r'/news/load/(\d+)',
-                  handler=handlers.newsfeed_handlers.LoadNewsHandler,
+                  handler=handlers.newsfeed.LoadNewsHandler,
                   name="show news"),
 
     #Complain words handlers
     #admin handlers
     webapp2.Route('/admin/complain/list',
-                  handler=handlers.complain_word_handlers.ShowComplainedWords,
+                  handler=handlers.global_dictionary.complain_word.ShowComplainedWords,
                   name='show_complained_words'),
     webapp2.Route('/admin/complain/clear',
-                  handler=handlers.complain_word_handlers.DeleteComplainedWords,
+                  handler=handlers.global_dictionary.complain_word.DeleteComplainedWords,
                   name='delete_complained_words'),
     webapp2.Route('/admin/complain/cancel',
-                  handler=handlers.complain_word_handlers.DeleteComplainedWord,
+                  handler=handlers.global_dictionary.complain_word.DeleteComplainedWord,
                   name='delete_current_complained_word'),
     webapp2.Route('/admin/complain/postpone',
-                  handler=handlers.complain_word_handlers.PostponeComplainedWord,
+                  handler=handlers.global_dictionary.complain_word.PostponeComplainedWord,
                   name='postpone'),
     webapp2.Route('/admin/complain/remove',
-                  handler=handlers.complain_word_handlers.DeleteFromGlobalDictionaryHandler,
+                  handler=handlers.global_dictionary.complain_word.DeleteFromGlobalDictionaryHandler,
                   name='delete_from_global'),
     #Authorized api requests
     webapp2.Route(r'/<device_id:[-\w]+>/complain',
-                  handler=handlers.complain_word_handlers.ComplainWordHandler,
+                  handler=handlers.global_dictionary.complain_word.ComplainWordHandler,
                   name='complain_word'),
 
     #GlobalDictionary handlers
     #admin handlers
     webapp2.Route(r'/admin/global_dictionary/add_words',
-                  handler=handlers.global_dictionary_word_handlers.WordsAddHandler,
+                  handler=handlers.global_dictionary.words.WordsAddHandler,
                   name='add words to global'),
     webapp2.Route(r'/admin/global_dictionary/delete',
-                  handler=handlers.global_dictionary_word_handlers.DeleteDictionary,
+                  handler=handlers.global_dictionary.words.DeleteDictionary,
                   name='delete'),
     webapp2.Route(r'/internal/global_dictionary/delete/task_queue',
-                  handler=handlers.global_dictionary_word_handlers.DeleteDictionaryTaskQueue,
+                  handler=handlers.global_dictionary.words.DeleteDictionaryTaskQueue,
                   name='delete task_queue'),
     webapp2.Route(r'/admin/global_dictionary/update_json',
-                  handler=handlers.global_dictionary_word_handlers.UpdateJsonHandler,
+                  handler=handlers.global_dictionary.words.UpdateJsonHandler,
                   name='update json'),
     webapp2.Route(r'/admin/global_dictionary/update_json/all',
-                  handler=handlers.global_dictionary_word_handlers.UpdateAllJsonsHandler,
+                  handler=handlers.global_dictionary.words.UpdateAllJsonsHandler,
                   name="update all jsons"),
     #api handlers
     webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
-                  handler=handlers.global_dictionary_word_handlers.GlobalDictionaryGetWordsHandler,
+                  handler=handlers.global_dictionary.words.GlobalDictionaryGetWordsHandler,
                   name='get words'),
     #service handlers
     webapp2.Route(r'/internal/global_dictionary/add_words/task_queue',
-                  handler=handlers.global_dictionary_word_handlers.TaskQueueAddWords,
+                  handler=handlers.global_dictionary.words.TaskQueueAddWords,
                   name='add words to global task queue'),
     webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
-                  handler=handlers.global_dictionary_word_handlers.TaskQueueUpdateJson,
+                  handler=handlers.global_dictionary.words.TaskQueueUpdateJson,
                   name='update json task queue')
 
 

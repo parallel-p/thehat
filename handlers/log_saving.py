@@ -1,3 +1,5 @@
+from handlers import APIRequestHandler, AuthorizedAPIRequestHandler
+
 __author__ = 'konstantin'
 import json
 import time
@@ -8,7 +10,6 @@ from google.appengine.api import taskqueue
 from objects.user_devices import get_device_and_user
 from objects.pin_number import PinNumber
 from objects.game_results_log import GameLog, Results, SavedGame
-from base_handlers.api_request_handlers import APIRequestHandler, AuthorizedAPIRequestHandler
 
 
 def make_timestamp():
