@@ -1,7 +1,7 @@
 from handlers import AdminRequestHandler
 
 __author__ = 'nikolay'
-from objects.global_dictionary_word import WordLookup
+from objects.global_dictionary import WordLookup
 import json
 
 

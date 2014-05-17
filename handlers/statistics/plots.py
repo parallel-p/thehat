@@ -8,7 +8,7 @@ import logging
 from google.appengine.ext import ndb
 from google.appengine.api import taskqueue
 
-from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.global_dictionary import GlobalDictionaryWord
 
 
 class Plot(ndb.Model):

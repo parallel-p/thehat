@@ -8,7 +8,7 @@ import urllib2
 import webapp2
 from google.appengine.ext import testbed, ndb
 
-from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.global_dictionary import GlobalDictionaryWord
 from objects.game_results_log import GameLog
 from objects.legacy_game_history import GameHistory, WordGuessResult, Word, Round
 import main

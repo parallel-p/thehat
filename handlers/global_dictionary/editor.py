@@ -1,4 +1,5 @@
 #TODO: this file is obsolete and must be rewritten
+from objects.global_dictionary import GlobalDictionaryJson
 from handlers import AdminRequestHandler
 
 __author__ = 'ivan'
@@ -6,8 +7,7 @@ __author__ = 'ivan'
 import json
 
 from environment import JINJA_ENVIRONMENT
-from objects.global_dictionary_word import GlobalDictionaryWord
-from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+from objects.global_dictionary import GlobalDictionaryWord
 
 
 class GlobalDictionaryWordList(AdminRequestHandler):

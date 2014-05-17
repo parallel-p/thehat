@@ -1,3 +1,5 @@
+from objects.global_dictionary import GlobalDictionaryJson
+
 __author__ = 'ivan'
 
 import unittest2
@@ -8,8 +10,7 @@ from datetime import datetime
 
 from google.appengine.ext import testbed
 
-from objects.global_dictionary_word import GlobalDictionaryWord
-from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+from objects.global_dictionary import GlobalDictionaryWord
 from tests.base_functions import *
 import main
 

@@ -6,7 +6,7 @@ from google.appengine.api import memcache
 
 from handlers.statistics.plots import Plot
 from objects.total_statistics_object import *
-from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.global_dictionary import GlobalDictionaryWord
 
 
 class ScattedPlotHandler(APIRequestHandler):

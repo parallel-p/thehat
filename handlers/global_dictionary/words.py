@@ -1,3 +1,4 @@
+from objects.global_dictionary import GlobalDictionaryJson
 from handlers import AdminRequestHandler, APIRequestHandler, ServiceRequestHandler
 
 __author__ = 'ivan'
@@ -8,8 +9,7 @@ import json
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from objects.global_dictionary_word import GlobalDictionaryWord
-from objects.GlobalDictionaryJSON import GlobalDictionaryJson
+from objects.global_dictionary import GlobalDictionaryWord
 
 
 StrategyTypeChooseConstant = 200

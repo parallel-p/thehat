@@ -6,7 +6,7 @@ import base64
 import unittest2
 from google.appengine.ext import testbed
 
-from global_dictionary.frequency import WordFrequency
+from handlers.global_dictionary.frequency import WordFrequency
 from tests.base_functions import *
 import main
 

@@ -2,7 +2,7 @@ from handlers import AdminRequestHandler, ServiceRequestHandler
 
 __author__ = 'ivan'
 
-from objects.global_dictionary_word import GlobalDictionaryWord
+from objects.global_dictionary import GlobalDictionaryWord
 
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
