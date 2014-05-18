@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} {% if dev %}DEVELOPMENT{% endif %}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
@@ -34,6 +34,9 @@
                 </li>
                 {% endif %}
             </ul>
+            {% if dev %}
+                <p class="navbar-text"><span class="text-danger">Development server</span></p>
+            {% endif %}
             {% if user_email %}
             <a href="{{ user_link|safe }}" class="btn btn-default navbar-btn navbar-right">
                 <span class="glyphicon glyphicon-user"></span> {{ user_email }} (Выйти)
