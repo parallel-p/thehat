@@ -3,6 +3,8 @@ import webapp2
 from environment import JINJA_ENVIRONMENT
 from objects.user_devices import get_device_and_user, User
 from google.appengine.api.app_identity import get_application_id
+from google.appengine.ext import ndb
+from handlers.service.notifications import NotificationChannel
 
 __author__ = 'nikolay'
 
@@ -38,6 +40,10 @@ class WebRequestHandler(GenericHandler):
         else:
             render_data['user_email'] = None
         render_data['is_admin'] = users.is_current_user_admin()
+        curr_channel = ndb.Key(NotificationChannel,
+                               "notifications").get()
+        render_data['token'] = curr_channel.channel_token if curr_channel else None
+
         self.response.write(template.render(render_data))
 
     def __init__(self, *args, **kwargs):

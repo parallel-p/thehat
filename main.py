@@ -41,6 +41,7 @@ import handlers.global_dictionary.word_lookup
 import handlers.statistics.functions
 import handlers.user_properies
 import handlers.statistics.game_len_prediction
+import handlers.service.notifications
 
 
 class MainPage(WebRequestHandler):
@@ -49,6 +50,14 @@ class MainPage(WebRequestHandler):
 
 
 routes = [
+
+    #notification handlers
+    webapp2.Route(r'/cron/notifications/update',
+                  handler=handlers.service.notifications.MakeChannelHandler,
+                  name='send notification'),
+    webapp2.Route(r'/admin/notifications/send',
+                  handler=handlers.service.notifications.NotificationHandler,
+                  name='send notification'),
 
     #prediction handlers
     webapp2.Route(r'/admin/statistics/prediction',

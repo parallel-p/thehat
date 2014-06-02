@@ -9,6 +9,27 @@
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+    {% if token %}
+        <script type="text/javascript" src="http://ifightcrime.github.io/bootstrap-growl/jquery.bootstrap-growl.min.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                var channel = new goog.appengine.Channel("{{ token }}");
+                var socket = channel.open();
+                socket.onopen = function(){
+                };
+                socket.onmessage = function(m){
+                    $.bootstrapGrowl(m.data,{
+                        type: 'info',
+                        offset: {from : 'bottom', amount: 20},
+                        width: 'auto'
+                    });
+                };
+            }
+            )
+        </script>
+    {% endif %}
+
     <style type="text/css">
         body {
             padding-top: 50px;

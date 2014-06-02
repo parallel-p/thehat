@@ -6,3 +6,7 @@ cron:
 - description: run update functions statistics
   url: /cron/statistics/functions/update
   schedule: every 24 hours
+
+- description: run update notifications channel token
+  url: /cron/notifications/update
+  schedule: every 24 hours
