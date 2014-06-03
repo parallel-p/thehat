@@ -16,7 +16,7 @@ class MakeChannelHandler(webapp2.RequestHandler):
     def post(self):
         current_channel = ndb.Key(NotificationChannel, "notifications").get()
         channel_id = "notifications"
-        channel_token = channel.create_channel(channel_id)
+        channel_token = channel.create_channel(channel_id, 24 * 60) #The number of minutes for which the returned token will be valid
         if current_channel is None:
             NotificationChannel(channel_id=channel_id, channel_token=channel_token, id="notifications").put()
         else:
