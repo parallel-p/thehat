@@ -1,6 +1,8 @@
 from google.appengine.api import users
 import webapp2
-from environment import JINJA_ENVIRONMENT
+
+from webapp2_extras import jinja2
+
 from objects.user_devices import get_device_and_user, User
 from google.appengine.api.app_identity import get_application_id
 from google.appengine.ext import ndb
@@ -18,6 +20,9 @@ class WebRequestHandler(GenericHandler):
     user_key = None
     user = None
 
+    def jinja2(self):
+        return jinja2.get_jinja2(app=self.app)
+
     def dispatch(self):
         self.user = users.get_current_user()
         if self.user is None:
@@ -31,7 +36,7 @@ class WebRequestHandler(GenericHandler):
 
     def draw_page(self, template_name, **render_data):
         dev = "the-hat-dev" == get_application_id()
-        template = JINJA_ENVIRONMENT.get_template('templates/{}.html'.format(template_name))
+        template = self.jinja2().environment.get_template('{}.html'.format(template_name))
         render_data['dev'] = dev
         render_data['user_link'] = (users.create_logout_url('/') if self.user
                                     else users.create_login_url(self.request.url))

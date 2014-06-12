@@ -381,4 +381,13 @@ routes = [
 
 ]
 
-app = webapp2.WSGIApplication(routes, debug=True)
+config = {
+    'webapp2_extras.jinja2': {
+        'template_path': 'templates',
+        'environment_args': {
+            'extensions': ['jinja2.ext.i18n', 'jinja2.ext.autoescape']
+        }
+    }
+}
+
+app = webapp2.WSGIApplication(routes, debug=True, config=config)
