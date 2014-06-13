@@ -11,6 +11,7 @@ class User(ndb.Model):
     version = ndb.IntegerProperty(default=0)
     devices_values = ndb.JsonProperty(default={})
     devices_version = ndb.IntegerProperty(default=0)
+    localization = ndb.StringProperty(default='en_US')
 
 
 class Device(ndb.Model):

@@ -45,25 +45,25 @@
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">Шляпа</a>
+            <a class="navbar-brand" href="/">{% trans %}The Hat{% endtrans %}</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 {% if is_admin %}
                 <li>
-                    <a href="/admin">Admin</a>
+                    <a href="/admin">{% trans %}Admin{% endtrans %}</a>
                 </li>
                 {% endif %}
             </ul>
             {% if dev %}
-                <p class="navbar-text"><span class="text-danger">Development server</span></p>
+                <p class="navbar-text"><span class="text-danger">{% trans %}Development server{% endtrans %}</span></p>
             {% endif %}
             {% if user_email %}
             <a href="{{ user_link|safe }}" class="btn btn-default navbar-btn navbar-right">
-                <span class="glyphicon glyphicon-user"></span> {{ user_email }} (Выйти)
+                <span class="glyphicon glyphicon-user"></span> {{ user_email }} ({% trans %}Log out{% endtrans %}) <!-- Выйти -->
             </a>
             {% else %}
-            <a href="{{ user_link|safe }}" class="btn btn-success navbar-btn navbar-right">Войти</a>
+            <a href="{{ user_link|safe }}" class="btn btn-success navbar-btn navbar-right">{% trans %}Log in{% endtrans %}</a> <!-- Войти -->
             {% endif %}
         </div>
     </div>
