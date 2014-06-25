@@ -12,8 +12,13 @@ class UserSettingsHandler(WebRequestHandler):
         self.login_required = True
 
     def get(self, *args, **kwargs):
+        user_key = self.user_key.get()
         locales = [name for name in os.listdir('./locale') if os.path.isdir(os.path.join('./locale', name))]
-        self.draw_page('user_settings', locales=locales, locale=i18n.get_i18n().locale)
+        self.draw_page('user_settings', locales=locales, locale=user_key.localization)
 
     def post(self, *args, **kwargs):
-        print "test"
+        user_key = self.user_key.get()
+        user_key.localization = self.request.POST['selectLanguage']
+        user_key.put()
+        locales = [name for name in os.listdir('./locale') if os.path.isdir(os.path.join('./locale', name))]
+        self.draw_page('user_settings', locales=locales, locale=user_key.localization)
