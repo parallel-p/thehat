@@ -42,6 +42,7 @@ import handlers.statistics.functions
 import handlers.user_properies
 import handlers.statistics.game_len_prediction
 import handlers.service.notifications
+import handlers.user_settings
 
 
 class MainPage(WebRequestHandler):
@@ -50,6 +51,11 @@ class MainPage(WebRequestHandler):
 
 
 routes = [
+
+    #user handlers
+    webapp2.Route(r'/user/settings',
+                  handler=handlers.user_settings.UserSettingsHandler,
+                  name='user settings'),
 
     #notification handlers
     webapp2.Route(r'/cron/notifications/update',
@@ -377,7 +383,6 @@ routes = [
     webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
                   handler=handlers.global_dictionary.words.TaskQueueUpdateJson,
                   name='update json task queue')
-
 
 ]
 

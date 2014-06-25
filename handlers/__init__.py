@@ -53,7 +53,7 @@ class WebRequestHandler(GenericHandler):
         if self.user:
             locale = self.user_key.get().localization
         else:
-            locale = 'en_US'
+            locale = 'ru_RU'
 
         i18n.get_i18n().set_locale(locale)
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{% trans %}The Hat{% endtrans %}{% endblock %}
 {% block header %}{% trans %}The Hat{% endtrans %}{% endblock %}
-{%block content%}
+{% block content %}
     <div class="row">
         {% if user_email %}
         <div class="col-md-6">
@@ -25,5 +25,11 @@
             <h2>{% trans %}Application for Android{% endtrans %}</h2>
             <p><a class="btn btn-default" href="/android/beta" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
+		{% if user_email %}
+	    <div class="col-md-6">
+            <h2>{% trans %}User settings{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/user/settings" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
+        </div>
+		{% endif %}
     </div>
 {% endblock %}
