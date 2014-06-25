@@ -1,1 +1,5 @@
-The Hat project
+# The Hat project
+
+## Localization
+
+### Tagging templates
