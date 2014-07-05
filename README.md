@@ -1,7 +1,5 @@
 # The Hat project
 
-Application URL: [http://the-hat-international.appspot.com/](http://the-hat-international.appspot.com/)
-
 ## Localization
 To tag words in templates we use Jinja2 i18n extension and tags {% trans %} & {% endtrans %}. More information in a official [Jinja2 documentation](http://jinja.pocoo.org/docs/extensions/#i18n-extension). Default language is Russian, but for clean templates it will be better to translate them to English. Translations are stored in locale dir. Good example of tagged templates is [index.html](https://github.com/Sibyx/thehat/blob/master/templates/index.html).
 

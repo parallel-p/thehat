@@ -36,7 +36,10 @@ class WebRequestHandler(GenericHandler):
         webapp2.RequestHandler.dispatch(self)
 
     def draw_page(self, template_name, **render_data):
-        dev = "the-hat-international" == get_application_id()
+        if (get_application_id() == "the-hat-international") or (get_application_id() == "the-hat-dev"):
+            dev = True
+        else:
+            dev = None
         template = self.jinja2().environment.get_template('{}.html'.format(template_name))
         render_data['dev'] = dev
         render_data['user_link'] = (users.create_logout_url('/') if self.user
