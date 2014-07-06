@@ -42,6 +42,7 @@ import handlers.statistics.functions
 import handlers.user_properies
 import handlers.statistics.game_len_prediction
 import handlers.service.notifications
+import handlers.user_settings
 
 
 class MainPage(WebRequestHandler):
@@ -50,6 +51,11 @@ class MainPage(WebRequestHandler):
 
 
 routes = [
+
+    #user handlers
+    webapp2.Route(r'/user/settings',
+                  handler=handlers.user_settings.UserSettingsHandler,
+                  name='user settings'),
 
     #notification handlers
     webapp2.Route(r'/cron/notifications/update',
@@ -378,7 +384,15 @@ routes = [
                   handler=handlers.global_dictionary.words.TaskQueueUpdateJson,
                   name='update json task queue')
 
-
 ]
 
-app = webapp2.WSGIApplication(routes, debug=True)
+config = {
+    'webapp2_extras.jinja2': {
+        'template_path': 'templates',
+        'environment_args': {
+            'extensions': ['jinja2.ext.i18n', 'jinja2.ext.autoescape']
+        }
+    }
+}
+
+app = webapp2.WSGIApplication(routes, debug=True, config=config)

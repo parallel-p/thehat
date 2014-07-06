@@ -1,7 +1,10 @@
 from google.appengine.api import users
 import webapp2
-from environment import JINJA_ENVIRONMENT
-from objects.user_devices import get_device_and_user, User
+
+from webapp2_extras import jinja2
+from webapp2_extras import i18n
+
+from objects.user_devices import get_device_and_user, User, get_user
 from google.appengine.api.app_identity import get_application_id
 from google.appengine.ext import ndb
 from handlers.service.notifications import NotificationChannel
@@ -18,6 +21,9 @@ class WebRequestHandler(GenericHandler):
     user_key = None
     user = None
 
+    def jinja2(self):
+        return jinja2.get_jinja2(app=self.app)
+
     def dispatch(self):
         self.user = users.get_current_user()
         if self.user is None:
@@ -30,8 +36,11 @@ class WebRequestHandler(GenericHandler):
         webapp2.RequestHandler.dispatch(self)
 
     def draw_page(self, template_name, **render_data):
-        dev = "the-hat-dev" == get_application_id()
-        template = JINJA_ENVIRONMENT.get_template('templates/{}.html'.format(template_name))
+        if (get_application_id() == "the-hat-international") or (get_application_id() == "the-hat-dev"):
+            dev = True
+        else:
+            dev = None
+        template = self.jinja2().environment.get_template('{}.html'.format(template_name))
         render_data['dev'] = dev
         render_data['user_link'] = (users.create_logout_url('/') if self.user
                                     else users.create_login_url(self.request.url))
@@ -43,6 +52,13 @@ class WebRequestHandler(GenericHandler):
         curr_channel = ndb.Key(NotificationChannel,
                                "notifications").get()
         render_data['token'] = curr_channel.channel_token if curr_channel else None
+
+        if self.user:
+            locale = self.user_key.get().localization
+        else:
+            locale = 'ru_RU'
+
+        i18n.get_i18n().set_locale(locale)
 
         self.response.write(template.render(render_data))
 

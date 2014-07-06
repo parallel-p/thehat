@@ -1,29 +1,35 @@
-{% extends "templates/base.html" %}
-{% block title %}Шляпа{% endblock %}
-{% block header %}Шляпа{% endblock %}
-{%block content%}
+{% extends "base.html" %}
+{% block title %}{% trans %}The Hat{% endtrans %}{% endblock %}
+{% block header %}{% trans %}The Hat{% endtrans %}{% endblock %}
+{% block content %}
     <div class="row">
         {% if user_email %}
         <div class="col-md-6">
-            <h2>Редактировать личный словарик</h2>
-            <p><a class="btn btn-default" href="/html/udict/edit" role="button">Перейти &raquo;</a></p>
+            <h2>{% trans %}Edit personal dictionary{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/html/udict/edit" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
         <div class="col-md-6">
-            <h2>Создать игру</h2>
-            <p><a class="btn btn-default" href="/user/create_game" role="button">Перейти &raquo;</a></p>
+            <h2>{% trans %}Create game{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/user/create_game" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
         {% endif %}
         <div class="col-md-6">
-            <h2>Просмотреть статистику по словам</h2>
-            <p><a class="btn btn-default" href="/statistics/word_statistics" role="button">Перейти &raquo;</a></p>
+            <h2>{% trans %}View statistics by words{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/statistics/word_statistics" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
         <div class="col-md-6">
-            <h2>Просмотреть общую статистику</h2>
-            <p><a class="btn btn-default" href="/statistics/total_statistics" role="button">Перейти &raquo;</a></p>
+            <h2>{% trans %}Show complete statistics{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/statistics/total_statistics" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
         <div class="col-md-6">
-            <h2>Приложение для Android</h2>
-            <p><a class="btn btn-default" href="/android/beta" role="button">Перейти &raquo;</a></p>
+            <h2>{% trans %}Application for Android{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/android/beta" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
         </div>
+		{% if user_email %}
+	    <div class="col-md-6">
+            <h2>{% trans %}User settings{% endtrans %}</h2>
+            <p><a class="btn btn-default" href="/user/settings" role="button">{% trans %}Go{% endtrans %} &raquo;</a></p>
+        </div>
+		{% endif %}
     </div>
 {% endblock %}
