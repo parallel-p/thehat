@@ -254,19 +254,18 @@ class AddGameHandler(ServiceRequestHandler):
 
             d = defaultdict(list)
             for word in seen_words_time:
-                if explained_at_once[word]:
+                if explained_at_once[word] and words_outcome[word] == 'guessed':
                     d[explained_pair[word]].append(word)
             for l in d.values():
-                l.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
+                l.sort(key=lambda item: -seen_words_time[item])
                 self.rate(l)
 
             d.clear()
-            d = defaultdict(list)
             for word in seen_words_time:
-                if words_outcome[word] in ('guessed', 'failed'):
+                if words_outcome[word] == 'guessed':
                     d[explained_pair[word][0]].append(word)
             for l in d.values():
-                l.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
+                l.sort(key=lambda item: -seen_words_time[item])
                 self.rate(l, coef=0.3)
 
             d.clear()
@@ -279,10 +278,11 @@ class AddGameHandler(ServiceRequestHandler):
 
             words = []
             for word in seen_words_time:
-                if words_outcome[word] in ('guessed', 'failed'):
+                if words_outcome[word] == 'guessed':
                     words.append(word)
-            words.sort(key=lambda item: (words_outcome[item] != 'failed', -seen_words_time[item]))
+            words.sort(key=lambda item: -seen_words_time[item])
             self.rate(words, coef=0.6)
+
             for i in range(len(words_orig)):
                 if i in seen_words_time:
                     self.update_word(words_orig[i], words_outcome[i], seen_words_time[i], self.ratings[i], game_key)
