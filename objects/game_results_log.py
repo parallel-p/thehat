@@ -31,5 +31,6 @@ IGNORE_REASON = {
 
 class GameLog(ndb.Model):
     json = ndb.StringProperty(indexed=False)
+    time = ndb.DateTimeProperty()
     ignored = ndb.BooleanProperty(default=False)
     reason = EnumProperty(IGNORE_REASON)

@@ -238,11 +238,12 @@ class AddGameHandler(ServiceRequestHandler):
             if start_timestamp and finish_timestamp:
                 self.update_game_len_prediction(players_count, 'game', finish_timestamp - start_timestamp)
             bad_words_count = 0
+
+            if 2*len(seen_words_time) < len(words_orig):
+                raise BadGameError('suspect_too_little_words')
             for k, v in seen_words_time.items():
                 if v < 2:
                     bad_words_count += 1
-            if 2*len(seen_words_time) < len(words_orig):
-                raise BadGameError('suspect_too_little_words')
             if 2*bad_words_count > len(seen_words_time):
                 raise BadGameError('suspect_too_quick_explanation')
 
@@ -289,6 +290,8 @@ class AddGameHandler(ServiceRequestHandler):
 
             if start_timestamp:
                 start_timestamp //= 1000
+                log_db.time = datetime.datetime.fromtimestamp(start_timestamp)
+                log_db.put()
                 if finish_timestamp:
                     finish_timestamp //= 1000
                     duration = finish_timestamp - start_timestamp
