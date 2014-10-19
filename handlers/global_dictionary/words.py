@@ -1,11 +1,10 @@
-from objects.global_dictionary import GlobalDictionaryJson
 from handlers import AdminRequestHandler, APIRequestHandler, ServiceRequestHandler
 
-__author__ = 'ivan'
-
-import time
+import datetime, time
 import json
 
+import lib.cloudstorage as gcs
+from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
@@ -50,37 +49,30 @@ class TaskQueueAddWords(ServiceRequestHandler):
             GlobalDictionaryWord(id=word, word=word, E=50.0, D=50.0/3, tags="").put()
 
 
-class TaskQueueUpdateJson(ServiceRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(TaskQueueUpdateJson, self).__init__(*args, **kwargs)
-
+class TaskQueueUpdateDictionary(ServiceRequestHandler):
     def post(self):
-        timestamp = int(self.request.get("timestamp"))
-        max_timestamp = 0
+        last_update = datetime.datetime.fromtimestamp(int(self.request.get("timestamp")))
         word_list = []
-        for word in GlobalDictionaryWord.query().fetch():
-            word_time = int(time.mktime(word.timestamp.timetuple()) * 1000)
-            if word_time > timestamp:
-                max_timestamp = max(max_timestamp, word_time)
-                word_list.append({"word": word.word, "E": word.E, "D": word.D, "U": word.used_times, "tags": word.tags})
+        for word in GlobalDictionaryWord.query(GlobalDictionaryWord.timestamp > last_update).fetch():
+            word_list.append({"word": word.word, "E": word.E, "D": word.D, "U": word.used_times, "tags": word.tags})
         if word_list:
-            GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
+            bucket_name = app_identity.get_default_gcs_bucket_name()
+            now = int(time.time())
+            data_object = {"created": now, "words": word_list}
+            f = gcs.open("/{}/dictionary_update/{:0>11}".format(bucket_name, now), "w", "application/json")
+            json.dump(data_object, f)
+            f.close()
 
 
-class UpdateAllJsonsHandler(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(UpdateAllJsonsHandler, self).__init__(*args, **kwargs)
-
+class RegenerateDictionaryUpdate(AdminRequestHandler):
     def post(self):
-        for this_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
-            this_json.key.delete()
+        bucket_name = app_identity.get_default_gcs_bucket_name()
+        for el in gcs.listbucket("/{}/dictionary_update".format(bucket_name)):
+            gcs.delete(el.filename)
         taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": 0})
 
 
 class UpdateJsonHandler(AdminRequestHandler):
-
     def __init__(self, *args, **kwargs):
         super(UpdateJsonHandler, self).__init__(*args, **kwargs)
 
@@ -114,24 +106,21 @@ class DeleteDictionaryTaskQueue(ServiceRequestHandler):
 
 
 class GlobalDictionaryGetWordsHandler(APIRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super(GlobalDictionaryGetWordsHandler, self).__init__(*args, **kwargs)
-
     def get(self, *args, **kwargs):
-        device_timestamp = int(kwargs.get("timestamp"))
-        max_timestamp = 0
-        response_json = {"words": []}
-        for diff_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson "
-                                 "ORDER BY timestamp"):
-            max_timestamp = max(max_timestamp, diff_json.timestamp)
-            if diff_json.timestamp > device_timestamp:
-                for res_json in ndb.gql("SELECT * FROM GlobalDictionaryJson "
-                                        "WHERE timestamp = {0} "
-                                        "ORDER BY timestamp".format(diff_json.timestamp)):
-                    to_add = json.loads(res_json.json)
-                    response_json["words"].extend(to_add)
-        response_json["timestamp"] = max_timestamp
-        self.response.write(json.dumps(response_json))
+        import shutil
+        last_update = kwargs.get("timestamp")
+        self.response.write("[")
+        bucket_name = app_identity.get_default_gcs_bucket_name()
+        not_first = False
+        for el in gcs.listbucket("/{}/dictionary_update".format(bucket_name), marker="/{}/dictionary_update/{}".format(bucket_name, last_update)):
+            if not_first:
+                self.response.write(",")
+            f = gcs.open(el.filename)
+            shutil.copyfileobj(f, self.response)
+            f.close()
+            not_first = True
+        self.response.write("]")
+            
 
 
 

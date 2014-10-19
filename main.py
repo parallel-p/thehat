@@ -91,9 +91,6 @@ routes = [
     webapp2.Route(r'/internal/statistics/functions/update/task_queue',
                   handler=handlers.statistics.functions.UpdateFunctionsStatisticsHandlerTaskQueue,
                   name='update stat'),
-    webapp2.Route(r'/internal/statistics/functions/update/task_queue/push_results',
-                  handler=handlers.statistics.functions.push_results_task_queue,
-                  name='push results'),
     webapp2.Route(r'/admin/statistics/functions/show',
                   handler=handlers.statistics.functions.ResultShowHandler,
                   name='push results'),
@@ -370,7 +367,7 @@ routes = [
                   handler=handlers.global_dictionary.words.UpdateJsonHandler,
                   name='update json'),
     webapp2.Route(r'/admin/global_dictionary/update_json/all',
-                  handler=handlers.global_dictionary.words.UpdateAllJsonsHandler,
+                  handler=handlers.global_dictionary.words.RegenerateDictionaryUpdate,
                   name="update all jsons"),
     #api handlers
     webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
@@ -381,7 +378,7 @@ routes = [
                   handler=handlers.global_dictionary.words.TaskQueueAddWords,
                   name='add words to global task queue'),
     webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
-                  handler=handlers.global_dictionary.words.TaskQueueUpdateJson,
+                  handler=handlers.global_dictionary.words.TaskQueueUpdateDictionary,
                   name='update json task queue')
 
 ]

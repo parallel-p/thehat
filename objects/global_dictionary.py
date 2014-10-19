@@ -56,8 +56,3 @@ class GlobalDictionaryVersion(db.Model):
         else:
             version.version += 1
         version.put()
-
-
-class GlobalDictionaryJson(ndb.Model):
-    json = ndb.TextProperty()
-    timestamp = ndb.IntegerProperty(indexed=True)
