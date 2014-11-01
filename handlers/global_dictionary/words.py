@@ -66,7 +66,9 @@ class TaskQueueUpdateDictionary(ServiceRequestHandler):
 
 class RegenerateDictionaryUpdate(AdminRequestHandler):
     def post(self):
-        bucket_name = app_identity.get_default_gcs_bucket_name()
+        bucket_name = app_identity.get_default_gcs_bucket_name() 
+        import logging
+        logging.debug("bucket name is: {}".format(bucket_name))
         for el in gcs.listbucket("/{}/dictionary_update".format(bucket_name)):
             gcs.delete(el.filename)
         taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": 0})
@@ -120,7 +122,3 @@ class GlobalDictionaryGetWordsHandler(APIRequestHandler):
             f.close()
             not_first = True
         self.response.write("]")
-            
-
-
-
