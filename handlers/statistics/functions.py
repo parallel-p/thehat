@@ -69,7 +69,7 @@ class UpdateFunctionsStatisticsHandlerTaskQueue(ServiceRequestHandler):
                 res = functions[function_name](word)
                 if res is not None:
                     if len(results[function_name]) <= 50:
-                        results[function_name].append(elem(res, word.word))
+                        heapq.heappush(results[function_name], elem(res, word.word))
                     else:
                         heapq.heappushpop(results[function_name], elem(res, word.word))
         for function_name in results:
@@ -111,7 +111,7 @@ class ResultShowHandler(AdminRequestHandler):
 
     def get(self, *args, **kwargs):
         function_name = self.request.get('function', None)
-        all = [i.name for i in ndb.gql("SELECT name FROM Function").fetch()]
+        all = [i.name for i in Function.all().fetch()]
         result, function = None, None
         if function_name is not None:
             _result = ndb.Key(Result, function_name).get()
