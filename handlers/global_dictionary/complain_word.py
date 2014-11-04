@@ -17,7 +17,7 @@ class ComplainWordHandler(AuthorizedAPIRequestHandler):
     def post(self, *args, **kwargs):
         words = json.loads(self.request.get("json"))
         for word in words:
-            g_word = GlobalDictionaryWord.get(word)
+            g_word = GlobalDictionaryWord.get(word["word"])
             if not g_word or g_word.tags.find("-deleted") >= 0:
                 continue
             current_word = ComplainedWord(device=self.device_key,
