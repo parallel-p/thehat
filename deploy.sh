@@ -16,19 +16,20 @@ echo "Check if all your changes have been commited"
 echo "Master branch will be deployed to the production server"
 confirm "Are you sure you want to deploy?" &&
 git stash &&
-git checkout master &&
-git fetch -t &&
-loc=$(git rev-parse HEAD)
-orig=$(git rev-parse @{u})
+git checkout production &&
+git fetch &&
+loc=$(git rev-parse master)
+orig=$(git rev-parse origin/master)
 if test "$orig" != "$loc"; then
     echo "Your master branch isn't up-to-date with origin"
     echo "Aborting"
     abort_deploy;
 fi
 confirm "Are you still sure?" &&
+git merge master --ff-only &&
 appcfg.py update . -A the-hat -V 3 --oauth2
-git tag -f production
-git push -t production
+git push
+git checkout master
 git stash pop
 
 
