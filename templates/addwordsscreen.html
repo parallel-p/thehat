@@ -32,33 +32,6 @@
         function is_good(element) {
             return element != '';
         }
-        function update_json()
-        {
-            var url = "/admin/global_dictionary/update_json";
-            post(url, "");
-            $('#update_myModal').modal({show:true})
-        }
-        function update_all_json()
-        {
-            var url = "/admin/global_dictionary/update_json/all";
-            post(url, "");
-            $('#update_myModal').modal({show:true})
-        }
-
-        function delete_all()
-        {
-            var url = "/admin/global_dictionary/delete";
-            post(url, "");
-            $('#delete_myModal').modal({show:true})
-        }
-        function delete_all_frequency()
-        {
-            var url = "/admin/frequency_dictionary/delete";
-            post(url, "");
-            $('#delete_myModal').modal({show:true})
-        }
-
-
 
         function send_words()
         {
@@ -139,42 +112,6 @@
       </div>
     </div>
 </div>
-
-
-<div class="modal" id="update_myModal">
-	<div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">Обновление словаря</h4>
-        </div>
-        <div class="modal-body">
-          Обновление словаря запушено.
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add_words'"> Close </button>
-        </div>
-      </div>
-    </div>
-</div>
-
-
- <div class="modal" id="delete_myModal">
-	<div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-          <h4 class="modal-title">Удаление словаря</h4>
-        </div>
-        <div class="modal-body">
-          Удаление слов запущено.
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-success" data-dismiss="modal" onclick="location.href='/admin/global_dictionary/add_words'"> Close </button>
-        </div>
-      </div>
-    </div>
-</div>
         <p>Здесь вы можете добавлять слова в словарь.</p>
         <div>
             <br/> <textarea class="form-control" name="text" rows="30"  id="words"></textarea>
@@ -203,31 +140,6 @@
         <button title="По одному слову на строке: через пробел сначала слово, с которого нужно перенаправление, затем правильное слово" type="button" class="btn btn-success  btn-block" onclick="send_lookups()">
             <span class="glyphicon glyphicon-plus"></span> Добавить в таблицу замен
         </button>
-        </div>
-    </div>
-    <div class="row">
-		<div class="col-md-6">
-                <button type="button" class="btn btn-success  btn-block" onclick="update_json()">
-                Обновить словарь
-            </button>
-        </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-             <button type="button" class="btn btn-danger  btn-block" onclick="update_all_json()">
-                Обновить все
-             </button>
-        </div>
-    </div>
-
-     <div class="row">
-		<div class="col-md-6">
-                <button type="button" class="btn btn-danger btn-block" onclick="delete_all()">
-                Очистить словарь
-            </button>
-        </div> <!-- end col-md-4-->
-            <div class="col-md-6">
-             <button type="button" class="btn btn-danger btn-block" onclick="delete_all_frequency()">
-                Очистить частотный словарь
-             </button>
         </div>
     </div>
     <center>

@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import webapp2
+from webapp2 import Route
 
 from handlers import WebRequestHandler
 import handlers
@@ -43,6 +44,7 @@ import handlers.user_properies
 import handlers.statistics.game_len_prediction
 import handlers.service.notifications
 import handlers.user_settings
+import handlers.operations_admin_page
 
 
 class MainPage(WebRequestHandler):
@@ -169,8 +171,8 @@ routes = [
 
     #recalc rating & make_statistics handlers
     #web
-    webapp2.Route(r'/admin/logs_processing',
-                  handler=handlers.statistics.calculation.LogsAdminPage),
+    webapp2.Route(r'/admin/operations',
+                  handler=handlers.operations_admin_page.OperationsAdminPage),
     webapp2.Route(r'/cron/update_plots/start/<admin:[-\w]*>',
                   handler=handlers.statistics.plots.runUpdateAll),
     #service
@@ -357,30 +359,17 @@ routes = [
     webapp2.Route(r'/admin/global_dictionary/add_words',
                   handler=handlers.global_dictionary.words.WordsAddHandler,
                   name='add words to global'),
-    webapp2.Route(r'/admin/global_dictionary/delete',
-                  handler=handlers.global_dictionary.words.DeleteDictionary,
-                  name='delete'),
-    webapp2.Route(r'/internal/global_dictionary/delete/task_queue',
-                  handler=handlers.global_dictionary.words.DeleteDictionaryTaskQueue,
-                  name='delete task_queue'),
-    webapp2.Route(r'/admin/global_dictionary/update_json',
-                  handler=handlers.global_dictionary.words.UpdateJsonHandler,
-                  name='update json'),
-    webapp2.Route(r'/admin/global_dictionary/update_json/all',
-                  handler=handlers.global_dictionary.words.RegenerateDictionaryUpdate,
-                  name="update all jsons"),
-    #api handlers
-    webapp2.Route(r'/api/global_dictionary/get_words/<timestamp:[-\d]+>',
-                  handler=handlers.global_dictionary.words.GlobalDictionaryGetWordsHandler,
-                  name='get words'),
     #service handlers
+    webapp2.Route(r'/service/generate_dictionary',
+                  handler=handlers.global_dictionary.words.GenerateDictionary),
     webapp2.Route(r'/internal/global_dictionary/add_words/task_queue',
                   handler=handlers.global_dictionary.words.TaskQueueAddWords,
                   name='add words to global task queue'),
-    webapp2.Route(r'/internal/global_dictionary/update_json/task_queue',
-                  handler=handlers.global_dictionary.words.TaskQueueUpdateDictionary,
-                  name='update json task queue')
+]
 
+api_v2_routes = [
+        Route(r'/api/v2/dictionary',
+            handler=handlers.global_dictionary.words.DictionaryHandler)
 ]
 
 config = {
@@ -392,4 +381,4 @@ config = {
     }
 }
 
-app = webapp2.WSGIApplication(routes, debug=True, config=config)
+app = webapp2.WSGIApplication(routes+api_v2_routes, debug=True, config=config)
