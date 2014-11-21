@@ -88,7 +88,7 @@ class APIRequestHandler(GenericHandler):
 
 class AuthorizedAPIRequestHandler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
-        super(APIRequestHandler, self).__init__(*args, **kwargs)
+        super(AuthorizedAPIRequestHandler, self).__init__(*args, **kwargs)
         self.device_id = None
         self.device_key = None
         self.user_key = None
@@ -100,7 +100,7 @@ class AuthorizedAPIRequestHandler(APIRequestHandler):
             self.response.headers.add("WWW-Authenticate", "device-id")
             self.abort(401)
         self.device_key, self.user_key = get_device_and_user(self.device_id)
-        super(APIRequestHandler, self).dispatch()
+        super(AuthorizedAPIRequestHandler, self).dispatch()
 
 
 class ServiceRequestHandler(GenericHandler):

@@ -1,15 +1,15 @@
-from objects.global_dictionary import GlobalDictionaryJson
 from handlers import AdminRequestHandler, APIRequestHandler, ServiceRequestHandler
-
-__author__ = 'ivan'
 
 import time
 import json
 
+import lib.cloudstorage as gcs
+from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from objects.global_dictionary import GlobalDictionaryWord
+from objects.global_configuration import GlobalConfiguration
 
 
 StrategyTypeChooseConstant = 200
@@ -50,88 +50,41 @@ class TaskQueueAddWords(ServiceRequestHandler):
             GlobalDictionaryWord(id=word, word=word, E=50.0, D=50.0/3, tags="").put()
 
 
-class TaskQueueUpdateJson(ServiceRequestHandler):
+def get_gcs_filename(key):
+    bucket_name = app_identity.get_default_gcs_bucket_name()
+    return "/{}/dictionary/{}".format(bucket_name, key)
 
-    def __init__(self, *args, **kwargs):
-        super(TaskQueueUpdateJson, self).__init__(*args, **kwargs)
-
+class GenerateDictionary(ServiceRequestHandler):
     def post(self):
-        timestamp = int(self.request.get("timestamp"))
-        max_timestamp = 0
-        word_list = []
-        for word in GlobalDictionaryWord.query().fetch():
-            word_time = int(time.mktime(word.timestamp.timetuple()) * 1000)
-            if word_time > timestamp:
-                max_timestamp = max(max_timestamp, word_time)
-                word_list.append({"word": word.word, "E": word.E, "D": word.D, "U": word.used_times, "tags": word.tags})
-        if word_list:
-            GlobalDictionaryJson(json=json.dumps(word_list), timestamp=max_timestamp).put()
+        data_object = []
+        key = str(int(time.time()))
+        words = GlobalDictionaryWord.query().fetch()
+        chunk_size = len(words) // 100
+        for i, word in enumerate(words):
+            data_object.append({"word": word.word,
+                                "diff": i // chunk_size,
+                                "used": word.used_times,
+                                "tags": word.tags,
+                                "deleted": word.deleted})
+        output_file = gcs.open(get_gcs_filename(key), "w", "application/json")
+        json.dump(data_object, output_file)
+        output_file.close()
+        config = GlobalConfiguration.load()
+        old_key = config.dictionary_gcs_key
+        config.dictionary_gcs_key = key
+        config.put()
+        if old_key:
+            gcs.delete(get_gcs_filename(old_key))
 
-
-class UpdateAllJsonsHandler(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(UpdateAllJsonsHandler, self).__init__(*args, **kwargs)
-
-    def post(self):
-        for this_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
-            this_json.key.delete()
-        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": 0})
-
-
-class UpdateJsonHandler(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(UpdateJsonHandler, self).__init__(*args, **kwargs)
-
-    def post(self):
-        max_timestamp = 0
-        for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson"):
-            if json.timestamp > max_timestamp:
-                max_timestamp = json.timestamp
-        taskqueue.add(url='/internal/global_dictionary/update_json/task_queue', params={"timestamp": max_timestamp})
-
-
-class DeleteDictionary(AdminRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(DeleteDictionary, self).__init__(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-        taskqueue.add(url='/internal/global_dictionary/delete/task_queue')
-
-
-class DeleteDictionaryTaskQueue(ServiceRequestHandler):
-
-    def __init__(self, *args, **kwargs):
-        super(DeleteDictionaryTaskQueue, self).__init__(*args, **kwargs)
-
-    def post(self, *args, **kwargs):
-        for word in ndb.gql("SELECT word FROM GlobalDictionaryWord").fetch():
-            word.key.delete()
-        for json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson").fetch():
-            json.key.delete()
-
-
-class GlobalDictionaryGetWordsHandler(APIRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super(GlobalDictionaryGetWordsHandler, self).__init__(*args, **kwargs)
-
-    def get(self, *args, **kwargs):
-        device_timestamp = int(kwargs.get("timestamp"))
-        max_timestamp = 0
-        response_json = {"words": []}
-        for diff_json in ndb.gql("SELECT timestamp FROM GlobalDictionaryJson "
-                                 "ORDER BY timestamp"):
-            max_timestamp = max(max_timestamp, diff_json.timestamp)
-            if diff_json.timestamp > device_timestamp:
-                for res_json in ndb.gql("SELECT * FROM GlobalDictionaryJson "
-                                        "WHERE timestamp = {0} "
-                                        "ORDER BY timestamp".format(diff_json.timestamp)):
-                    to_add = json.loads(res_json.json)
-                    response_json["words"].extend(to_add)
-        response_json["timestamp"] = max_timestamp
-        self.response.write(json.dumps(response_json))
-
-
-
+class DictionaryHandler(APIRequestHandler):
+    def get(self):
+        import shutil
+        config = GlobalConfiguration.load()
+        key = config.dictionary_gcs_key
+        if key in self.request.if_none_match:
+            self.response.status = 304
+            return
+        dictionary_file = gcs.open(get_gcs_filename(key))
+        shutil.copyfileobj(dictionary_file, self.response)
+        dictionary_file.close()
+        self.response.etag = key

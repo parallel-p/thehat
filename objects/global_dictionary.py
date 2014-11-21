@@ -24,6 +24,7 @@ class GlobalDictionaryWord(ndb.Model):
     used_games = ndb.StringProperty(indexed=False, repeated=True)
     tags = ndb.StringProperty(indexed=False)
     danger = ndb.ComputedProperty(lambda self: (self.failed_times / self.used_times) if self.used_times != 0 else 0)
+    deleted = ndb.BooleanProperty(default=False)
 
     @staticmethod
     def get(word):
@@ -56,8 +57,3 @@ class GlobalDictionaryVersion(db.Model):
         else:
             version.version += 1
         version.put()
-
-
-class GlobalDictionaryJson(ndb.Model):
-    json = ndb.TextProperty()
-    timestamp = ndb.IntegerProperty(indexed=True)

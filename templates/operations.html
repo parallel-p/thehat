@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Администрация статистики - Sombreo{% endblock %}
-{% block header %}Администрация статистики{% endblock %}
+{% block title %}Запуск операций обслуживания - Sombrero{% endblock %}
+{% block header %}Запуск операций обслуживания{% endblock %}
 
 {% block content %}
-<div class="alert alert-danger">Будьте осторожны! Пересчет статистики - чрезвычайно сложная и продолжительная операция</div>
+<div class="alert alert-danger">Будьте осторожны! Операйия обслуживания сложные и продолжительные, некоторые из них необратимы.</div>
 {% if message == 1 %}
     <div class="alert alert-success">Операция "{{ names[last_value - 1] }}" запущена</div>
 {% elif message == 2 %}
@@ -20,6 +20,6 @@
     <script>
         $("#action_select").prop("selectedIndex", -1);
     </script></div>
-    <button type="submit" class="btn btn-danger">Выполнить действие</button>
+    <button type="submit" class="btn btn-danger">Запустить!</button>
 </form>
 {% endblock %}
