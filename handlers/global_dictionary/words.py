@@ -8,7 +8,7 @@ from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from objects.global_dictionary import GlobalDictionaryWord, Dictionary
+from objects.global_dictionary import GlobalDictionaryWord, Dictionary, get_langs
 
 StrategyTypeChooseConstant = 200
 
@@ -77,7 +77,10 @@ class GenerateDictionary(ServiceRequestHandler):
 class DictionaryHandler(APIRequestHandler):
     def get(self, lang='ru'):
         import shutil
-        key = ndb.Key(Dictionary, lang).get().gcs_key
+        key = ndb.Key(Dictionary, lang).get()
+        if not key:
+            self.abort(404)
+        key = key.gcs_key
         if key in self.request.if_none_match:
             self.response.status = 304
             return
@@ -85,3 +88,7 @@ class DictionaryHandler(APIRequestHandler):
         shutil.copyfileobj(dictionary_file, self.response)
         dictionary_file.close()
         self.response.etag = key
+
+class ListDictionaries(APIRequestHandler):
+    def get(self):
+       self.response.write(json.dumps(get_langs()))

@@ -371,7 +371,9 @@ api_v2_routes = [
         Route(r'/api/v2/dictionary/<lang:[-\w]+>',
             handler=handlers.global_dictionary.words.DictionaryHandler),
         Route(r'/api/v2/dictionary',
-            handler=handlers.global_dictionary.words.DictionaryHandler)
+            handler=handlers.global_dictionary.words.DictionaryHandler),
+        Route(r'/api/v2/dictionaries',
+            handler=handlers.global_dictionary.words.ListDictionaries)
 ]
 
 config = {
