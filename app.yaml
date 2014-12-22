@@ -5,6 +5,10 @@ api_version: 1
 threadsafe: yes
 
 handlers:
+- url: /admin_panel/.*
+  script: google.appengine.ext.admin.application
+  login: admin
+
 - url: /landing
   static_files: templates/landing.html
   upload: templates/landing.html
