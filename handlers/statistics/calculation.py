@@ -331,6 +331,8 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.total_explanation_time = 0
         word.counts_by_expl_time = []
         word.used_games = []
+        #TODO: remove when add more langs
+        word.lang = 'ru'
         yield word.put_async()
 
     @staticmethod
