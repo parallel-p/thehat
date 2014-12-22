@@ -12,7 +12,7 @@ import datetime
 from google.appengine.api import taskqueue
 from google.appengine.api import memcache
 
-from objects.global_dictionary import GlobalDictionaryWord
+from objects.global_dictionary import GlobalDictionaryWord, get_langs
 from environment import TRUESKILL_ENVIRONMENT
 from objects.game_results_log import GameLog
 from objects.legacy_game_history import GameHistory
@@ -110,16 +110,16 @@ class AddGameHandler(ServiceRequestHandler):
             prediction_db.put()
 
     def rate(self, words, coef=None):
-        ratings = [{word: self.ratings[word]} for word in words if self.ratings[word]]
-        if len(ratings) > 1:
-            rated = TRUESKILL_ENVIRONMENT.rate(ratings, partial_update=coef)
-            for d in rated:
-                word, rate = d.items()[0]
-                self.ratings[word] = rate
+        for lang in self.langs:
+            ratings = [{word: self.ratings[word]} for word in words if self.ratings[word] and self.word_db[word].lang == lang]
+            if len(ratings) > 1:
+                rated = TRUESKILL_ENVIRONMENT.rate(ratings, partial_update=coef)
+                for d in rated:
+                    word, rate = d.items()[0]
+                    self.ratings[word] = rate
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
-        #TODO: solve problem with free-play games
         if log['setup']['type'] == "freeplay":
             raise BadGameError('old_version')
         events = log['events']
@@ -249,8 +249,9 @@ class AddGameHandler(ServiceRequestHandler):
             for word in words_orig:
                 self.check_word(word)
 
-            word_db = [GlobalDictionaryWord.get(word) for word in words_orig]
-            self.ratings = [TRUESKILL_ENVIRONMENT.create_rating(word.E, word.D) if word else None for word in word_db]
+            self.word_db = [GlobalDictionaryWord.get(word) for word in words_orig]
+            self.ratings = [TRUESKILL_ENVIRONMENT.create_rating(word.E, word.D) if word else None for word in self.word_db]
+            self.langs = get_langs()
 
             d = defaultdict(list)
             for word in seen_words_time:

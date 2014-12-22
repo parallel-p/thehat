@@ -25,6 +25,7 @@ class GlobalDictionaryWord(ndb.Model):
     tags = ndb.StringProperty(indexed=False)
     danger = ndb.ComputedProperty(lambda self: (self.failed_times / self.used_times) if self.used_times != 0 else 0)
     deleted = ndb.BooleanProperty(default=False)
+    lang = ndb.StringProperty(default='ru')
 
     @staticmethod
     def get(word):
@@ -41,19 +42,8 @@ class GlobalDictionaryWord(ndb.Model):
         return ndb.Key(GlobalDictionaryWord, proper_word).get()
 
 
-class GlobalDictionaryVersion(db.Model):
-    version = db.IntegerProperty()
+class Dictionary(ndb.Model):
+    gcs_key = ndb.StringProperty()
 
-    @staticmethod
-    def get_server_version():
-        version = GlobalDictionaryVersion.get_by_key_name(constants.version_key)
-        return 0 if version is None else int(version.version)
-
-    @staticmethod
-    def update_version():
-        version = GlobalDictionaryVersion.get_by_key_name(constants.version_key)
-        if version is None:
-            version = GlobalDictionaryVersion(key_name=constants.version_key, version=1)
-        else:
-            version.version += 1
-        version.put()
+def get_langs():
+    return [key.id() for key in Dictionary.query().fetch(keys_only=True)]

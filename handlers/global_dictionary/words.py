@@ -8,9 +8,7 @@ from google.appengine.api import app_identity
 from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
-from objects.global_dictionary import GlobalDictionaryWord
-from objects.global_configuration import GlobalConfiguration
-
+from objects.global_dictionary import GlobalDictionaryWord, Dictionary
 
 StrategyTypeChooseConstant = 200
 
@@ -56,31 +54,30 @@ def get_gcs_filename(key):
 
 class GenerateDictionary(ServiceRequestHandler):
     def post(self):
-        data_object = []
-        key = str(int(time.time()))
-        words = GlobalDictionaryWord.query().fetch()
-        chunk_size = len(words) // 100
-        for i, word in enumerate(words):
-            data_object.append({"word": word.word,
-                                "diff": i // chunk_size,
-                                "used": word.used_times,
-                                "tags": word.tags,
-                                "deleted": word.deleted})
-        output_file = gcs.open(get_gcs_filename(key), "w", "application/json")
-        json.dump(data_object, output_file)
-        output_file.close()
-        config = GlobalConfiguration.load()
-        old_key = config.dictionary_gcs_key
-        config.dictionary_gcs_key = key
-        config.put()
-        if old_key:
-            gcs.delete(get_gcs_filename(old_key))
+        for dictionary in Dictionary.query():
+            data_object = []
+            key = str(int(time.time()))
+            words = GlobalDictionaryWord.query(GlobalDictionaryWord.deleted == False,
+                                               GlobalDictionaryWord.lang == dictionary.key.id()).order(GlobalDictionaryWord.E).fetch()
+            chunk_size = len(words) // 100
+            for i, word in enumerate(words):
+                data_object.append({"word": word.word,
+                                    "diff": i // chunk_size,
+                                    "used": word.used_times,
+                                    "tags": word.tags})
+            output_file = gcs.open(get_gcs_filename(key), "w", "application/json")
+            json.dump(data_object, output_file)
+            output_file.close()
+            old_key = dictionary.gcs_key
+            dictionary.gcs_key = key
+            dictionary.put()
+            if old_key:
+                gcs.delete(get_gcs_filename(old_key))
 
 class DictionaryHandler(APIRequestHandler):
-    def get(self):
+    def get(self, lang='ru'):
         import shutil
-        config = GlobalConfiguration.load()
-        key = config.dictionary_gcs_key
+        key = ndb.Key(Dictionary, lang).get().gcs_key
         if key in self.request.if_none_match:
             self.response.status = 304
             return
