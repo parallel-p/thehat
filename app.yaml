@@ -34,6 +34,7 @@ handlers:
 
 builtins:
 - remote_api: on
+- deferred: on
 
 libraries:
 - name: webapp2
