@@ -1,7 +1,7 @@
 from google.appengine.ext import deferred
 from google.appengine.ext import ndb
 
-BATCH_SIZE = 500
+BATCH_SIZE = 100
 
 def _map(model_kind, function, cursor=None):
     data, curs, more = ndb.Query(kind=model_kind).fetch_page(BATCH_SIZE, start_cursor=cursor)
@@ -10,5 +10,5 @@ def _map(model_kind, function, cursor=None):
     if len(data) > 0 and more and curs:
         deferred.defer(_map, model_kind, function, curs)
 
-def map_entities(model_kind, function):
+def deferred_map(model_kind, function):
     deferred.defer(_map, model_kind, function)
