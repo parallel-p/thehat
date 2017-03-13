@@ -24,6 +24,9 @@ handlers:
 - url: /assets
   static_dir: assets
 
+- url: /tos
+  static_dir: assets
+
 - url: /internal/.*
   script: main.app
   login: admin
