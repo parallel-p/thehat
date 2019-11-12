@@ -118,8 +118,11 @@ class AddGameHandler(ServiceRequestHandler):
                     word, rate = d.items()[0]
                     self.ratings[word] = rate
 
-    def parse_log2(self, log_db):
-        events = json.loads(log_db.json)
+    def parse_log(self, log_db):
+        log = json.loads(log_db.json)
+        self.parse_log_v2(log) if log.get('version' == '2.0') else self.parse_log_v1(log)
+
+    def parse_log_v2(self, events):
         words_orig = set()
         explained_at_once = dict()
         seen_by_player = defaultdict(lambda: set())
@@ -148,8 +151,7 @@ class AddGameHandler(ServiceRequestHandler):
         return list(words_orig), seen_words_time, words_outcome, explained_at_once, explained_pair, len(
             players), None, None
 
-    def parse_log(self, log_db):
-        log = json.loads(log_db.json)
+    def parse_log_v1(self, log):
         if log['setup']['type'] == "freeplay":
             raise BadGameError('old_version')
         events = log['events']
@@ -254,22 +256,16 @@ class AddGameHandler(ServiceRequestHandler):
     def post(self):
         game_key = ndb.Key(urlsafe=self.request.get('game_key'))
         logging.info("Handling log of game {}".format(game_key.id()))
-        if game_key.kind() not in ('GameLog', 'GameHistory', 'GameLog2'):
+        if game_key.kind() not in ('GameLog', 'GameHistory'):
             self.abort(200)
         log_db = game_key.get()
         if log_db is None:
             logging.error("Can't find game log")
             self.abort(200)
+        is_legacy = game_key.kind() == 'GameHistory'
         try:
-            if game_key.kind() == 'GameHistory':
-                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
-                start_timestamp, finish_timestamp = self.parse_history(log_db)
-            elif game_key.kind() == 'GameLog':
-                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
-                start_timestamp, finish_timestamp = self.parse_log(log_db)
-            elif game_key.kind() == 'GameLog2':
-                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
-                start_timestamp, finish_timestamp = self.parse_log2(log_db)
+            words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
+            start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
             if start_timestamp and finish_timestamp:
                 self.update_game_len_prediction(players_count, 'game', finish_timestamp - start_timestamp)
             bad_words_count = 0
