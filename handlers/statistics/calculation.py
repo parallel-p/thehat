@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from handlers import AdminRequestHandler, ServiceRequestHandler
+from handlers import ServiceRequestHandler
 
 __author__ = 'nikolay'
 
@@ -117,6 +117,36 @@ class AddGameHandler(ServiceRequestHandler):
                 for d in rated:
                     word, rate = d.items()[0]
                     self.ratings[word] = rate
+
+    def parse_log2(self, log_db):
+        events = json.loads(log_db.json)
+        words_orig = set()
+        explained_at_once = dict()
+        seen_by_player = defaultdict(lambda: set())
+        seen_words_time = defaultdict(lambda: 0)
+        words_outcome = dict()
+        explained_pair = dict()
+        players = set()
+
+        for event in events:
+            words_orig.add(event['words'])
+            players.add(event['from'])
+            players.add(event['to'])
+            seen_by_player[event['from']].add(event['word'])
+            if event['time'] + event['extra_time'] > MAX_TIME or event['time'] + event['extra_time'] < MIN_TIME:
+                words_outcome[event['word']] = 'removed'
+                continue
+            if event.get('outcome') == 'guessed':
+                if event['word'] in seen_by_player[event['to']]:
+                    seen_words_time.pop(event['word'], None)
+                    continue
+                explained_at_once[event['word']] = event['word'] not in seen_by_player.values()
+                words_outcome[event['word']] = 'guessed'
+                seen_words_time[event['word']] += event['time'] + event['extra_time']
+            elif event.get('outcome') == 'failed':
+                words_outcome[event['word']] = 'failed'
+        return list(words_orig), seen_words_time, words_outcome, explained_at_once, explained_pair, len(
+            players), None, None
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
