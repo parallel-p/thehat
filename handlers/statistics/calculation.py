@@ -260,7 +260,6 @@ class AddGameHandler(ServiceRequestHandler):
         if log_db is None:
             logging.error("Can't find game log")
             self.abort(200)
-        is_legacy = game_key.kind() == 'GameHistory'
         try:
             if game_key.kind() == 'GameHistory':
                 words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
