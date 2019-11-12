@@ -254,7 +254,7 @@ class AddGameHandler(ServiceRequestHandler):
     def post(self):
         game_key = ndb.Key(urlsafe=self.request.get('game_key'))
         logging.info("Handling log of game {}".format(game_key.id()))
-        if game_key.kind() not in ('GameLog', 'GameHistory'):
+        if game_key.kind() not in ('GameLog', 'GameHistory', 'GameLog2'):
             self.abort(200)
         log_db = game_key.get()
         if log_db is None:
@@ -262,8 +262,15 @@ class AddGameHandler(ServiceRequestHandler):
             self.abort(200)
         is_legacy = game_key.kind() == 'GameHistory'
         try:
-            words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count,\
-                start_timestamp, finish_timestamp = self.parse_history(log_db) if is_legacy else self.parse_log(log_db)
+            if game_key.kind() == 'GameHistory':
+                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
+                start_timestamp, finish_timestamp = self.parse_history(log_db)
+            elif game_key.kind() == 'GameLog':
+                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
+                start_timestamp, finish_timestamp = self.parse_log(log_db)
+            elif game_key.kind() == 'GameLog2':
+                words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_count, \
+                start_timestamp, finish_timestamp = self.parse_log2(log_db)
             if start_timestamp and finish_timestamp:
                 self.update_game_len_prediction(players_count, 'game', finish_timestamp - start_timestamp)
             bad_words_count = 0
