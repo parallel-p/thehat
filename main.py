@@ -28,7 +28,6 @@ import handlers.global_dictionary.words
 import handlers.link_device
 import handlers.log_saving
 import handlers.newsfeed
-import handlers.operations_admin_page
 import handlers.pregame
 import handlers.service.notifications
 import handlers.service.remove_duplicates
@@ -373,7 +372,7 @@ api_v2_routes = [
         Route(r'/api/v2/dictionaries',
               handler=handlers.global_dictionary.words.ListDictionaries),
     Route(r'api/v2/game/log',
-          handler=handlers.handlers.log_saving.GameLogHandler)
+          handler=handlers.handlers.log_saving.GameLog2Handler)
 ]
 
 config = {

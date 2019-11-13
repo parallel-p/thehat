@@ -20,13 +20,23 @@ class GameLogHandler(AuthorizedAPIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GameLogHandler, self).__init__(*args, **kwargs)
 
-    def put(self, **kwargs):
+    def put(self):
         game_id = json.loads(self.request.body)['setup']['meta']['game.id']
         game_key = ndb.Key(GameLog, game_id).get()
         if game_key is None:
             log = GameLog(json=self.request.body, id=game_id)
             game_key = log.put().urlsafe()
             taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': game_key}, countdown=5)
+        self.response.set_status(201)
+
+
+class GameLog2Handler(AuthorizedAPIRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super(GameLog2Handler, self).__init__(*args, **kwargs)
+
+    def put(self):
+        log = GameLog(json=self.request.body)
+        taskqueue.add(url='/internal/add_game_to_statistics', params={'game_key': log.put().urlsafe()}, countdown=5)
         self.response.set_status(201)
 
 
