@@ -120,9 +120,10 @@ class AddGameHandler(ServiceRequestHandler):
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
-        self.parse_log_v2(log['attempts']) if log.get('version') == '2.0' else self.parse_log_v1(log)
+        self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log)
 
-    def parse_log_v2(self, events):
+    def parse_log_v2(self, log):
+        events = log['attempts']
         words_orig = set()
         explained_at_once = dict()
         seen_by_player = defaultdict(lambda: set())
@@ -148,8 +149,8 @@ class AddGameHandler(ServiceRequestHandler):
                 seen_words_time[event['word']] += event['time'] + event['extra_time']
             elif event.get('outcome') == 'failed':
                 words_outcome[event['word']] = 'failed'
-        return list(words_orig), seen_words_time, words_outcome, explained_at_once, explained_pair, len(
-            players), None, None
+        return list(words_orig), seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), \
+               log['start_timestamp'] + log['time_zone_offset'], log['end_timestamp'] + log['time_zone_offset']
 
     def parse_log_v1(self, log):
         if log['setup']['type'] == "freeplay":
@@ -201,7 +202,7 @@ class AddGameHandler(ServiceRequestHandler):
                 if current_words_time[word] > MAX_TIME or current_words_time[word] < MIN_TIME:
                     words_outcome[word] = 'removed'
                 elif words_outcome[word] in ('guessed', 'failed'):
-                    if not word in seen_words_time:
+                    if word not in seen_words_time:
                         explained_at_once[word] = True
                     explained_pair[word] = current_pair
                 seen_words_time[word] += int(round(current_words_time[word] / 1000.0))
