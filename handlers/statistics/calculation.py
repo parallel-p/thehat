@@ -133,7 +133,7 @@ class AddGameHandler(ServiceRequestHandler):
         players = set()
 
         for event in events:
-            words_orig.add(event['words'])
+            words_orig.add(event['word'])
             players.add(event['from'])
             players.add(event['to'])
             seen_by_player[event['from']].add(event['word'])
@@ -145,6 +145,7 @@ class AddGameHandler(ServiceRequestHandler):
                     seen_words_time.pop(event['word'], None)
                     continue
                 explained_at_once[event['word']] = event['word'] not in seen_by_player.values()
+                explained_pair[event['word']] = (event['from'], event['to'])
                 words_outcome[event['word']] = 'guessed'
                 seen_words_time[event['word']] += event['time'] + event['extra_time']
             elif event.get('outcome') == 'failed':
