@@ -120,7 +120,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
-        self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log)
+        return self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log)
 
     def parse_log_v2(self, log):
         events = log['attempts']
