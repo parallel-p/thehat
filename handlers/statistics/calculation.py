@@ -120,11 +120,11 @@ class AddGameHandler(ServiceRequestHandler):
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
-        return self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log)
+        return self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log_db)
 
     def parse_log_v2(self, log):
         events = log['attempts']
-        words_orig = set()
+        words_orig = []
         explained_at_once = dict()
         seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
@@ -133,27 +133,32 @@ class AddGameHandler(ServiceRequestHandler):
         players = set()
 
         for event in events:
-            words_orig.add(event['word'])
+            if event['word'] in words_orig:
+                word_num = words_orig.index(event['word'])
+            else:
+                word_num = len(words_orig)
+                words_orig.append(event['word'])
             players.add(event['from'])
             players.add(event['to'])
-            seen_by_player[event['from']].add(event['word'])
+            seen_by_player[event['from']].add(word_num)
             if event['time'] + event['extra_time'] > MAX_TIME or event['time'] + event['extra_time'] < MIN_TIME:
-                words_outcome[event['word']] = 'removed'
+                words_outcome[word_num] = 'removed'
                 continue
             if event.get('outcome') == 'guessed':
-                if event['word'] in seen_by_player[event['to']]:
-                    seen_words_time.pop(event['word'], None)
+                if word_num in seen_by_player[event['to']]:
+                    seen_words_time.pop(word_num, None)
                     continue
-                explained_at_once[event['word']] = event['word'] not in seen_by_player.values()
-                explained_pair[event['word']] = (event['from'], event['to'])
-                words_outcome[event['word']] = 'guessed'
-                seen_words_time[event['word']] += event['time'] + event['extra_time']
+                explained_at_once[word_num] = word_num not in seen_by_player.values()
+                explained_pair[word_num] = (event['from'], event['to'])
+                words_outcome[word_num] = 'guessed'
+                seen_words_time[word_num] += int(round((event['time'] + event['extra_time']) / 1000))
             elif event.get('outcome') == 'failed':
-                words_outcome[event['word']] = 'failed'
-        return list(words_orig), seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), \
+                words_outcome[word_num] = 'failed'
+        return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), \
                log['start_timestamp'] + log['time_zone_offset'], log['end_timestamp'] + log['time_zone_offset']
 
-    def parse_log_v1(self, log):
+    def parse_log_v1(self, log_db):
+        log = json.loads(log_db.json)
         if log['setup']['type'] == "freeplay":
             raise BadGameError('old_version')
         events = log['events']
