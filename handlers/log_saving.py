@@ -30,7 +30,7 @@ class GameLogHandler(AuthorizedAPIRequestHandler):
         self.response.set_status(201)
 
 
-class GameLog2Handler(AuthorizedAPIRequestHandler):
+class GameLog2Handler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GameLog2Handler, self).__init__(*args, **kwargs)
 
