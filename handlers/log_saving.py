@@ -34,9 +34,9 @@ class GameLog2Handler(APIRequestHandler):
     def __init__(self, *args, **kwargs):
         super(GameLog2Handler, self).__init__(*args, **kwargs)
 
-    def put(self, **kwargs):
+    def post(self, **kwargs):
         log = GameLog(json=self.request.body)
-        taskqueue.add(url='/internal/add_game_to_statistics', params={'game_key': log.put().urlsafe()}, countdown=5)
+        taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': log.put().urlsafe()}, countdown=5)
         self.response.set_status(202)
 
 
