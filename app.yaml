@@ -17,6 +17,10 @@ handlers:
   static_files: templates/android_beta.html
   upload: templates/android_beta.html
 
+- url: /android/new/beta
+  static_files: templates/android_new_beta.html
+  upload: templates/android_new_beta.html
+
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico
