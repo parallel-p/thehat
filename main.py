@@ -41,6 +41,8 @@ import handlers.user_dictionary
 import handlers.user_properies
 import handlers.user_settings
 import handlers.web_game_creation
+import handlers.operations_admin_page
+import handlers.global_dictionary.unknown_words
 from handlers import WebRequestHandler
 
 
@@ -371,8 +373,8 @@ api_v2_routes = [
               handler=handlers.global_dictionary.words.DictionaryHandler),
         Route(r'/api/v2/dictionaries',
               handler=handlers.global_dictionary.words.ListDictionaries),
-    Route(r'api/v2/game/log',
-          handler=handlers.handlers.log_saving.GameLog2Handler)
+        Route(r'/api/v2/game/log',
+              handler=handlers.log_saving.GameLog2Handler)
 ]
 
 config = {
