@@ -151,7 +151,7 @@ class AddGameHandler(ServiceRequestHandler):
                 explained_at_once[word_num] = word_num not in seen_by_player.values()
                 explained_pair[word_num] = (event['from'], event['to'])
                 words_outcome[word_num] = 'guessed'
-                seen_words_time[word_num] += int(round((event['time'] + event['extra_time']) / 1000))
+                seen_words_time[word_num] += int(round((event['time'] + event['extra_time']) / 1000.0))
             elif event.get('outcome') == 'failed':
                 words_outcome[word_num] = 'failed'
         return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), \
