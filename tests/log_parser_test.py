@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import unittest2
+import json
 from handlers.statistics.calculation import AddGameHandler
 
 TEST_LOG_V2 = '{"version":"2.0","time_zone_offset":10800000,"attempts":[{"from":0,"to":1,"word":"цемент",' \
@@ -66,11 +67,11 @@ STOP_CORRECT = 1582569410857
 
 class LogParserTest(unittest2.TestCase):
     def setUp(self):
-        self.parse_log_v2 = AddGameHandler.parse_log_v2
+        self.parse_log_v2 = AddGameHandler().parse_log_v2
 
     def testParseLog(self):
         words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_num, start, stop = \
-            self.parse_log_v2(TEST_LOG_V2)
+            self.parse_log_v2(json.loads(TEST_LOG_V2))
         self.assertEqual(words_orig, WORDS_ORIG_CORRECT)
         self.assertEqual(dict(seen_words_time), SEEN_WORDS_TIME_CORRECT)
         self.assertEqual(words_outcome, WORDS_OUTCOME_CORRECT)
