@@ -3,7 +3,6 @@ from handlers import ServiceRequestHandler
 
 __author__ = 'nikolay'
 
-
 import json
 import logging
 from collections import defaultdict
@@ -28,7 +27,7 @@ class BadGameError(Exception):
 
 MAX_TIME = 5 * 60 * 1000  # 5 minutes
 MIN_TIME = 500  # 0.5 second
-DEFAULT_OFFSET = 4*60*60*1000
+DEFAULT_OFFSET = 4 * 60 * 60 * 1000
 
 
 def get_date(time):
@@ -111,7 +110,8 @@ class AddGameHandler(ServiceRequestHandler):
 
     def rate(self, words, coef=None):
         for lang in self.langs:
-            ratings = [{word: self.ratings[word]} for word in words if self.ratings[word] and self.word_db[word].lang == lang]
+            ratings = [{word: self.ratings[word]} for word in words if
+                       self.ratings[word] and self.word_db[word].lang == lang]
             if len(ratings) > 1:
                 rated = TRUESKILL_ENVIRONMENT.rate(ratings, partial_update=coef)
                 for d in rated:
@@ -131,7 +131,14 @@ class AddGameHandler(ServiceRequestHandler):
         words_outcome = dict()
         explained_pair = dict()
         players = set()
+        start = log.get('start_timestamp')
+        end = log.get('end_timestamp')
+        offset = log.get('time_zone_offset', DEFAULT_OFFSET)
 
+        if start:
+            start += offset
+        if end:
+            end += offset
         for event in events:
             if event['word'] in words_orig:
                 word_num = words_orig.index(event['word'])
@@ -154,8 +161,7 @@ class AddGameHandler(ServiceRequestHandler):
                 seen_words_time[word_num] += int(round((event['time'] + event['extra_time']) / 1000.0))
             elif event.get('outcome') == 'failed':
                 words_outcome[word_num] = 'failed'
-        return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), \
-               log['start_timestamp'] + log['time_zone_offset'], log['end_timestamp'] + log['time_zone_offset']
+        return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), start, end
 
     def parse_log_v1(self, log_db):
         log = json.loads(log_db.json)
@@ -163,7 +169,7 @@ class AddGameHandler(ServiceRequestHandler):
             raise BadGameError('old_version')
         events = log['events']
         words_orig = [el['word'] for el in log['setup']['words']]
-        explained_at_once = [False]*len(words_orig)
+        explained_at_once = [False] * len(words_orig)
         seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
         words_outcome = {}
@@ -232,7 +238,7 @@ class AddGameHandler(ServiceRequestHandler):
         if hist.game_type != GameHistory.HAT_STANDART:
             raise BadGameError('not_hat')
         words_orig = [el.text for el in hist.words]
-        explained_at_once = [False]*len(words_orig)
+        explained_at_once = [False] * len(words_orig)
         explained_pair = {}
         seen_by_player = defaultdict(lambda: set())
         seen_words_time = defaultdict(lambda: 0)
@@ -277,19 +283,20 @@ class AddGameHandler(ServiceRequestHandler):
                 self.update_game_len_prediction(players_count, 'game', finish_timestamp - start_timestamp)
             bad_words_count = 0
 
-            if 2*len(seen_words_time) < len(words_orig):
+            if 2 * len(seen_words_time) < len(words_orig):
                 raise BadGameError('suspect_too_little_words')
             for k, v in seen_words_time.items():
                 if v < 2:
                     bad_words_count += 1
-            if 2*bad_words_count > len(seen_words_time):
+            if 2 * bad_words_count > len(seen_words_time):
                 raise BadGameError('suspect_too_quick_explanation')
 
             for word in words_orig:
                 self.check_word(word)
 
             self.word_db = [GlobalDictionaryWord.get(word) for word in words_orig]
-            self.ratings = [TRUESKILL_ENVIRONMENT.create_rating(word.E, word.D) if word else None for word in self.word_db]
+            self.ratings = [TRUESKILL_ENVIRONMENT.create_rating(word.E, word.D) if word else None for word in
+                            self.word_db]
             self.langs = get_langs()
 
             d = defaultdict(list)
@@ -370,7 +377,7 @@ class RecalcAllLogs(ServiceRequestHandler):
         word.total_explanation_time = 0
         word.counts_by_expl_time = []
         word.used_games = []
-        #TODO: remove when add more langs
+        # TODO: remove when add more langs
         word.lang = 'ru'
         yield word.put_async()
 
@@ -384,7 +391,7 @@ class RecalcAllLogs(ServiceRequestHandler):
         if self.stage == 5:
             return
         taskqueue.add(url="/internal/recalc_all_logs",
-                      params={"stage": str(self.stage+1)},
+                      params={"stage": str(self.stage + 1)},
                       queue_name="statistic-calculation")
 
     def next_portion(self):
@@ -420,7 +427,7 @@ class RecalcAllLogs(ServiceRequestHandler):
                 self.fetch_portion(GameLog.query(GameLog.ignored == False), keys_only=True))
         elif self.stage == 5:
             map(lambda k: queue.add_async(taskqueue.Task(url='/internal/add_game_to_statistic',
-                                          params={'game_key': k.urlsafe()})),
+                                                         params={'game_key': k.urlsafe()})),
                 self.fetch_portion(GameHistory.query(GameHistory.ignored == False), keys_only=True))
         if self.more and self.cursor:
             self.next_portion()
