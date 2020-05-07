@@ -1,8 +1,13 @@
 # coding=utf-8
 
-import unittest2
 import json
+
+import unittest2
+from google.appengine.api import taskqueue
+from google.appengine.ext import testbed
+
 from handlers.statistics.calculation import AddGameHandler
+from objects.game_results_log import GameLog
 
 TEST_LOG_V1 = '{"setup":{"players":[{"name":"Вася Пупкин","id":"owner-b9d944fb-2d07-4983-9d87-f670090c4461",' \
               '"type":"OWNER_RANDOM","random":false},{"name":"Маша Кюри","id":"4a1a1954-68ac-4f43-b6b4-ebf69d660861",' \
@@ -137,15 +142,15 @@ SEEN_WORDS_TIME_CORRECT_V1 = {1: 15, 2: 10, 3: 17, 4: 49, 5: 17, 6: 17, 7: 20, 8
                               13: 18, 14: 4, 15: 8, 16: 7, 17: 30, 18: 7, 20: 18, 21: 7, 22: 20, 24: 6, 25: 9, 26: 28,
                               27: 8, 28: 11, 29: 9, 30: 16, 31: 18, 32: 9, 33: 24, 34: 30, 35: 27, 36: 15, 37: 13,
                               38: 13, 39: 12, 40: 5, 41: 14, 42: 15, 43: 5, 44: 8}
-WORDS_OUTCOME_CORRECT_V1 = {0: u'guessed', 1: u'guessed', 2: u'guessed', 3: u'guessed', 4: u'guessed', 5: u'guessed',
-                            6: u'guessed', 7: u'guessed', 8: u'guessed', 9: u'guessed', 10: u'guessed', 11: u'guessed',
-                            12: u'guessed', 13: u'guessed', 14: u'guessed', 15: u'guessed', 16: u'guessed',
-                            17: u'guessed', 18: u'guessed', 19: u'guessed', 20: u'guessed', 21: u'guessed',
-                            22: u'guessed', 23: u'guessed', 24: u'guessed', 25: u'guessed', 26: u'guessed',
-                            27: u'guessed', 28: u'guessed', 29: u'guessed', 30: u'guessed', 31: u'guessed',
-                            32: u'guessed', 33: u'guessed', 34: u'guessed', 35: u'guessed', 36: u'guessed',
-                            37: u'guessed', 38: u'guessed', 39: u'guessed', 40: u'guessed', 41: u'guessed',
-                            42: u'guessed', 43: u'guessed', 44: u'guessed'}
+WORDS_OUTCOME_CORRECT_V1 = {0: 'guessed', 1: 'guessed', 2: 'guessed', 3: 'guessed', 4: 'guessed', 5: 'guessed',
+                            6: 'guessed', 7: 'guessed', 8: 'guessed', 9: 'guessed', 10: 'guessed', 11: 'guessed',
+                            12: 'guessed', 13: 'guessed', 14: 'guessed', 15: 'guessed', 16: 'guessed',
+                            17: 'guessed', 18: 'guessed', 19: 'guessed', 20: 'guessed', 21: 'guessed',
+                            22: 'guessed', 23: 'guessed', 24: 'guessed', 25: 'guessed', 26: 'guessed',
+                            27: 'guessed', 28: 'guessed', 29: 'guessed', 30: 'guessed', 31: 'guessed',
+                            32: 'guessed', 33: 'guessed', 34: 'guessed', 35: 'guessed', 36: 'guessed',
+                            37: 'guessed', 38: 'guessed', 39: 'guessed', 40: 'guessed', 41: 'guessed',
+                            42: 'guessed', 43: 'guessed', 44: 'guessed'}
 EXPLAINED_AT_ONCE_CORRECT_V1 = [False, True, True, True, False, True, True, True, True, True, True, True, False, True,
                                 True, True, True, False, True, False, False, True, True, False, False, True, True,
                                 False, True, True, True, False, True, True, True, False, True, True, True, False, True,
@@ -227,8 +232,14 @@ STOP_CORRECT_V2 = 1582569410857
 
 class LogParserTest(unittest2.TestCase):
     def setUp(self):
+        self.testbed = testbed.Testbed()
+        self.testbed.activate()
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
+        self.testbed.init_taskqueue_stub()
         self.parse_log_v1 = AddGameHandler().parse_log_v1
         self.parse_log_v2 = AddGameHandler().parse_log_v2
+        self.post = AddGameHandler().post
 
     def testParseLogV1(self):
         words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, players_num, start, stop = \
@@ -253,6 +264,20 @@ class LogParserTest(unittest2.TestCase):
         self.assertEqual(players_num, PLAYERS_NUM_CORRECT_V2)
         self.assertEqual(start, START_CORRECT_V2)
         self.assertEqual(stop, STOP_CORRECT_V2)
+
+    def testPostV1(self):
+        game_id = json.loads(TEST_LOG_V1)['setup']['meta']['game.id']
+        log = GameLog(json=TEST_LOG_V1, id=game_id)
+        game_key = log.put().urlsafe()
+        taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': game_key}, countdown=5)
+
+    def testPostV2(self):
+        log = GameLog(json=TEST_LOG_V2)
+        game_key = log.put().urlsafe()
+        taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': game_key}, countdown=5)
+
+    def tearDown(self):
+        self.testbed.deactivate()
 
 
 if __name__ == '__main__':
