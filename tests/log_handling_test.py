@@ -3,9 +3,10 @@
 import json
 
 import unittest2
-from google.appengine.api import taskqueue
 from google.appengine.ext import testbed
+from webapp2 import Request
 
+import main
 from handlers.statistics.calculation import AddGameHandler
 from objects.game_results_log import GameLog
 
@@ -236,7 +237,6 @@ class LogParserTest(unittest2.TestCase):
         self.testbed.activate()
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
-        self.testbed.init_taskqueue_stub()
         self.parse_log_v1 = AddGameHandler().parse_log_v1
         self.parse_log_v2 = AddGameHandler().parse_log_v2
         self.post = AddGameHandler().post
@@ -269,12 +269,20 @@ class LogParserTest(unittest2.TestCase):
         game_id = json.loads(TEST_LOG_V1)['setup']['meta']['game.id']
         log = GameLog(json=TEST_LOG_V1, id=game_id)
         game_key = log.put().urlsafe()
-        taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': game_key}, countdown=5)
+        request = Request.blank('/internal/add_game_to_statistic')
+        request.method = 'POST'
+        request.body = 'game_key=' + game_key
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
 
     def testPostV2(self):
         log = GameLog(json=TEST_LOG_V2)
         game_key = log.put().urlsafe()
-        taskqueue.add(url='/internal/add_game_to_statistic', params={'game_key': game_key}, countdown=5)
+        request = Request.blank('/internal/add_game_to_statistic')
+        request.method = 'POST'
+        request.body = 'game_key=' + game_key
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
 
     def tearDown(self):
         self.testbed.deactivate()
