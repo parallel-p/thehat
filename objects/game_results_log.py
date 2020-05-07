@@ -18,6 +18,7 @@ class StatisticVersion(ndb.Model):
 class SavedGame(ndb.Model):
     log = ndb.TextProperty()
 
+
 IGNORE_REASON = {
     'old_version': "This game log was created by old version of the application and is not supported",
     'suspect_too_quick_explanation': "Most of the words in this game were explained too quickly.",

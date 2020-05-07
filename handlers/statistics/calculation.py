@@ -120,7 +120,7 @@ class AddGameHandler(ServiceRequestHandler):
 
     def parse_log(self, log_db):
         log = json.loads(log_db.json)
-        return self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log_db)
+        return self.parse_log_v2(log) if log.get('version') == '2.0' else self.parse_log_v1(log)
 
     def parse_log_v2(self, log):
         events = log['attempts']
@@ -163,8 +163,7 @@ class AddGameHandler(ServiceRequestHandler):
                 words_outcome[word_num] = 'failed'
         return words_orig, seen_words_time, words_outcome, explained_at_once, explained_pair, len(players), start, end
 
-    def parse_log_v1(self, log_db):
-        log = json.loads(log_db.json)
+    def parse_log_v1(self, log):
         if log['setup']['type'] == "freeplay":
             raise BadGameError('old_version')
         events = log['events']
@@ -181,9 +180,6 @@ class AddGameHandler(ServiceRequestHandler):
         for i in events:
             if i["type"] == "end_game":
                 finish_timestamp = i["time"]
-                if 'aborted' in i and i['aborted']:
-                    log_db.reason = 'aborted'
-                    log_db.put()
         i = 0
         while i < len(events) and events[i]['type'] != 'round_start':
             if events[i]['type'] != 'start_game':
