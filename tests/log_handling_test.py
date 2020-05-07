@@ -229,6 +229,47 @@ EXPLAINED_PAIR_CORRECT_V2 = {0: (0, 1), 2: (1, 2), 3: (1, 2), 4: (1, 2), 5: (1, 
 PLAYERS_NUM_CORRECT_V2 = 4
 START_CORRECT_V2 = 1582568822018
 STOP_CORRECT_V2 = 1582569410857
+TEST_LOG_V2_NO_END_TIMESTAMP = '{"version":"2.0","time_zone_offset":10800000,"attempts":[{"from":0,"to":1,' \
+                               '"word":"цемент","time":13777,"extra_time":0,"outcome":"guessed"},{"from":0,"to":1,' \
+                               '"word":"кочегар","time":6230,"extra_time":3},{"from":1,"to":2,"word":"отгул",' \
+                               '"time":6219,"extra_time":0,"outcome":"guessed"},{"from":1,"to":2,"word":"стопка",' \
+                               '"time":4276,"extra_time":0,"outcome":"guessed"},{"from":1,"to":2,"word":"бросок",' \
+                               '"time":5577,"extra_time":0,"outcome":"guessed"},{"from":1,"to":2,"word":"молочко",' \
+                               '"time":6311,"extra_time":0,"outcome":"guessed"},{"from":1,"to":2,"word":"кислород",' \
+                               '"time":612,"extra_time":2267,"outcome":"guessed"},{"from":2,"to":3,"word":"пуп",' \
+                               '"time":20008,"extra_time":3},{"from":3,"to":0,"word":"смотритель","time":12813,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":3,"to":0,"word":"коэффициент",' \
+                               '"time":6596,"extra_time":0,"outcome":"guessed"},{"from":3,"to":0,"word":"новинка",' \
+                               '"time":3592,"extra_time":3,"outcome":"guessed"},{"from":0,"to":2,"word":"вакса",' \
+                               '"time":23003,"extra_time":3},{"from":1,"to":3,"word":"водичка","time":8430,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":1,"to":3,"word":"оборотень","time":4807,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":1,"to":3,"word":"перелом","time":5382,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":1,"to":3,"word":"рукав","time":4379,' \
+                               '"extra_time":3},{"from":2,"to":0,"word":"похолодание","time":8254,"extra_time":0,' \
+                               '"outcome":"guessed"},{"from":2,"to":0,"word":"карета","time":6482,"extra_time":0,' \
+                               '"outcome":"guessed"},{"from":2,"to":0,"word":"срок","time":3795,"extra_time":0,' \
+                               '"outcome":"guessed"},{"from":2,"to":0,"word":"жест","time":4201,"extra_time":0,' \
+                               '"outcome":"guessed"},{"from":2,"to":0,"word":"котлета","time":267,"extra_time":3},' \
+                               '{"from":3,"to":1,"word":"си","time":12917,"extra_time":0,"outcome":"guessed"},' \
+                               '{"from":3,"to":1,"word":"жид","time":8489,"extra_time":0,"outcome":"guessed"},' \
+                               '{"from":3,"to":1,"word":"ладья","time":1597,"extra_time":3},{"from":0,"to":3,' \
+                               '"word":"бутылка","time":9396,"extra_time":0,"outcome":"guessed"},{"from":0,"to":3,' \
+                               '"word":"электрон","time":4771,"extra_time":0,"outcome":"guessed"},{"from":0,"to":3,' \
+                               '"word":"дальность","time":2727,"extra_time":0,"outcome":"guessed"},{"from":0,"to":3,' \
+                               '"word":"пшеница","time":290,"extra_time":0,"outcome":"guessed"},{"from":0,"to":3,' \
+                               '"word":"курс","time":5816,"extra_time":1972},{"from":1,"to":0,"word":"патиссон",' \
+                               '"time":36763,"extra_time":3},{"from":2,"to":1,"word":"рожа","time":9799,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":2,"to":1,"word":"зуд","time":5328,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":2,"to":1,"word":"певец","time":3040,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":2,"to":1,"word":"курс","time":3051,' \
+                               '"extra_time":0,"outcome":"guessed"},{"from":2,"to":1,"word":"лгун","time":1779,' \
+                               '"extra_time":3},{"from":3,"to":2,"word":"водопой","time":9121,"extra_time":0,' \
+                               '"outcome":"failed"},{"from":3,"to":2,"word":"синица","time":13886,"extra_time":3},' \
+                               '{"from":0,"to":1,"word":"комар","time":7075,"extra_time":0,"outcome":"guessed"},' \
+                               '{"from":0,"to":1,"word":"лотерея","time":4616,"extra_time":0,"outcome":"guessed"},' \
+                               '{"from":0,"to":1,"word":"съемка","time":9063,"extra_time":0,"outcome":"guessed"},' \
+                               '{"from":0,"to":1,"word":"гробница","time":2240,"extra_time":2323},{"from":1,"to":2,' \
+                               '"word":"гробница","time":32050,"extra_time":3}],"start_timestamp":1582558022018}'
 
 
 class LogParserTest(unittest2.TestCase):
@@ -277,6 +318,15 @@ class LogParserTest(unittest2.TestCase):
 
     def testPostV2(self):
         log = GameLog(json=TEST_LOG_V2)
+        game_key = log.put().urlsafe()
+        request = Request.blank('/internal/add_game_to_statistic')
+        request.method = 'POST'
+        request.body = 'game_key=' + game_key
+        response = request.get_response(main.app)
+        self.assertEqual(response.status_int, 200)
+
+    def testPostV2NoEndTimestamp(self):
+        log = GameLog(json=TEST_LOG_V2_NO_END_TIMESTAMP)
         game_key = log.put().urlsafe()
         request = Request.blank('/internal/add_game_to_statistic')
         request.method = 'POST'
