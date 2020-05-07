@@ -17,34 +17,33 @@
 import webapp2
 from webapp2 import Route
 
-from handlers import WebRequestHandler
-import handlers
+import handlers.admin_page
 import handlers.dictionary_packages
 import handlers.dictionary_packages.admin
-import handlers.user_dictionary
-import handlers.log_saving
-import handlers.global_dictionary.complain_word
-import handlers.newsfeed
-import handlers.global_dictionary.words
-import handlers.statistics.calculation
-import handlers.web_game_creation
-import handlers.link_device
-import handlers.statistics.word
-import handlers.statistics.plots
-import handlers.service.remove_duplicates
-import handlers.admin_page
-import handlers.pregame
-import handlers.statistics.total
-import handlers.global_dictionary.frequency
 import handlers.game_log_viewer
-import handlers.global_dictionary.unknown_words
+import handlers.global_dictionary.complain_word
+import handlers.global_dictionary.frequency
 import handlers.global_dictionary.word_lookup
-import handlers.statistics.functions
-import handlers.user_properies
-import handlers.statistics.game_len_prediction
+import handlers.global_dictionary.words
+import handlers.link_device
+import handlers.log_saving
+import handlers.newsfeed
+import handlers.pregame
 import handlers.service.notifications
+import handlers.service.remove_duplicates
+import handlers.statistics.calculation
+import handlers.statistics.functions
+import handlers.statistics.game_len_prediction
+import handlers.statistics.plots
+import handlers.statistics.total
+import handlers.statistics.word
+import handlers.user_dictionary
+import handlers.user_properies
 import handlers.user_settings
+import handlers.web_game_creation
 import handlers.operations_admin_page
+import handlers.global_dictionary.unknown_words
+from handlers import WebRequestHandler
 
 
 class MainPage(WebRequestHandler):
@@ -369,11 +368,13 @@ routes = [
 
 api_v2_routes = [
         Route(r'/api/v2/dictionary/<lang:[-\w]+>',
-            handler=handlers.global_dictionary.words.DictionaryHandler),
+              handler=handlers.global_dictionary.words.DictionaryHandler),
         Route(r'/api/v2/dictionary',
-            handler=handlers.global_dictionary.words.DictionaryHandler),
+              handler=handlers.global_dictionary.words.DictionaryHandler),
         Route(r'/api/v2/dictionaries',
-            handler=handlers.global_dictionary.words.ListDictionaries)
+              handler=handlers.global_dictionary.words.ListDictionaries),
+        Route(r'/api/v2/game/log',
+              handler=handlers.log_saving.GameLog2Handler)
 ]
 
 config = {
