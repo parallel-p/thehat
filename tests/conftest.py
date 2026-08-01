@@ -1,0 +1,62 @@
+"""Pytest fixtures backed by the Cloud Datastore emulator.
+
+Start it with::
+
+    gcloud beta emulators datastore start --project=the-hat-test \\
+        --host-port=localhost:8432 --no-store-on-disk --consistency=1.0
+
+``make test`` does this for you.
+"""
+
+import os
+
+import pytest
+
+os.environ.setdefault("DATASTORE_EMULATOR_HOST", "localhost:8432")
+os.environ.setdefault("DATASTORE_PROJECT_ID", "the-hat-test")
+os.environ.setdefault("GOOGLE_CLOUD_PROJECT", "the-hat-test")
+os.environ.setdefault("DATASTORE_DATASET", "the-hat-test")
+os.environ.setdefault("TASKS_DISABLED", "1")
+# Nothing here may ever talk to real Google infrastructure.
+os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
+
+
+KINDS = [
+    "User", "Device", "UserDictionaryWord", "GlobalDictionaryWord", "WordLookup",
+    "Dictionary", "GameLog", "UnknownWord", "DailyStatistics", "TotalStatistics",
+    "GamesForPlayerCount", "GameLength", "StatisticVersion",
+]
+
+
+@pytest.fixture(scope="session")
+def ndb_client():
+    from app.ndb_ctx import client
+
+    return client()
+
+
+@pytest.fixture
+def ndb_context(ndb_client):
+    """A clean datastore and an active ndb context for one test.
+
+    The app opens its own context per request (in the TestClient's portal
+    thread); this one is for setting entities up and asserting on them.
+    """
+    from google.cloud import ndb
+
+    with ndb_client.context(cache_policy=lambda key: False) as context:
+        for kind in KINDS:
+            keys = ndb.Query(kind=kind).fetch(keys_only=True)
+            if keys:
+                ndb.delete_multi(keys)
+        yield context
+
+
+@pytest.fixture
+def client(ndb_context):
+    from starlette.testclient import TestClient
+
+    import app.main as main_module
+
+    with TestClient(main_module.app) as test_client:
+        yield test_client

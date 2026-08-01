@@ -4,3 +4,14 @@
 *.pyc
 *~
 .idea
+.venv/
+__pycache__/
+.pytest_cache/
+
+# Production-derived test fixtures. They contain real player names and device
+# ids, and this repository is public. Regenerate locally with:
+#     make fixtures && make golden
+tests/fixtures/prod_logs.jsonl
+tests/fixtures/ignored_logs.jsonl
+tests/fixtures/word_ratings_prod.json
+tests/fixtures/stats_golden_prod.jsonl

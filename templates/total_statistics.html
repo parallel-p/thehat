@@ -1,0 +1,47 @@
+{% extends "stats_base.html" %}
+{% set days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] %}
+
+{% block title %}Общая статистика{% endblock %}
+{% block header %}Общая статистика{% endblock %}
+
+{% block content %}
+<table>
+    <tr><td>Слов в словаре</td><td class="num">{{ words_in_dictionary }}</td></tr>
+    <tr><td>Из них хотя бы раз использовано</td><td class="num">{{ used_words }}</td></tr>
+    <tr><td>Всего игр</td><td class="num">{{ total_games }}</td></tr>
+    <tr><td>Всего объяснено слов</td><td class="num">{{ total_words }}</td></tr>
+</table>
+
+<h2>Игры по числу игроков</h2>
+<table>
+    <tr><th>Игроков</th><th class="num">Игр</th></tr>
+    {% for row in games_for_players %}
+    <tr><td>{{ row.player_count }}</td><td class="num">{{ row.games }}</td></tr>
+    {% endfor %}
+</table>
+
+<h2>Игры по дням недели</h2>
+<table>
+    <tr>{% for d in days %}<th class="num">{{ d }}</th>{% endfor %}</tr>
+    <tr>{% for n in by_day %}<td class="num">{{ n }}</td>{% endfor %}</tr>
+</table>
+
+<h2>Игры по часам</h2>
+<table>
+    <tr><th>Час</th><th class="num">Игр</th></tr>
+    {% for n in by_hour %}
+    <tr><td>{{ "%02d:00"|format(loop.index0) }}</td><td class="num">{{ n }}</td></tr>
+    {% endfor %}
+</table>
+
+<h2>По дням</h2>
+<table>
+    <tr><th>Дата</th><th class="num">Игр</th><th class="num">Слов</th><th class="num">Игроков</th><th class="num">Суммарно минут</th></tr>
+    {% for date, games, words, players, minutes in daily %}
+    <tr>
+        <td>{{ date }}</td><td class="num">{{ games }}</td><td class="num">{{ words }}</td>
+        <td class="num">{{ players }}</td><td class="num">{{ minutes }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

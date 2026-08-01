@@ -1,12 +1,6 @@
-cron:
-- description: run update heatmap & scatter
-  url: /cron/update_plots/start/
-  schedule: every 12 hours
-
-- description: run update functions statistics
-  url: /cron/statistics/functions/update
-  schedule: every 24 hours
-
-- description: run update notifications channel token
-  url: /cron/notifications/update
-  schedule: every 24 hours
+# All three legacy cron jobs are dropped by the py3 migration:
+#   /cron/update_plots/start/        -> matplotlib plot rendering, removed
+#   /cron/statistics/functions/update -> exec() of Datastore-stored code, removed
+#   /cron/notifications/update       -> Channel API, removed by Google years ago
+# Deploying this file (only at WP8 cutover) removes them from the project.
+cron: []

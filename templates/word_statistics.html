@@ -1,0 +1,46 @@
+{% extends "stats_base.html" %}
+{% macro word_table(list) %}
+<table>
+    <tr><th>#</th><th>Слово</th><th class="num">Сложность</th></tr>
+    {% for w in list %}
+    <tr>
+        <td>{{ loop.index }}</td>
+        <td><a href="/statistics/word_statistics?word={{ w.word }}">{{ w.word }}</a></td>
+        <td class="num">{{ w.E|round(1) }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endmacro %}
+
+{% block title %}Статистика по словам{% endblock %}
+{% block header %}Статистика по словам{% endblock %}
+
+{% block content %}
+<form method="get" action="/statistics/word_statistics">
+    <input type="search" name="word" placeholder="Слово" value="{{ word or '' }}">
+    <button type="submit">Найти</button>
+</form>
+
+{% if word_entity %}
+<h2>{{ word_entity.word }}</h2>
+<table>
+    <tr><td>Сложность</td><td class="num">{{ word_entity.E|round(1) }} ± {{ (word_entity.D * 2)|round(1) }}</td></tr>
+    <tr><td>Всего попыток</td><td class="num">{{ word_entity.used_times }}</td></tr>
+    <tr><td>Отгадано</td><td class="num">{{ word_entity.guessed_times }}</td></tr>
+    <tr><td>Объяснено с ошибкой</td><td class="num">{{ word_entity.failed_times }}</td></tr>
+    <tr><td>Суммарное время объяснения</td><td class="num">{{ word_entity.total_explanation_time }} сек</td></tr>
+    {% if word_entity.guessed_times > 0 %}
+    <tr><td>Среднее время объяснения</td><td class="num">{{ word_entity.total_explanation_time // word_entity.guessed_times }} сек</td></tr>
+    {% endif %}
+</table>
+{% else %}
+{% if word %}
+<p>В нашем словаре нет слова «{{ word }}».</p>
+{% endif %}
+<div class="columns">
+    <div><h2>Самые сложные</h2>{{ word_table(top) }}</div>
+    <div><h2>Самые простые</h2>{{ word_table(bottom) }}</div>
+    <div><h2>Случайные</h2>{{ word_table(rand) }}</div>
+</div>
+{% endif %}
+{% endblock %}

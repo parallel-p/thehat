@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Шляпа{% endblock %}</title>
+    <style>
+        body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+               margin: 0 auto; max-width: 60rem; padding: 1.5rem; line-height: 1.5; }
+        h1 { font-size: 1.6rem; }
+        h2 { font-size: 1.2rem; margin-top: 2rem; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
+        th, td { border-bottom: 1px solid #ddd; padding: .35rem .5rem; text-align: left; }
+        th { font-weight: 600; }
+        td.num, th.num { text-align: right; }
+        nav a { margin-right: 1rem; }
+        .columns { display: flex; flex-wrap: wrap; gap: 2rem; }
+        .columns > div { flex: 1 1 15rem; }
+        form { margin: 1rem 0; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/">Главная</a>
+    <a href="/statistics/word_statistics">Слова</a>
+    <a href="/statistics/total_statistics">Общая статистика</a>
+</nav>
+<h1>{% block header %}{% endblock %}</h1>
+{% block content %}{% endblock %}
+</body>
+</html>
