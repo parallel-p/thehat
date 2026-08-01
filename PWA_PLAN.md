@@ -1,10 +1,52 @@
 # Шляпа as a PWA — plan
 
-Recreating [beret](https://github.com/nzinov/beret) — the Flutter app currently
-advertised at `/android/new/beta` — as an offline-capable web app served from
+Replacing [beret](https://github.com/nzinov/beret) — the Flutter app currently
+advertised at `/android/new/beta` — with an offline-capable web app served from
 this repo, installable on both Android and iOS.
 
 Branch: `pwa/plan`, cut from `migration/py3`.
+
+## 0. Decisions
+
+Settled, so the rest of this document assumes them:
+
+1. **Written by hand**, not `flutter build web`. Plain ES modules, no framework,
+   no bundler, the site's own CSS. Rationale in §3.
+2. **First release is both game modes and nothing else** — быстрая игра and
+   режим для двоих, offline, log upload, install. No game history, no rules
+   screen, no authors page, no word complaints.
+3. **The PWA replaces the Android app.** The landing page and the two
+   `/android/*` pages stop offering the APK and point at `/play`.
+4. **Server work: game-id de-duplication and `Cache-Control` on the
+   dictionary.** Complaints are not restored.
+
+### 0.1 What decisions 2 and 3 cost, taken together
+
+Retiring the app while shipping less than parity means these go away and do not
+come back:
+
+- **Game history.** Beret keeps `gameHistory.json` locally and shows past
+  scoreboards. Nothing migrates: an existing player's history dies with the
+  APK, and the PWA does not start keeping one. It is a day of work to add later
+  (the data is already in the log the app builds) but it is not in v1.
+- **Word complaints.** The only channel for a player to flag an offensive or
+  broken word disappears from the client. It has in fact been broken since the
+  migration removed the endpoint, so nothing is *lost* today — but the decision
+  not to restore it means the dictionary keeps no player-facing vetting path.
+  Worth revisiting once §8.1 is in.
+- **The rules screen.** Acceptable: the rules already live on the site at
+  `thehat.ru/rules/`, and `/play` can link to them.
+
+None of this blocks the plan. It is written down so that retiring the APK is a
+choice made with the bill visible.
+
+### 0.2 Legacy installs keep double-posting
+
+Decision 3 retires the app from the *site*, but installed copies keep running.
+Per §1.6 each of them stores every game twice, and the game-id de-duplication
+in §8.1 cannot help them — old clients send no id. Expect the duplicate rate to
+decay as installs go stale rather than stop on cutover day. If that matters,
+the cheap fix is a server-side heuristic (§8.1).
 
 ---
 
@@ -83,8 +125,8 @@ the player concedes.
   stores logs verbatim and enqueues a stats task per log, so **each game is
   currently counted roughly twice**. The PWA must accept 2xx.
 - The complaint endpoint no longer exists: complaints were dropped in the
-  python3 migration (`app/main.py` header). The PWA should either drop the
-  feature or we re-add a handler — see §8.
+  python3 migration (`app/main.py` header), so every complaint the app has
+  taken since then went nowhere. The PWA drops the feature (§0.1).
 
 ---
 
@@ -92,10 +134,10 @@ the player concedes.
 
 | Endpoint | Used for | Status |
 |---|---|---|
-| `GET /api/v2/dictionary/ru` | word list | exists, ETag-cached (`app/api_v2.py`) |
-| `GET /api/v2/dictionaries` | language list | exists |
-| `POST /api/v2/game/log` | game upload → 202 | exists |
-| `POST /{deviceId}/complain` | word complaints | **gone** |
+| `GET /api/v2/dictionary/ru` | word list | exists, ETag-cached (`app/api_v2.py`); gains `Cache-Control` (§8.2) |
+| `POST /api/v2/game/log` | game upload → 202 | exists; gains `game_id` (§8.1) |
+| `GET /api/v2/dictionaries` | language list | exists, unused in v1 (`ru` only) |
+| `POST /{deviceId}/complain` | word complaints | gone, and staying gone (§0.1) |
 
 Production `ru` dictionary today: **13 799 words, 1.29 MB raw, 138 KB gzipped**,
 101 difficulty buckets of 99–137 words each. That is small enough to hold
@@ -137,34 +179,26 @@ this project (§7, WP6).
 
 ---
 
-## 3. The build-vs-rewrite decision
+## 3. Why by hand
 
-**Option A — `flutter build web` and host the output.** Beret already has a
-`web/` target. Fastest path to parity.
+`flutter build web` was the alternative and beret already has a `web/` target,
+so it was the fast path. Rejected because the CanvasKit bundle is ~2 MB before
+the app's own code, it paints text to a canvas (no selection, no real
+accessibility), it looks nothing like the rest of the site, and it drags a
+Flutter SDK into a repo whose discipline is *no CDN, no third-party request, no
+build step*. None of that buys anything on the parts that are actually hard —
+offline storage, the log contract, and what iOS does to timers, audio and
+stored data are identical either way, and a framework that hides the platform
+makes them worse.
 
-Against it: the CanvasKit bundle is ~2 MB before the app's own code (the HTML
-renderer is smaller but its text rendering is poor for Cyrillic); it paints to a
-canvas, so no text selection, no real accessibility, and a "not-a-web-page"
-feel; it drags a Flutter SDK into a repo whose whole stated discipline is *no
-CDN, no third-party request, no build step*; and it would look nothing like the
-rest of the site, which now has a deliberate design language. iOS PWA quirks
-(audio unlock, wake lock, storage eviction) still have to be solved by hand
-inside a framework that hides the platform from you.
+So: ~1 500–2 000 lines of plain ES modules, the site's CSS tokens, first load
+well under 100 KB plus the dictionary.
 
-**Option B — write it as a small vanilla PWA.** ~1 500–2 000 lines of plain ES
-modules, the site's own CSS tokens, no framework, no bundler. First load is well
-under 100 KB plus the dictionary.
-
-**Recommendation: Option B.** The app is a state machine, six screens and a
-timer — the part that is genuinely hard (offline storage, the log contract, iOS
-behaviour) is identical either way, and Option A pays 2 MB and a toolchain for
-the easy part. It also keeps the promise the rest of the site makes.
-
-One thing to state plainly: **this introduces JavaScript to a codebase that
-currently has none**, and DESIGN.md says so as a rule. That rule is about the
-marketing and statistics pages, which must render as documents. An app that
-runs a stopwatch is a different thing, and the rule should be amended rather
-than quietly broken — the pages stay no-JS, `/play` is allowed script.
+One consequence to state plainly: **this introduces JavaScript to a codebase
+that currently has none**, and DESIGN.md says so as a rule. That rule is about
+the marketing and statistics pages, which must render as documents. An app that
+runs a stopwatch is a different thing, and the rule gets amended rather than
+quietly broken — the pages stay no-JS, `/play` is allowed script.
 
 ---
 
@@ -204,13 +238,28 @@ static/play/               # served as static files, no template rendering
   upload: static/play/.*
 ```
 
-The landing page's «Скачать приложение» becomes «Играть» → `/play`, with the
-APK kept as a secondary link.
+### 4.1 Origin
 
-**Open question:** the app currently talks to `the-hat.appspot.com` while the
-site links to `thehat.ru`. The PWA must be same-origin with the API or the
-service worker cannot cache it cleanly. Confirm which hostname serves this App
-Engine app before WP1.
+Checked rather than assumed: `thehat.ru` is a separate nginx host (404 at the
+root today; it serves `/rules/`), and `gcloud app domain-mappings list` returns
+nothing, so this App Engine app answers on `the-hat.appspot.com` and nothing
+else. Serving `/play` from here is therefore same-origin with `/api/v2/*` for
+free — no CORS, and the service worker can cache API responses.
+
+If a custom domain is mapped later, the manifest `start_url`/`scope` and the
+service worker scope are the only things that need to follow.
+
+### 4.2 Cutover (decision 3)
+
+- Landing page: «Скачать приложение» → «Играть», linking `/play`. The «Новое
+  приложение»/«Старое приложение» pair in the last section collapses to one
+  link.
+- `/android/new/beta` (currently the APK from `github.com/nzinov/beret/releases`)
+  and `/android/beta` (the 2014 Play Store build) both become short pages that
+  point at `/play` and keep the APK link only as a footnote for people who
+  already have it. Killing the URLs outright would break inbound links from
+  F-Droid and VK.
+- Nav «Скачать» → «Играть».
 
 ---
 
@@ -326,7 +375,8 @@ and the app draws words with the network disabled.
 *Done when:* airplane mode, cold start, full game playable.
 
 **WP4 — Быстрая игра.** Lobby, pairing formulas, turn state machine, timers,
-verdict, round editing, scoreboard, history.
+verdict, round editing, end-of-game scoreboard. No persisted history (§0.1) —
+the scoreboard is shown and then dropped.
 *Done when:* a 6-player game plays start to finish and the scoreboard matches
 hand-counted outcomes.
 
@@ -351,29 +401,59 @@ Android, both playable offline after install.
 background, Playfair for the word itself. The round screen is the one place the
 design has to be *loud* — a word at 4rem and two enormous buttons.
 
-**WP9 — Cutover.** Landing page points at `/play`; `/android/new/beta` keeps the
-APK; a note in DESIGN.md amending the no-JS rule (§3).
+**WP9 — Cutover.** The §4.2 edits: landing page, both `/android/*` pages, nav.
+Plus the DESIGN.md amendment to the no-JS rule (§3).
+*Done when:* no page offers the APK as the primary action, and every inbound
+`/android/*` link still lands somewhere sensible.
+
+**WP10 — Server (§8).** Game-id de-duplication and dictionary `Cache-Control`.
+Independent of WP1–WP9 and can land first; WP6 should send the id from the
+start so the two meet.
 
 Rough sequencing: WP1–WP3 are the foundation and are worth doing in one pass;
-WP4 is the bulk of the UI work; WP5–WP6 are small once WP4 exists.
+WP4 is the bulk of the UI work; WP5–WP6 are small once WP4 exists. WP10 is an
+afternoon and unblocks nothing, so do it whenever.
 
 ---
 
-## 8. Server-side changes this needs
+## 8. Server-side changes (WP10)
 
-Small, and each is optional-but-recommended:
+Two, both small.
 
-1. **De-duplicate uploads.** Accept a client `game_id` (UUID) on
-   `/api/v2/game/log` and skip an already-seen id. Without it, an ambiguous
-   network failure double-counts a game — which, per §1.6, is probably already
-   happening today with beret.
-2. **Complaints.** Either restore a minimal `POST /api/v2/word/complain`
-   (device id, word, reason) writing to `UnknownWord`-style storage, or drop the
-   button. Recommendation: restore it — word vetting is what keeps the
-   dictionary honest, and the button is one line in the UI.
-3. **`Cache-Control` on the dictionary.** It is served with an ETag but no
-   max-age; a short max-age plus the ETag makes the revalidation cheap.
-4. Nothing else. The PWA is a client of contracts that already exist.
+### 8.1 De-duplicate uploads
+
+The PWA sends a `game_id` (UUID, minted when the game starts, stable across
+retries) in the v2 log. `/api/v2/game/log` keeps it as the `GameLog` entity's
+key instead of an auto id, so a re-send is an idempotent overwrite and enqueues
+no second stats task. An ambiguous network failure then becomes safe to retry,
+which is what makes the outbox in §5.4 correct rather than hopeful.
+
+`parse_log_v2` ignores unknown top-level keys, so old clients and new clients
+can both post through the same handler; a log without an id keeps the current
+behaviour.
+
+That leaves the legacy installs of §0.2, which send no id and will keep
+double-posting until they die out. If the duplicate rate turns out to matter,
+the fallback is a content heuristic — same word list, same player count, start
+timestamps within a minute — applied only to id-less logs. Not worth building
+until the data says so.
+
+**Care required:** this changes what goes into the rating pipeline. Rating is
+cumulative and not recomputed, so a bug here corrupts word difficulties
+permanently. The change wants its own test alongside
+`tests/test_stats_datastore.py::test_pipeline_end_to_end`, asserting that
+posting the same log twice moves a word's `E` exactly once.
+
+### 8.2 Cache-Control on the dictionary
+
+`_serve_dictionary` sets an ETag but no `Cache-Control`, so every revalidation
+is a full conditional request. Add `max-age=3600, stale-while-revalidate` — the
+ETag already makes a stale read safe, and the dictionary is regenerated on a
+cron, not per request.
+
+### Not doing
+
+Word complaints stay dropped (§0.1). No accounts, no server-side game state.
 
 ---
 
@@ -386,11 +466,15 @@ Small, and each is optional-but-recommended:
 | Log rejected by `parse_log_v2` heuristics | medium | golden-log test in this repo's suite (WP6) |
 | Dictionary grows past comfortable IndexedDB size | low | 1.3 MB today; bucketed records keep writes incremental |
 | Service worker serves a stale shell after deploy | medium | version-stamped caches, update banner |
-| Double-counted games | already happening | accept 2xx; add `game_id` (§8.1) |
+| Double-counted games from new clients | medium | accept 2xx; `game_id` (§8.1) |
+| Double-counted games from retired installs | certain, decaying | §0.2 — accepted, heuristic held in reserve |
+| Rating corrupted by the de-dup change | low, unrecoverable | dedicated test (§8.1); ratings are cumulative and never recomputed |
+| Players lose game history at cutover | certain | accepted (§0.1) |
 
 ## 10. What this plan does not cover
 
 Multiplayer over the network, accounts, the user's own word lists
 (`UserDictionaryWord` — the legacy sync contracts still exist and could be
 wired in later), languages other than `ru`, and any change to how difficulty is
-computed.
+computed. Game history and word complaints are deferred, not designed away —
+see §0.1.
