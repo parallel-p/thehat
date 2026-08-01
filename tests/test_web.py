@@ -203,15 +203,54 @@ def test_total_statistics_ports_the_legacy_extras(client, ndb_context):
     assert "слово5" in response.text
     assert "минуту" in response.text               # 105 sec -> 1 минуту 45 секунд
 
-    # The analytics the old site rendered as matplotlib images.
-    assert "Анатомия сложности" in response.text
+    # The dictionary's own analytics belong to the words page, not this one.
+    assert "по длине слова" not in response.text
+    assert "частотности" not in response.text
+
+
+def test_word_statistics_carries_the_analytics(client, ndb_context):
+    """The analytics the old site rendered as matplotlib images."""
+    from app.models import WordFrequency
+
+    for index in range(6):
+        word = "слово{}".format(index)
+        GlobalDictionaryWord(id=word, word=word, E=40.0 + index, D=6.0,
+                             used_times=3 + index,
+                             total_explanation_time=100 + index).put()
+        WordFrequency(id=word, word=word, frequency=5.0).put()
+
+    response = client.get("/statistics/word_statistics")
+    assert response.status_code == 200
     assert "по длине слова" in response.text
-    assert "числу партий" in response.text
+    assert "Насколько точно мы это знаем" in response.text
     assert "частотности" in response.text
+    # Difficulty read back in seconds, from a quantity the rating never saw.
+    assert "Сколько секунд уходит на слово" in response.text
 
 
-def test_total_statistics_hides_frequency_without_corpus_data(client, ndb_context):
+def test_word_statistics_hides_frequency_without_corpus_data(client, ndb_context):
     GlobalDictionaryWord(id="кот", word="кот", E=40.0, D=6.0, used_times=3).put()
-    response = client.get("/statistics/total_statistics")
+    response = client.get("/statistics/word_statistics")
     assert response.status_code == 200
     assert "частотности" not in response.text
+    assert "Частота — не сложность" not in response.text
+
+
+def test_frequency_twins_pair_equally_common_words(client, ndb_context):
+    """The pair section is the site's claim in one object: same frequency in
+    the language, very different in play."""
+    from app.models import WordFrequency
+
+    for word, e, freq in [("кайма", 82.0, 1.00), ("ведро", 24.0, 1.05),
+                          ("шпиль", 61.0, 9.00), ("окно", 33.0, 9.40)]:
+        GlobalDictionaryWord(id=word, word=word, E=e, D=4.0, used_times=20,
+                             guessed_times=18, total_explanation_time=300).put()
+        WordFrequency(id=word, word=word, frequency=freq).put()
+
+    response = client.get("/statistics/word_statistics")
+    assert response.status_code == 200
+    assert "Частота — не сложность" in response.text
+    # The widest gap pairs first, and the harder word of a pair leads it.
+    assert response.text.index("кайма") < response.text.index("ведро")
+    for word in ("кайма", "ведро", "шпиль", "окно"):
+        assert word in response.text

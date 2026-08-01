@@ -209,8 +209,150 @@
         известно мало. Саму оценку видно на странице слова.
     </p>
 
-    {% if danger_top %}
-    <div style="margin-top: var(--s7);">
+    {# ------------------------------------------------------------------
+       The claim the whole project rests on, and the evidence for it. The
+       rating is abstract, so first read it back in seconds; then show what
+       it can tell apart that word frequency cannot.
+       ------------------------------------------------------------------ #}
+    {% if analytics.by_seconds %}
+    <hr class="rule">
+    <p class="eyebrow eyebrow--sky"><span>Сколько это в секундах</span></p>
+    <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
+        Сложность — число от нуля до ста, и само по себе оно ничего не значит.
+        Считают его по тому, какие слова у кого получились, а какие нет:
+        секундомер в расчёт не входит вовсе. Поэтому проверить оценку можно
+        как раз по нему — и шкала оказывается расписанием.
+    </p>
+    {% set sec_peak = analytics.by_seconds|map(attribute='avg')|max %}
+    <div class="chart" style="max-width: 34rem; margin-top: 0;">
+        <p class="chart__caption">Сколько секунд уходит на слово</p>
+        <div class="bars bars--sky">
+            {% for row in analytics.by_seconds %}
+            <div class="bar">
+                <span class="bar__label">{{ row.label }}</span>
+                <span class="bar__track">
+                    <span class="bar__fill" style="width: {{ (100.0 * row.avg / sec_peak)|round(1) }}%"></span>
+                </span>
+                <span class="bar__value">{{ row.avg|round(1) }} с</span>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            слева — сложность, справа — среднее время одной попытки; между
+            крайними корзинами разница в несколько раз, хотя ни одна секунда
+            в оценку не заложена
+        </p>
+    </div>
+    {% endif %}
+
+    {% if analytics.twins %}
+    <hr class="rule">
+    <p class="eyebrow eyebrow--honey"><span>Частота — не сложность</span></p>
+    <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
+        Обычные приложения для Шляпы считают слово тем сложнее, чем реже оно
+        встречается в речи. Вот пары, которые язык употребляет одинаково часто —
+        и которые в игре ведут себя совершенно по-разному. По частоте их не
+        отличить; по играм — сразу.
+    </p>
+    <div class="twins">
+        {% for pair in analytics.twins %}
+        <div class="twin">
+            <div class="twin__side">
+                <a class="ws ws--honey" style="text-decoration: none;"
+                   href="/statistics/word_statistics?word={{ pair.harder.word|urlencode }}">{{ pair.harder.word }}</a>
+                <span class="twin__num">{{ pair.harder.E|round|int }} · {{ pair.harder.sec|round(1) }} с</span>
+            </div>
+            <span class="twin__vs">против</span>
+            <div class="twin__side">
+                <a class="ws ws--honey" style="text-decoration: none;"
+                   href="/statistics/word_statistics?word={{ pair.easier.word|urlencode }}">{{ pair.easier.word }}</a>
+                <span class="twin__num">{{ pair.easier.E|round|int }} · {{ pair.easier.sec|round(1) }} с</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <p class="tile__note" style="margin-top: var(--s4); max-width: var(--measure);">
+        под словом — его сложность и среднее время одной попытки; в каждой паре
+        слова встречаются в языке не реже и не чаще друг друга больше чем в 1,2 раза
+    </p>
+    {% endif %}
+
+    {% if analytics.by_length or analytics.by_freq or analytics.d_by_games %}
+    <hr class="rule">
+    <p class="eyebrow eyebrow--lilac"><span>Что ещё видно по словарю</span></p>
+    <div class="chart-grid chart-grid--2">
+        {% if analytics.by_freq %}
+        <div class="chart" style="margin-top: 0;">
+            <p class="chart__caption">Средняя сложность по частотности слова</p>
+            <div class="bars bars--difficulty">
+                {% for row in analytics.by_freq %}
+                <div class="bar">
+                    <span class="bar__label">{{ row.label }}</span>
+                    <span class="bar__track">
+                        <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
+                    </span>
+                    <span class="bar__value">{{ row.avg|round(1) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s3);">
+                в среднем редкие слова и правда труднее — но разброс внутри
+                каждой строки больше, чем разница между строками; слева —
+                употреблений на миллион слов корпуса, тик — 50
+            </p>
+        </div>
+        {% endif %}
+
+        {% if analytics.by_length %}
+        <div class="chart" style="margin-top: 0;">
+            <p class="chart__caption">Средняя сложность по длине слова</p>
+            {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
+            <div class="bars bars--difficulty">
+                {% for row in analytics.by_length %}
+                <div class="bar">
+                    <span class="bar__label">{{ row.label }} букв</span>
+                    <span class="bar__track">
+                        <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
+                    </span>
+                    <span class="bar__value">{{ row.avg|round(1) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s3);">
+                тик — 50, средняя сложность; длины, где есть хотя бы 5 использованных слов
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if analytics.d_by_games %}
+    <div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+        <p class="chart__caption">Насколько точно мы это знаем</p>
+        {# Measured against 50/3 — the погрешность of a word nobody has
+           played yet — so a bar reads as "столько неизвестности осталось". #}
+        <div class="bars">
+            {% for row in analytics.d_by_games %}
+            <div class="bar">
+                <span class="bar__label">{{ row.label }} парт.</span>
+                <span class="bar__track">
+                    <span class="bar__fill" style="width: {{ [3.0 * row.avg, 100.0]|min|round(1) }}%"></span>
+                </span>
+                <span class="bar__value">{{ row.avg|round(1) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            во всю ширину — 16,7, погрешность слова, которое ещё никто не играл;
+            каждая партия сужает её, и именно поэтому таблицы выше отсортированы
+            по оценке за вычетом погрешности
+        </p>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    {% if analytics.danger_top %}
+    <hr class="rule">
+    <div>
         <div class="table-scroll" style="max-width: 34rem;">
             <table class="table">
                 <caption>Ошибкоопасные слова · где чаще всего нарушают правила</caption>
@@ -223,7 +365,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for w in danger_top %}
+                    {% for w in analytics.danger_top %}
                     <tr>
                         <td class="rank">{{ loop.index }}</td>
                         <td class="word">

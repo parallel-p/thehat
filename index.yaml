@@ -11,14 +11,18 @@ indexes:
   - name: lang
   - name: E
 
-# app.web._word_shape: projection over (E, D, used_times, failed_times) --
-# the statistics pages' one index-only pass over the dictionary.
+# app.web._word_shape: the statistics pages' one index-only pass over the
+# dictionary. Every property the projection asks for has to be in here, and
+# a word missing any of them drops out of the result -- all six carry
+# defaults, so every word that has ever been put() has all six.
 - kind: GlobalDictionaryWord
   properties:
   - name: E
   - name: D
   - name: used_times
   - name: failed_times
+  - name: guessed_times
+  - name: total_explanation_time
 
 # UserDictionaryHandler.get: owner IN (...), version > N
 - kind: UserDictionaryWord

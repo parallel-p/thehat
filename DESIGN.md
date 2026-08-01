@@ -122,29 +122,54 @@ pills, cards are `--r-card` (10px), word slips get an irregular torn cut.
   tilts −1°, a link underline goes wavy. Nothing else moves;
   `prefers-reduced-motion` kills all of it.
 
-## The statistics dashboards
+## The statistics pages
 
-Everything the python27 site showed publicly is ported, most of it reborn:
+Everything the python27 site showed publicly is ported, most of it reborn.
 
-- **Total**: the headline figures (games, words, dictionary + used) set
-  straight on the paper and ruled apart, caption underneath — `.figures`,
-  deliberately not a row of bordered cards with the label on top, which is a
-  dashboard's idiom; the longest-explained word follows as a sentence, with a
-  human-readable duration via the ported pluralisation macros; the
-  **hour-of-week punchcard** (`.punch`, the old
-  amCharts bubble chart as a 7×24 dot grid — dot size and opacity carry
-  count); by-hour columns and by-day bars; games by player count; **daily
-  activity strip** (`.columns--dense`, one thin column per day over the last
-  84 days — the old four-series line chart's headline series, with the full
-  history as a `<details>` table); and «Анатомия сложности» — the three
-  relationships the old site rendered as matplotlib PNGs (difficulty by word
-  length, uncertainty D by games played, difficulty by corpus frequency),
-  computed live from one projection pass (`_word_shape`, index-only — the
+**Each page answers one question, and its sections are the parts of the
+answer.** They are not organised by where the data comes from or by what
+shape of chart it happens to fit — the games page is *how people play*, the
+words page is *what makes a word hard*, and a section exists because it is a
+step in that argument. This is why «Анатомия сложности» is no longer at the
+bottom of the games page: it was never about games.
+
+- **Total — how the game is played**: the headline figures (games, words,
+  dictionary + used) set straight on the paper and ruled apart, caption
+  underneath — `.figures`, deliberately not a row of bordered cards with the
+  label on top, which is a dashboard's idiom; the longest-explained word on
+  its honey slip, with a human-readable duration via the ported
+  pluralisation macros (which every generated sentence on these pages goes
+  through — «23 слов» is how a page announces that a machine wrote it).
+  Then three named sections: **«Когда достают шляпу»** — the hour-of-week
+  punchcard (`.punch`, the old amCharts bubble chart as a 7×24 dot grid,
+  size and opacity carrying count) with by-hour columns and by-day bars
+  under it, since the three answer one question between them;
+  **«Как выглядит одна партия»** — players, words and minutes of an average
+  game, from the daily records, over games by player count;
+  **«Сколько уже сыграно»** — the daily activity strip (`.columns--dense`,
+  one thin column per day over the last 84 days) with the full history as a
+  `<details>` table.
+- **Words — what makes a word hard**: search; the three hardest words
+  showcased on torn slips; the hardest/easiest/random tables; then the
+  argument. **«Сколько это в секундах»** reads the rating back out in
+  seconds per attempt — the rating is computed from who beat whom and never
+  sees a clock, so the two agreeing is evidence rather than arithmetic (on
+  live data the buckets run 4.6 s to 27.1 s). **«Частота — не сложность»**
+  is the site's whole claim in one object: pairs of words the language uses
+  equally often (within `_TWIN_RATIO`) that the players found very
+  differently hard, shown as two identical honey slips, because looking
+  alike is the point. **«Что ещё видно по словарю»** keeps the relationships
+  the old site rendered as matplotlib PNGs (difficulty by corpus frequency,
+  by word length) and «Насколько точно мы это знаем» (D by games played,
+  which is also the justification for the leaderboard ordering above it).
+  All of it comes from one projection pass (`_word_shape`, index-only — the
   heavyweight `used_games` lists never load; see index.yaml) plus the legacy
-  `WordFrequency` kind (the frequency chart hides itself if that kind is
-  gone).
-- **Words**: search; the three hardest words showcased on torn slips; the
-  hardest/easiest/random tables; the legacy «ошибкоопасные слова» table —
+  `WordFrequency` kind; the frequency sections hide themselves if that kind
+  is gone. If the projection is unavailable the page renders without them
+  and **nothing is cached**, so it recovers on the next request instead of
+  pinning an empty page for the full hour — which is what happens every time
+  a composite index is rebuilt.
+- **Words, continued**: the legacy «ошибкоопасные слова» table —
   with the error rate computed honestly in Python (the stored `danger`
   property preserves a py27 floor-division bug and is ~always 0, so the old
   page ranked by garbage); per-word view with the old gauge laid flat

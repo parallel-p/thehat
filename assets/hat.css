@@ -702,7 +702,14 @@ a:hover {
   white-space: nowrap;
 }
 .table .rank { color: var(--ink-muted); width: 1%; font-variant-numeric: tabular-nums; }
-.table .word { font-family: var(--serif); font-style: italic; font-size: 1rem; }
+/* A 14-letter Russian word must not be able to widen the column past its
+   track and push the number out of the scroller. */
+.table .word {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
 
 /* -- headline figures ----------------------------------------------------
    A page states its numbers the way a printed almanac does: set straight on
@@ -869,6 +876,30 @@ a:hover {
 }
 .punch__dot--zero { width: 3px; height: 3px; background: var(--mark-track); opacity: 1; }
 .punch__hour { font-variant-numeric: tabular-nums; }
+
+/* -- frequency twins ------------------------------------------------------
+   Two slips the language uses equally often, laid side by side so the gap
+   between them is the argument. Not a chart: two words and their numbers,
+   which is all the comparison needs. */
+.twins { display: grid; gap: var(--s5); }
+.twin {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s3) var(--s4);
+  padding-block: var(--s3);
+  border-top: 1px solid var(--rule);
+}
+.twin:last-child { border-bottom: 1px solid var(--rule); }
+.twin__side { display: flex; align-items: baseline; gap: var(--s3); }
+.twin__num {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.twin__vs { font-family: var(--serif); font-style: italic; color: var(--ink-muted); }
 
 /* -- difficulty scale -----------------------------------------------------
    The old gauge, laid flat: a 0-100 track, the confidence band E +- 2D as a

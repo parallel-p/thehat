@@ -64,9 +64,18 @@
 </div>
 {% endif %}
 
+{# The three charts below answer one question between them, so they sit under
+   one heading instead of announcing themselves three times. #}
+<hr class="rule">
+<p class="eyebrow eyebrow--sky"><span>Когда достают шляпу</span></p>
+<p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
+    В Шляпу играют вечером и под выходные — это видно и по неделе, и по суткам.
+    Каждая точка ниже — час недели; чем крупнее, тем больше партий начиналось.
+</p>
+
 {% if punch_peak %}
-<div class="chart" style="margin-top: var(--s7);">
-    <p class="chart__caption">Когда достают шляпу · партии по дню недели и часу</p>
+<div class="chart">
+    <p class="chart__caption">По дню недели и часу</p>
     <div class="table-scroll">
         <div class="punch" role="img"
              aria-label="Распределение партий по дню недели и часу суток">
@@ -133,9 +142,19 @@
     {% endif %}
 </div>
 
+<hr class="rule">
+<p class="eyebrow eyebrow--lilac"><span>Как выглядит одна партия</span></p>
+{% if per_game %}
+<p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
+    Средняя партия — это {{ label(per_game.players|round|int, "игрок", "игрока", "игроков") }},
+    {{ label(per_game.words|round|int, "слово", "слова", "слов") }} и
+    {{ label(per_game.minutes|round|int, "минута", "минуты", "минут") }}.
+</p>
+{% endif %}
+
 {% set player_peak = games_for_players|map(attribute='games')|max if games_for_players else 0 %}
 {% if player_peak %}
-<div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+<div class="chart" style="max-width: 34rem;">
     <p class="chart__caption">Партии по числу игроков</p>
     <div class="bars bars--lilac">
         {% for row in games_for_players %}
@@ -151,8 +170,11 @@
 </div>
 {% endif %}
 
+<hr class="rule">
+<p class="eyebrow"><span>Сколько уже сыграно</span></p>
+
 {% if daily %}
-<div class="chart" style="margin-top: var(--s7);">
+<div class="chart">
     <p class="chart__caption">Партии по дням · последние {{ daily_recent|length }} дней</p>
     {% if daily_recent_peak %}
     <div class="columns columns--dense" role="img"
@@ -201,82 +223,6 @@
 </div>
 {% else %}
 <p class="empty" style="margin-top: var(--s7);">Пока нет данных по дням.</p>
-{% endif %}
-
-{% if analytics.by_length or analytics.d_by_games or analytics.by_freq %}
-<hr class="rule">
-<p class="eyebrow eyebrow--honey"><span>Анатомия сложности</span></p>
-{# Prose, not a footnote: the reading face, like the rest of the page. #}
-<p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
-    Зависимости, которые старый сайт рисовал картинками, — теперь из живых
-    данных. Сложность измеряется по настоящим играм: 50 — среднее слово,
-    больше — труднее.
-</p>
-<div class="chart-grid chart-grid--2">
-    {% if analytics.by_length %}
-    <div class="chart" style="margin-top: 0;">
-        <p class="chart__caption">Средняя сложность по длине слова</p>
-        {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
-        <div class="bars bars--difficulty">
-            {% for row in analytics.by_length %}
-            <div class="bar">
-                <span class="bar__label">{{ row.label }} букв</span>
-                <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
-                </span>
-                <span class="bar__value">{{ row.avg|round(1) }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        <p class="tile__note" style="margin-top: var(--s3);">
-            тик — 50, средняя сложность; длины, где есть хотя бы 5 использованных слов
-        </p>
-    </div>
-    {% endif %}
-
-    {% if analytics.d_by_games %}
-    <div class="chart" style="margin-top: 0;">
-        <p class="chart__caption">Погрешность сложности по числу партий со словом</p>
-        {# Measured against 50/3 — the погрешность of a word nobody has
-           played yet — so a bar reads as "столько неизвестности осталось". #}
-        <div class="bars">
-            {% for row in analytics.d_by_games %}
-            <div class="bar">
-                <span class="bar__label">{{ row.label }} парт.</span>
-                <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ [3.0 * row.avg, 100.0]|min|round(1) }}%"></span>
-                </span>
-                <span class="bar__value">{{ row.avg|round(1) }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        <p class="tile__note" style="margin-top: var(--s3);">
-            во всю ширину — 16,7, погрешность неигранного слова; чем больше партий,
-            тем точнее оценка
-        </p>
-    </div>
-    {% endif %}
-
-    {% if analytics.by_freq %}
-    <div class="chart" style="margin-top: 0;">
-        <p class="chart__caption">Средняя сложность по частотности слова</p>
-        <div class="bars bars--difficulty">
-            {% for row in analytics.by_freq %}
-            <div class="bar">
-                <span class="bar__label">{{ row.label }}</span>
-                <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
-                </span>
-                <span class="bar__value">{{ row.avg|round(1) }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        <p class="tile__note" style="margin-top: var(--s3);">
-            тик — 50; по горизонтали слева указано число употреблений на миллион слов корпуса
-        </p>
-    </div>
-    {% endif %}
-</div>
 {% endif %}
 
 {% endblock %}

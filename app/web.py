@@ -11,6 +11,7 @@ import os
 import random
 import threading
 import time
+from typing import NamedTuple
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -48,21 +49,40 @@ def cached(key, producer):
 LANDING_PAGE = os.path.join(TEMPLATES_DIR, "landing.html")
 
 
+class Word(NamedTuple):
+    """One row of the dictionary as the statistics pages see it."""
+    word: str
+    E: float
+    D: float
+    used: int
+    failed: int
+    guessed: int
+    seconds: int
+
+    @property
+    def per_attempt(self):
+        """Seconds spent explaining this word, per attempt at it."""
+        return self.seconds / self.used
+
+
 def _word_shape():
-    """One projection pass over the dictionary: (word, E, D, used, failed).
+    """One projection pass over the dictionary.
 
     A projection stays index-only, so the heavyweight `used_games` lists are
     never loaded. Words never attempted are dropped. Needs the composite
-    index on (E, D, used_times, failed_times) in index.yaml.
+    index on all six properties in index.yaml.
     """
     query = GlobalDictionaryWord.query(
         projection=[GlobalDictionaryWord.E, GlobalDictionaryWord.D,
                     GlobalDictionaryWord.used_times,
-                    GlobalDictionaryWord.failed_times])
-    rows = [(entity.key.id(), entity.E, entity.D,
-             entity.used_times, entity.failed_times)
+                    GlobalDictionaryWord.failed_times,
+                    GlobalDictionaryWord.guessed_times,
+                    GlobalDictionaryWord.total_explanation_time])
+    rows = [Word(entity.key.id(), entity.E, entity.D, entity.used_times,
+                 entity.failed_times, entity.guessed_times,
+                 entity.total_explanation_time)
             for entity in query.fetch()]
-    return [row for row in rows if row[3]]
+    return [row for row in rows if row.used]
 
 
 def _frequency_map():
@@ -81,6 +101,56 @@ def _frequency_map():
 _FREQ_BUCKETS = [(0.0, 0.3, "реже 0,3"), (0.3, 1.0, "0,3–1"),
                  (1.0, 3.0, "1–3"), (3.0, 10.0, "3–10"),
                  (10.0, 30.0, "10–30"), (30.0, float("inf"), "чаще 30")]
+
+# Difficulty buckets, for reading the rating back out in seconds.
+_E_BUCKETS = [(0.0, 35.0, "до 35"), (35.0, 45.0, "35–45"),
+              (45.0, 55.0, "45–55"), (55.0, 65.0, "55–65"),
+              (65.0, float("inf"), "выше 65")]
+
+# A pair counts as equally common if the frequencies are within this factor.
+_TWIN_RATIO = 1.2
+# Both words need enough plays that the gap between them is not noise.
+_TWIN_MIN_GAMES = 5
+
+
+def _frequency_twins(shape, frequencies, limit=3):
+    """Pairs of words the language uses about equally often, that the players
+    found very differently hard.
+
+    This is the site's whole claim in one object: corpus frequency is what
+    other Hat apps rate words by, and here are two words it cannot tell
+    apart. Words are used at most once across the pairs, so three pairs are
+    six different words.
+    """
+    candidates = sorted(
+        ((frequencies[row.word], row) for row in shape
+         if row.used >= _TWIN_MIN_GAMES and frequencies.get(row.word)),
+        key=lambda pair: pair[0])
+
+    pairs = []
+    for index, (frequency, row) in enumerate(candidates):
+        for other_frequency, other in candidates[index + 1:]:
+            if other_frequency > frequency * _TWIN_RATIO:
+                break        # sorted, so nothing further can be close enough
+            pairs.append((abs(row.E - other.E), row, other))
+
+    used = set()
+    twins = []
+    for _gap, one, other in sorted(pairs, key=lambda pair: -pair[0]):
+        if one.word in used or other.word in used:
+            continue
+        used.update((one.word, other.word))
+        harder, easier = sorted((one, other), key=lambda row: -row.E)
+        twins.append({
+            "harder": {"word": harder.word, "E": harder.E,
+                       "sec": harder.per_attempt},
+            "easier": {"word": easier.word, "E": easier.E,
+                       "sec": easier.per_attempt},
+            "frequency": max(frequencies[one.word], frequencies[other.word]),
+        })
+        if len(twins) == limit:
+            break
+    return twins
 
 
 # E and D are a word's TrueSkill mu and sigma (prior 50 +- 50/3, see
@@ -102,55 +172,71 @@ def _word_analytics():
     The stored `danger` property keeps the py27 floor-division bug and is
     ~always 0, so the error rate is computed honestly here instead of
     ordering by that property the way the legacy page did.
+
+    Raises if the projection is unavailable, rather than returning empty:
+    the caller degrades to a page without analytics, and because nothing was
+    returned nothing is cached, so the next request tries again. Swallowing
+    it here would pin an empty page in the cache for the full hour every
+    time a composite index is rebuilt.
     """
-    try:
-        shape = _word_shape()
-    except Exception:  # noqa: BLE001 -- e.g. the composite index still
-        # building right after a deploy; the page must render without the
-        # analytics rather than 500. The empty result ages out with the cache.
-        logger.exception("word-shape projection unavailable; hiding analytics")
-        shape = []
+    shape = _word_shape()
 
     by_length = {}
-    for word, e, _d, _used, _failed in shape:
-        length = min(len(word), 13)
-        by_length.setdefault(length, []).append(e)
+    for row in shape:
+        length = min(len(row.word), 13)
+        by_length.setdefault(length, []).append(row.E)
     length_rows = [
         {"label": "13+" if length == 13 else str(length),
          "avg": sum(es) / len(es), "count": len(es)}
         for length, es in sorted(by_length.items()) if len(es) >= 5]
 
     d_by_games = {}
-    for _word, _e, d, used, _failed in shape:
-        bucket = min(used, 8)
-        d_by_games.setdefault(bucket, []).append(d)
+    for row in shape:
+        d_by_games.setdefault(min(row.used, 8), []).append(row.D)
     d_rows = [
         {"label": "8+" if bucket == 8 else str(bucket),
          "avg": sum(ds) / len(ds), "count": len(ds)}
         for bucket, ds in sorted(d_by_games.items())]
 
+    # The rating against the clock. E is an abstract TrueSkill mu; seconds per
+    # attempt is not, and it is measured from a different quantity, so the two
+    # agreeing is the evidence that the rating means what it claims.
+    sec_groups = [[] for _ in _E_BUCKETS]
+    for row in shape:
+        for index, (low, high, _label) in enumerate(_E_BUCKETS):
+            if low <= row.E < high:
+                sec_groups[index].append(row.per_attempt)
+                break
+    seconds_rows = [
+        {"label": label, "avg": sum(ss) / len(ss), "count": len(ss)}
+        for (low, high, label), ss in zip(_E_BUCKETS, sec_groups)
+        if len(ss) >= 5]
+    if not any(row["avg"] for row in seconds_rows):
+        seconds_rows = []   # no clock data recorded; the chart would be a lie
+
     frequencies = _frequency_map()
     freq_groups = [[] for _ in _FREQ_BUCKETS]
-    for word, e, _d, _used, _failed in shape:
-        frequency = frequencies.get(word)
+    for row in shape:
+        frequency = frequencies.get(row.word)
         if frequency is None:
             continue
         for index, (low, high, _label) in enumerate(_FREQ_BUCKETS):
             if low <= frequency < high:
-                freq_groups[index].append(e)
+                freq_groups[index].append(row.E)
                 break
     freq_rows = [
         {"label": label, "avg": sum(es) / len(es), "count": len(es)}
         for (low, high, label), es in zip(_FREQ_BUCKETS, freq_groups) if es]
 
     danger = sorted(
-        ({"word": word, "E": e, "share": 100.0 * failed / used}
-         for word, e, _d, used, failed in shape if used >= 10 and failed),
+        ({"word": row.word, "E": row.E, "share": 100.0 * row.failed / row.used}
+         for row in shape if row.used >= 10 and row.failed),
         key=lambda row: -row["share"])[:10]
 
     # The hardest and easiest words, ranked by the pessimistic end of each
     # word's own interval rather than by E. See _CONSERVATIVE_SIGMAS.
-    ranked = [{"word": word, "E": e, "D": d} for word, e, d, _u, _f in shape]
+    ranked = [{"word": row.word, "E": row.E, "D": row.D,
+               "sec": row.per_attempt} for row in shape]
     hardest = sorted(
         ranked, key=lambda row: -(row["E"] - _CONSERVATIVE_SIGMAS * row["D"])
     )[:10]
@@ -159,8 +245,9 @@ def _word_analytics():
     )[:10]
 
     return {"by_length": length_rows, "d_by_games": d_rows,
-            "by_freq": freq_rows, "danger_top": danger,
-            "hardest": hardest, "easiest": easiest}
+            "by_freq": freq_rows, "by_seconds": seconds_rows,
+            "twins": _frequency_twins(shape, frequencies),
+            "danger_top": danger, "hardest": hardest, "easiest": easiest}
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -184,9 +271,15 @@ def word_statistics(request: Request, word: str = None):
         # Both leaderboards come from the analytics pass, which already reads
         # every played word: they need E and D together, and no datastore
         # ordering can express mu -+ k*sigma anyway.
-        analytics = cached("word_analytics", _word_analytics)
-        context["top"] = analytics["hardest"]
-        context["bottom"] = analytics["easiest"]
+        try:
+            analytics = cached("word_analytics", _word_analytics)
+        except Exception:  # noqa: BLE001 -- e.g. the composite index still
+            # building right after a deploy. Render the page without the
+            # dictionary-wide sections rather than 500, and do not cache that.
+            logger.exception("word-shape projection unavailable; hiding analytics")
+            analytics = {}
+        context["top"] = analytics.get("hardest", [])
+        context["bottom"] = analytics.get("easiest", [])
         count = cached(
             "used_words_count",
             lambda: GlobalDictionaryWord.query(
@@ -195,7 +288,11 @@ def word_statistics(request: Request, word: str = None):
             context["rand"] = GlobalDictionaryWord.query(
                 GlobalDictionaryWord.used_times > 0).fetch(
                     limit=10, offset=random.randint(0, count - 10))
-        context["danger_top"] = analytics["danger_top"]
+        # Everything the dictionary knows about itself lives on this page:
+        # what a word's difficulty is worth in seconds, why frequency is not
+        # difficulty, and what else moves the number. It used to hang off the
+        # bottom of the games page, which is about games.
+        context["analytics"] = analytics
     return templates.TemplateResponse(request, "word_statistics.html", context)
 
 
@@ -219,6 +316,14 @@ def total_statistics(request: Request):
                  for el in DailyStatistics.query().order(
                      DailyStatistics.date).fetch()])
     daily_recent = [(row[0], row[1]) for row in daily[-84:]]
+
+    # What one game looks like, averaged over the days we have records for.
+    logged_games = sum(row[1] for row in daily)
+    per_game = {
+        "words": sum(row[2] for row in daily) / logged_games,
+        "minutes": sum(row[4] for row in daily) / logged_games,
+        "players": sum(row[3] for row in daily) / logged_games,
+    } if logged_games else None
 
     longest = cached(
         "longest_explanation",
@@ -248,7 +353,7 @@ def total_statistics(request: Request):
         "punch_peak": punch_peak,
         "longest_word": longest.word if longest else None,
         "longest_time": longest.total_explanation_time if longest else 0,
-        "analytics": cached("word_analytics", _word_analytics),
+        "per_game": per_game,
     }
     return templates.TemplateResponse(request, "total_statistics.html", context)
 
