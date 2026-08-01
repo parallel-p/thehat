@@ -107,50 +107,47 @@ _E_BUCKETS = [(0.0, 35.0, "до 35"), (35.0, 45.0, "35–45"),
               (45.0, 55.0, "45–55"), (55.0, 65.0, "55–65"),
               (65.0, float("inf"), "выше 65")]
 
-# A pair counts as equally common if the frequencies are within this factor.
-_TWIN_RATIO = 1.2
-# Both words need enough plays that the gap between them is not noise.
-_TWIN_MIN_GAMES = 5
+# A word needs this many plays before its place in the language is worth
+# arguing about; past that the +- 2*sigma bounds do the rest of the work.
+_OUTLIER_MIN_GAMES = 5
+# "Rare" and "common" are the outer quarters of the words we have a corpus
+# frequency for -- taken from the data rather than fixed, because what counts
+# as rare depends on which corpus the legacy importer used.
+_OUTLIER_QUARTILE = 0.25
 
 
-def _frequency_twins(shape, frequencies, limit=3):
-    """Pairs of words the language uses about equally often, that the players
-    found very differently hard.
+def _frequency_outliers(shape, frequencies, limit=3):
+    """The words that corpus frequency gets most wrong, both ways round.
 
-    This is the site's whole claim in one object: corpus frequency is what
-    other Hat apps rate words by, and here are two words it cannot tell
-    apart. Words are used at most once across the pairs, so three pairs are
-    six different words.
+    Rare words that turn out easy, and common words that turn out hard --
+    the counter-examples to rating a word by how often the language uses it.
+    Picked on the conservative end of each word's interval (E + 2D for the
+    easy claim, E - 2D for the hard one) so that a word cannot make either
+    list on two lucky rounds: to be listed as easy it has to be easy even
+    read pessimistically.
     """
-    candidates = sorted(
+    known = sorted(
         ((frequencies[row.word], row) for row in shape
-         if row.used >= _TWIN_MIN_GAMES and frequencies.get(row.word)),
+         if row.used >= _OUTLIER_MIN_GAMES and frequencies.get(row.word)),
         key=lambda pair: pair[0])
+    if len(known) < 4 * limit:
+        return {"rare_easy": [], "common_hard": []}
 
-    pairs = []
-    for index, (frequency, row) in enumerate(candidates):
-        for other_frequency, other in candidates[index + 1:]:
-            if other_frequency > frequency * _TWIN_RATIO:
-                break        # sorted, so nothing further can be close enough
-            pairs.append((abs(row.E - other.E), row, other))
+    edge = max(limit, int(len(known) * _OUTLIER_QUARTILE))
 
-    used = set()
-    twins = []
-    for _gap, one, other in sorted(pairs, key=lambda pair: -pair[0]):
-        if one.word in used or other.word in used:
-            continue
-        used.update((one.word, other.word))
-        harder, easier = sorted((one, other), key=lambda row: -row.E)
-        twins.append({
-            "harder": {"word": harder.word, "E": harder.E,
-                       "sec": harder.per_attempt},
-            "easier": {"word": easier.word, "E": easier.E,
-                       "sec": easier.per_attempt},
-            "frequency": max(frequencies[one.word], frequencies[other.word]),
-        })
-        if len(twins) == limit:
-            break
-    return twins
+    def present(pair):
+        frequency, row = pair
+        return {"word": row.word, "E": row.E, "sec": row.per_attempt,
+                "frequency": frequency}
+
+    return {
+        "rare_easy": [present(p) for p in sorted(
+            known[:edge], key=lambda p: p[1].E + _CONSERVATIVE_SIGMAS * p[1].D
+        )[:limit]],
+        "common_hard": [present(p) for p in sorted(
+            known[-edge:], key=lambda p: -(p[1].E - _CONSERVATIVE_SIGMAS * p[1].D)
+        )[:limit]],
+    }
 
 
 # E and D are a word's TrueSkill mu and sigma (prior 50 +- 50/3, see
@@ -198,9 +195,10 @@ def _word_analytics():
          "avg": sum(ds) / len(ds), "count": len(ds)}
         for bucket, ds in sorted(d_by_games.items())]
 
-    # The rating against the clock. E is an abstract TrueSkill mu; seconds per
-    # attempt is not, and it is measured from a different quantity, so the two
-    # agreeing is the evidence that the rating means what it claims.
+    # The rating in seconds. E is built out of these seconds -- every rating
+    # pass in stats ranks a game's words by explanation time -- but only out
+    # of their *order* within one game, so the scale itself carries no unit.
+    # This is what a point on it is worth on a stopwatch.
     sec_groups = [[] for _ in _E_BUCKETS]
     for row in shape:
         for index, (low, high, _label) in enumerate(_E_BUCKETS):
@@ -246,7 +244,7 @@ def _word_analytics():
 
     return {"by_length": length_rows, "d_by_games": d_rows,
             "by_freq": freq_rows, "by_seconds": seconds_rows,
-            "twins": _frequency_twins(shape, frequencies),
+            "outliers": _frequency_outliers(shape, frequencies),
             "danger_top": danger, "hardest": hardest, "easiest": easiest}
 
 

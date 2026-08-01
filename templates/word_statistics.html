@@ -218,10 +218,13 @@
     <hr class="rule">
     <p class="eyebrow eyebrow--sky"><span>Сколько это в секундах</span></p>
     <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
-        Сложность — число от нуля до ста, и само по себе оно ничего не значит.
-        Считают его по тому, какие слова у кого получились, а какие нет:
-        секундомер в расчёт не входит вовсе. Поэтому проверить оценку можно
-        как раз по нему — и шкала оказывается расписанием.
+        Сложность считается как раз по секундомеру — но не по самим секундам.
+        Внутри партии слова выстраиваются по времени объяснения, и в зачёт
+        идёт только этот порядок: какое слово далось дольше соседнего по той
+        же игре. Так и должно быть: одна пара играет быстро, другая медленно,
+        у кого-то раунд короче, — сравнивать абсолютные секунды разных игр
+        нельзя, а сравнивать слова между собой внутри одной можно. Поэтому
+        сама шкала безразмерная; вот во что она переводится в среднем.
     </p>
     {% set sec_peak = analytics.by_seconds|map(attribute='avg')|max %}
     <div class="chart" style="max-width: 34rem; margin-top: 0;">
@@ -238,42 +241,52 @@
             {% endfor %}
         </div>
         <p class="tile__note" style="margin-top: var(--s3);">
-            слева — сложность, справа — среднее время одной попытки; между
-            крайними корзинами разница в несколько раз, хотя ни одна секунда
-            в оценку не заложена
+            слева — сложность, справа — среднее время одной попытки по всем
+            играм; между крайними корзинами разница в несколько раз
         </p>
     </div>
     {% endif %}
 
-    {% if analytics.twins %}
+    {# One slip with its two numbers: how often the language uses the word,
+       and what it turned out to be worth in play. #}
+    {% macro pick(row, colour) %}
+    <li class="pick">
+        <a class="ws ws--{{ colour }}" style="text-decoration: none;"
+           href="/statistics/word_statistics?word={{ row.word|urlencode }}">{{ row.word }}</a>
+        <span class="pick__num">
+            {{ ('%.1f'|format(row.frequency))|replace('.', ',') }} на миллион ·
+            сложность {{ row.E|round|int }}
+        </span>
+    </li>
+    {% endmacro %}
+
+    {% if analytics.outliers.rare_easy or analytics.outliers.common_hard %}
     <hr class="rule">
     <p class="eyebrow eyebrow--honey"><span>Частота — не сложность</span></p>
     <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
         Обычные приложения для Шляпы считают слово тем сложнее, чем реже оно
-        встречается в речи. Вот пары, которые язык употребляет одинаково часто —
-        и которые в игре ведут себя совершенно по-разному. По частоте их не
-        отличить; по играм — сразу.
+        встречается в речи. В среднем это отчасти верно — и в отдельных словах
+        промахивается сильнее всего. Вот те, на которых частотность ошибается
+        в обе стороны.
     </p>
-    <div class="twins">
-        {% for pair in analytics.twins %}
-        <div class="twin">
-            <div class="twin__side">
-                <a class="ws ws--honey" style="text-decoration: none;"
-                   href="/statistics/word_statistics?word={{ pair.harder.word|urlencode }}">{{ pair.harder.word }}</a>
-                <span class="twin__num">{{ pair.harder.E|round|int }} · {{ pair.harder.sec|round(1) }} с</span>
-            </div>
-            <span class="twin__vs">против</span>
-            <div class="twin__side">
-                <a class="ws ws--honey" style="text-decoration: none;"
-                   href="/statistics/word_statistics?word={{ pair.easier.word|urlencode }}">{{ pair.easier.word }}</a>
-                <span class="twin__num">{{ pair.easier.E|round|int }} · {{ pair.easier.sec|round(1) }} с</span>
-            </div>
+    <div class="chart-grid chart-grid--2">
+        <div>
+            <p class="chart__caption">Редкие, а объяснить легко</p>
+            <ul class="picks">
+                {% for row in analytics.outliers.rare_easy %}{{ pick(row, 'sky') }}{% endfor %}
+            </ul>
         </div>
-        {% endfor %}
+        <div>
+            <p class="chart__caption">Частые, а объяснить трудно</p>
+            <ul class="picks">
+                {% for row in analytics.outliers.common_hard %}{{ pick(row, 'rose') }}{% endfor %}
+            </ul>
+        </div>
     </div>
-    <p class="tile__note" style="margin-top: var(--s4); max-width: var(--measure);">
-        под словом — его сложность и среднее время одной попытки; в каждой паре
-        слова встречаются в языке не реже и не чаще друг друга больше чем в 1,2 раза
+    <p class="tile__note" style="margin-top: var(--s5); max-width: var(--measure);">
+        редкие и частые — крайние четверти словаря по частотности; слово
+        попадает в список, только если оно лёгкое (или трудное) даже с учётом
+        своей погрешности, так что двумя удачными раундами сюда не пробиться
     </p>
     {% endif %}
 

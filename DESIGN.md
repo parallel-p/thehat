@@ -160,13 +160,18 @@ bottom of the games page: it was never about games.
 - **Words — what makes a word hard**: search; the three hardest words
   showcased on torn slips; the hardest/easiest/random tables; then the
   argument. **«Сколько это в секундах»** reads the rating back out in
-  seconds per attempt — the rating is computed from who beat whom and never
-  sees a clock, so the two agreeing is evidence rather than arithmetic (on
-  live data the buckets run 4.6 s to 27.1 s). **«Частота — не сложность»**
-  is the site's whole claim in one object: pairs of words the language uses
-  equally often (within `_TWIN_RATIO`) that the players found very
-  differently hard, shown as two identical honey slips, because looking
-  alike is the point. **«Что ещё видно по словарю»** keeps the relationships
+  seconds per attempt (on live data the buckets run 4.6 s to 27.1 s). Note
+  what this is and is not: every rating pass in `stats` sorts a game's words
+  by explanation time, so seconds are the rating's raw material and this
+  chart is *not* independent evidence — but only the order *within one game*
+  is used, because one pair plays fast and another slow and absolute seconds
+  are not comparable across games. The scale is therefore unitless, and this
+  is the conversion. **«Частота — не сложность»** shows the words corpus
+  frequency gets most wrong, both ways round: the rarest quarter of the
+  dictionary sorted by how easy it is, the commonest quarter by how hard.
+  Selection is on the conservative bound (`E + 2D` for the easy claim,
+  `E − 2D` for the hard one), so no word makes either list on two lucky
+  rounds. **«Что ещё видно по словарю»** keeps the relationships
   the old site rendered as matplotlib PNGs (difficulty by corpus frequency,
   by word length) and «Насколько точно мы это знаем» (D by games played,
   which is also the justification for the leaderboard ordering above it).

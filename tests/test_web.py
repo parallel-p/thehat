@@ -236,21 +236,64 @@ def test_word_statistics_hides_frequency_without_corpus_data(client, ndb_context
     assert "Частота — не сложность" not in response.text
 
 
-def test_frequency_twins_pair_equally_common_words(client, ndb_context):
-    """The pair section is the site's claim in one object: same frequency in
-    the language, very different in play."""
+def test_frequency_outliers_pick_the_words_frequency_gets_wrong(client,
+                                                                ndb_context):
+    """Rare words that turned out easy, common words that turned out hard —
+    the counter-examples to rating a word by how often the language uses it.
+    """
     from app.models import WordFrequency
 
-    for word, e, freq in [("кайма", 82.0, 1.00), ("ведро", 24.0, 1.05),
-                          ("шпиль", 61.0, 9.00), ("окно", 33.0, 9.40)]:
-        GlobalDictionaryWord(id=word, word=word, E=e, D=4.0, used_times=20,
-                             guessed_times=18, total_explanation_time=300).put()
-        WordFrequency(id=word, word=word, frequency=freq).put()
+    # Twenty words spread across the frequency range, difficulty rising with
+    # frequency, so the plain rule "rare = hard" holds for all of them...
+    for index in range(20):
+        word = "слово{:02d}".format(index)
+        GlobalDictionaryWord(id=word, word=word, E=20.0 + index * 2, D=3.0,
+                             used_times=20, guessed_times=18,
+                             total_explanation_time=200).put()
+        WordFrequency(id=word, word=word, frequency=0.2 + index).put()
+    # ...and two that break it, one at each end.
+    GlobalDictionaryWord(id="зыбь", word="зыбь", E=9.0, D=3.0, used_times=20,
+                         guessed_times=18, total_explanation_time=90).put()
+    WordFrequency(id="зыбь", word="зыбь", frequency=0.05).put()
+    GlobalDictionaryWord(id="совесть", word="совесть", E=95.0, D=3.0,
+                         used_times=20, guessed_times=18,
+                         total_explanation_time=600).put()
+    WordFrequency(id="совесть", word="совесть", frequency=40.0).put()
 
     response = client.get("/statistics/word_statistics")
     assert response.status_code == 200
-    assert "Частота — не сложность" in response.text
-    # The widest gap pairs first, and the harder word of a pair leads it.
-    assert response.text.index("кайма") < response.text.index("ведро")
-    for word in ("кайма", "ведро", "шпиль", "окно"):
-        assert word in response.text
+    assert "Редкие, а объяснить легко" in response.text
+    assert "Частые, а объяснить трудно" in response.text
+    # Both words also appear in the leaderboards above, so read the two
+    # lists themselves rather than the first mention on the page.
+    rare = response.text.index("Редкие, а объяснить легко")
+    common = response.text.index("Частые, а объяснить трудно")
+    rare_block = response.text[rare:common]
+    common_block = response.text[common:response.text.index("Что ещё видно")]
+    assert "зыбь" in rare_block and "совесть" not in rare_block
+    assert "совесть" in common_block and "зыбь" not in common_block
+
+
+def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
+                                                             ndb_context):
+    """A barely-played word must not make the easy list on two lucky rounds:
+    selection is on E + 2D, so a wide interval keeps it out."""
+    from app.models import WordFrequency
+
+    for index in range(20):
+        word = "слово{:02d}".format(index)
+        GlobalDictionaryWord(id=word, word=word, E=30.0 + index, D=3.0,
+                             used_times=20, guessed_times=18,
+                             total_explanation_time=200).put()
+        WordFrequency(id=word, word=word, frequency=0.2 + index).put()
+    # Rare, and looks easiest of all -- on five games and the prior sigma.
+    GlobalDictionaryWord(id="новичок", word="новичок", E=12.0, D=50.0 / 3,
+                         used_times=5, guessed_times=4,
+                         total_explanation_time=40).put()
+    WordFrequency(id="новичок", word="новичок", frequency=0.05).put()
+
+    response = client.get("/statistics/word_statistics")
+    assert response.status_code == 200
+    rare = response.text.index("Редкие, а объяснить легко")
+    common = response.text.index("Частые, а объяснить трудно")
+    assert "новичок" not in response.text[rare:common]
