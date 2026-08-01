@@ -1,46 +1,166 @@
 {% extends "stats_base.html" %}
-{% macro word_table(list) %}
-<table>
-    <tr><th>#</th><th>Слово</th><th class="num">Сложность</th></tr>
-    {% for w in list %}
-    <tr>
-        <td>{{ loop.index }}</td>
-        <td><a href="/statistics/word_statistics?word={{ w.word }}">{{ w.word }}</a></td>
-        <td class="num">{{ w.E|round(1) }}</td>
-    </tr>
-    {% endfor %}
-</table>
+
+{% block title %}Слова{% endblock %}
+{% block nav_words %}aria-current="page"{% endblock %}
+{% block header %}{% if word_entity %}{{ word_entity.word }}{% else %}Слова{% endif %}{% endblock %}
+
+{% block subhead %}
+<p class="lead hero__lead">
+    {% if word_entity %}
+        Сложность считается по тому, как быстро слово объясняют в настоящих играх,
+        а не по тому, как часто оно встречается в речи.
+    {% else %}
+        Найдите слово, чтобы посмотреть, насколько трудно его объяснить.
+    {% endif %}
+</p>
+<form class="search hero__actions" method="get" action="/statistics/word_statistics" role="search">
+    <label class="visually-hidden" for="word-search">Слово</label>
+    <input type="search" id="word-search" name="word" placeholder="Например, ковчег"
+           value="{{ word or '' }}" autocomplete="off">
+    <button class="btn btn--primary" type="submit">Найти</button>
+</form>
+{% endblock %}
+
+{% macro word_table(caption, rows) %}
+<div class="table-scroll">
+    <table class="table">
+        <caption>{{ caption }}</caption>
+        <thead>
+            <tr>
+                <th class="rank" scope="col">#</th>
+                <th scope="col">Слово</th>
+                <th class="num" scope="col">Сложность</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in rows %}
+            <tr>
+                <td class="rank">{{ loop.index }}</td>
+                <td class="word">
+                    <a href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+                </td>
+                <td class="num">{{ '%.1f'|format(w.E) }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="empty">Пока нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endmacro %}
 
-{% block title %}Статистика по словам{% endblock %}
-{% block header %}Статистика по словам{% endblock %}
-
 {% block content %}
-<form method="get" action="/statistics/word_statistics">
-    <input type="search" name="word" placeholder="Слово" value="{{ word or '' }}">
-    <button type="submit">Найти</button>
-</form>
 
 {% if word_entity %}
-<h2>{{ word_entity.word }}</h2>
-<table>
-    <tr><td>Сложность</td><td class="num">{{ word_entity.E|round(1) }} ± {{ (word_entity.D * 2)|round(1) }}</td></tr>
-    <tr><td>Всего попыток</td><td class="num">{{ word_entity.used_times }}</td></tr>
-    <tr><td>Отгадано</td><td class="num">{{ word_entity.guessed_times }}</td></tr>
-    <tr><td>Объяснено с ошибкой</td><td class="num">{{ word_entity.failed_times }}</td></tr>
-    <tr><td>Суммарное время объяснения</td><td class="num">{{ word_entity.total_explanation_time }} сек</td></tr>
-    {% if word_entity.guessed_times > 0 %}
-    <tr><td>Среднее время объяснения</td><td class="num">{{ word_entity.total_explanation_time // word_entity.guessed_times }} сек</td></tr>
+    {% set not_explained = word_entity.used_times - word_entity.guessed_times - word_entity.failed_times %}
+    {% set outcomes = [
+        ('Отгадано', word_entity.guessed_times),
+        ('Объяснено с ошибкой', word_entity.failed_times),
+        ('Не отгадано', not_explained)
+    ] %}
+
+    <div class="tiles">
+        <div class="tile">
+            <div class="tile__label">Сложность</div>
+            <div class="hero-figure" style="margin-top: var(--s2);">{{ '%.1f'|format(word_entity.E) }}</div>
+            <div class="tile__note">± {{ '%.1f'|format(word_entity.D * 2) }} — доверительный интервал</div>
+        </div>
+        <div class="tile">
+            <div class="tile__label">Попыток объяснить</div>
+            <div class="tile__value">{{ word_entity.used_times }}</div>
+            <div class="tile__note">
+                из них отгадано {{ word_entity.guessed_times }}
+            </div>
+        </div>
+        <div class="tile">
+            <div class="tile__label">Суммарное время</div>
+            <div class="tile__value">{{ word_entity.total_explanation_time }}<span style="font-size: 1rem;"> сек</span></div>
+            {% if word_entity.guessed_times > 0 %}
+            <div class="tile__note">
+                в среднем {{ word_entity.total_explanation_time // word_entity.guessed_times }} сек на отгадывание
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if word_entity.used_times > 0 %}
+    <div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+        <p class="chart__caption">Чем закончились попытки</p>
+        <div class="bars">
+            {% for label, count in outcomes %}
+            <div class="bar{% if not count %} bar--empty{% endif %}">
+                <span class="bar__label" style="min-width: 11rem;">{{ label }}</span>
+                <span class="bar__track">
+                    <span class="bar__fill"
+                          style="width: {{ (100.0 * count / word_entity.used_times)|round(1) }}%"></span>
+                </span>
+                <span class="bar__value">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     {% endif %}
-</table>
+
+    {% if word_entity.counts_by_expl_time %}
+        {% set buckets = word_entity.counts_by_expl_time %}
+        {% set peak = buckets|max %}
+        {% if peak > 0 %}
+        <div class="chart" style="margin-top: var(--s7);">
+            <p class="chart__caption">Сколько секунд уходило на объяснение</p>
+            <div class="columns" role="img"
+                 aria-label="Распределение времени объяснения по пятисекундным интервалам">
+                {% for count in buckets %}
+                <span class="column">
+                    <span class="column__fill" style="height: {{ (100.0 * count / peak)|round(1) }}%"></span>
+                </span>
+                {% endfor %}
+            </div>
+            <div class="column__labels">
+                {% for count in buckets %}
+                <span class="column__label{% if not loop.index0 % 3 == 0 %} column__label--hidden{% endif %}">{{ loop.index0 * 5 }}</span>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s2);">секунды · пик {{ peak }} раз</p>
+        </div>
+
+        <details style="margin-top: var(--s5);">
+            <summary class="tile__label" style="cursor: pointer;">Показать таблицей</summary>
+            <div class="table-scroll" style="margin-top: var(--s3); max-width: 24rem;">
+                <table class="table">
+                    <thead>
+                        <tr><th scope="col">Интервал</th><th class="num" scope="col">Раз</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for count in buckets %}
+                        <tr>
+                            <td>{{ loop.index0 * 5 }}–{{ loop.index * 5 }} сек</td>
+                            <td class="num">{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+        {% endif %}
+    {% endif %}
+
+    <hr class="rule">
+    <p><a href="/statistics/word_statistics">← Ко всем словам</a></p>
+
 {% else %}
-{% if word %}
-<p>В нашем словаре нет слова «{{ word }}».</p>
+
+    {% if word %}
+    <div class="slip" style="max-width: var(--measure); margin-bottom: var(--s7);">
+        <p style="margin: 0;">В нашем словаре нет слова «{{ word }}».</p>
+    </div>
+    {% endif %}
+
+    <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); align-items: start;">
+        <div>{{ word_table('Самые сложные', top) }}</div>
+        <div>{{ word_table('Самые простые', bottom) }}</div>
+        <div>{{ word_table('Случайные', rand) }}</div>
+    </div>
+
 {% endif %}
-<div class="columns">
-    <div><h2>Самые сложные</h2>{{ word_table(top) }}</div>
-    <div><h2>Самые простые</h2>{{ word_table(bottom) }}</div>
-    <div><h2>Случайные</h2>{{ word_table(rand) }}</div>
-</div>
-{% endif %}
+
 {% endblock %}

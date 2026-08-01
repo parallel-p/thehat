@@ -1,47 +1,121 @@
 {% extends "stats_base.html" %}
-{% set days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] %}
+{% set day_names = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] %}
 
 {% block title %}Общая статистика{% endblock %}
+{% block nav_total %}aria-current="page"{% endblock %}
 {% block header %}Общая статистика{% endblock %}
 
+{% block subhead %}
+<p class="lead hero__lead">
+    Всё, что известно серверу Sombrero о сыгранных партиях. Эти числа —
+    то, из чего считается сложность каждого слова.
+</p>
+{% endblock %}
+
 {% block content %}
-<table>
-    <tr><td>Слов в словаре</td><td class="num">{{ words_in_dictionary }}</td></tr>
-    <tr><td>Из них хотя бы раз использовано</td><td class="num">{{ used_words }}</td></tr>
-    <tr><td>Всего игр</td><td class="num">{{ total_games }}</td></tr>
-    <tr><td>Всего объяснено слов</td><td class="num">{{ total_words }}</td></tr>
-</table>
 
-<h2>Игры по числу игроков</h2>
-<table>
-    <tr><th>Игроков</th><th class="num">Игр</th></tr>
-    {% for row in games_for_players %}
-    <tr><td>{{ row.player_count }}</td><td class="num">{{ row.games }}</td></tr>
-    {% endfor %}
-</table>
+<div class="tiles">
+    <div class="tile">
+        <div class="tile__label">Сыграно партий</div>
+        <div class="hero-figure" style="margin-top: var(--s2);">{{ total_games }}</div>
+    </div>
+    <div class="tile">
+        <div class="tile__label">Объяснено слов</div>
+        <div class="tile__value">{{ total_words }}</div>
+    </div>
+    <div class="tile">
+        <div class="tile__label">Слов в словаре</div>
+        <div class="tile__value">{{ words_in_dictionary }}</div>
+        <div class="tile__note">{{ used_words }} хотя бы раз использованы</div>
+    </div>
+</div>
 
-<h2>Игры по дням недели</h2>
-<table>
-    <tr>{% for d in days %}<th class="num">{{ d }}</th>{% endfor %}</tr>
-    <tr>{% for n in by_day %}<td class="num">{{ n }}</td>{% endfor %}</tr>
-</table>
+{% set player_peak = games_for_players|map(attribute='games')|max if games_for_players else 0 %}
+{% if player_peak %}
+<div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+    <p class="chart__caption">Партии по числу игроков</p>
+    <div class="bars">
+        {% for row in games_for_players %}
+        <div class="bar">
+            <span class="bar__label">{{ row.player_count }} чел.</span>
+            <span class="bar__track">
+                <span class="bar__fill" style="width: {{ (100.0 * row.games / player_peak)|round(1) }}%"></span>
+            </span>
+            <span class="bar__value">{{ row.games }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
-<h2>Игры по часам</h2>
-<table>
-    <tr><th>Час</th><th class="num">Игр</th></tr>
-    {% for n in by_hour %}
-    <tr><td>{{ "%02d:00"|format(loop.index0) }}</td><td class="num">{{ n }}</td></tr>
-    {% endfor %}
-</table>
+{% set hour_peak = by_hour|max %}
+{% if hour_peak %}
+<div class="chart" style="margin-top: var(--s7);">
+    <p class="chart__caption">Когда играют — по часам суток</p>
+    <div class="columns" role="img" aria-label="Распределение партий по часам суток">
+        {% for count in by_hour %}
+        <span class="column">
+            <span class="column__fill" style="height: {{ (100.0 * count / hour_peak)|round(1) }}%"></span>
+        </span>
+        {% endfor %}
+    </div>
+    <div class="column__labels">
+        {% for count in by_hour %}
+        <span class="column__label{% if not loop.index0 % 3 == 0 %} column__label--hidden{% endif %}">{{ '%02d'|format(loop.index0) }}</span>
+        {% endfor %}
+    </div>
+    <p class="tile__note" style="margin-top: var(--s2);">час · пик {{ hour_peak }} партий</p>
+</div>
+{% endif %}
 
-<h2>По дням</h2>
-<table>
-    <tr><th>Дата</th><th class="num">Игр</th><th class="num">Слов</th><th class="num">Игроков</th><th class="num">Суммарно минут</th></tr>
-    {% for date, games, words, players, minutes in daily %}
-    <tr>
-        <td>{{ date }}</td><td class="num">{{ games }}</td><td class="num">{{ words }}</td>
-        <td class="num">{{ players }}</td><td class="num">{{ minutes }}</td>
-    </tr>
-    {% endfor %}
-</table>
+{% set day_peak = by_day|max %}
+{% if day_peak %}
+<div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+    <p class="chart__caption">Когда играют — по дням недели</p>
+    <div class="bars">
+        {% for count in by_day %}
+        <div class="bar{% if not count %} bar--empty{% endif %}">
+            <span class="bar__label">{{ day_names[loop.index0] }}</span>
+            <span class="bar__track">
+                <span class="bar__fill" style="width: {{ (100.0 * count / day_peak)|round(1) }}%"></span>
+            </span>
+            <span class="bar__value">{{ count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if daily %}
+<div style="margin-top: var(--s7);">
+    <p class="chart__caption">По дням</p>
+    <div class="table-scroll">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Дата</th>
+                    <th class="num" scope="col">Партий</th>
+                    <th class="num" scope="col">Слов</th>
+                    <th class="num" scope="col">Игроков</th>
+                    <th class="num" scope="col">Минут</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for date, games, words, players, minutes in daily|reverse %}
+                <tr>
+                    <td>{{ date }}</td>
+                    <td class="num">{{ games }}</td>
+                    <td class="num">{{ words }}</td>
+                    <td class="num">{{ players }}</td>
+                    <td class="num">{{ minutes }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<p class="empty" style="margin-top: var(--s7);">Пока нет данных по дням.</p>
+{% endif %}
+
 {% endblock %}

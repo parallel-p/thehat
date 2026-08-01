@@ -52,6 +52,20 @@ def ndb_context(ndb_client):
         yield context
 
 
+@pytest.fixture(autouse=True)
+def clear_page_cache():
+    """Drop the statistics pages' in-process TTL cache between tests.
+
+    It replaces the old memcache and is keyed globally with a one-hour TTL, so
+    without this one test's data leaks into the next one's assertions.
+    """
+    from app import web
+
+    web._cache.clear()
+    yield
+    web._cache.clear()
+
+
 @pytest.fixture
 def client(ndb_context):
     from starlette.testclient import TestClient

@@ -43,11 +43,32 @@ def test_word_statistics_lists_hardest_and_easiest(client, ndb_context):
 def test_word_statistics_for_a_single_word(client, ndb_context):
     GlobalDictionaryWord(id="кот", word="кот", E=61.25, D=4.0, used_times=10,
                          guessed_times=8, failed_times=1,
-                         total_explanation_time=80).put()
+                         total_explanation_time=80,
+                         counts_by_expl_time=[0, 3, 5]).put()
     response = client.get("/statistics/word_statistics", params={"word": "КОТ"})
     assert response.status_code == 200
+
+    # The difficulty is the number the page leads with.
     assert "61.2" in response.text or "61.3" in response.text
-    assert "Всего попыток" in response.text
+    assert 'class="hero-figure"' in response.text
+    # ...and the uncertainty is shown as +-2D, not the raw sigma.
+    assert "8.0" in response.text
+
+    # Outcome bars are proportional to used_times: 8/10 guessed, 1/10 failed.
+    assert "width: 80.0%" in response.text
+    assert "width: 10.0%" in response.text
+    # The explanation-time histogram is scaled to its own peak.
+    assert "height: 100.0%" in response.text
+    # Every chart also has a table view.
+    assert "Показать таблицей" in response.text
+
+
+def test_word_statistics_survives_a_word_with_no_attempts(client, ndb_context):
+    """A freshly added word has used_times == 0; nothing may divide by it."""
+    GlobalDictionaryWord(id="новое", word="новое", E=50.0, D=16.6).put()
+    response = client.get("/statistics/word_statistics", params={"word": "новое"})
+    assert response.status_code == 200
+    assert "новое" in response.text
 
 
 def test_word_statistics_for_a_missing_word(client, ndb_context):
@@ -73,6 +94,17 @@ def test_total_statistics(client, ndb_context):
     assert "42" in response.text
     assert "1234" in response.text
     assert "2023-11-15" in response.text
+    # by_hour[5] is the only non-zero hour, so it is the peak column.
+    assert "height: 100.0%" in response.text
+    # A single player-count row is also its own peak.
+    assert "width: 100.0%" in response.text
+
+
+def test_total_statistics_on_an_empty_database(client, ndb_context):
+    """No games yet: every chart divides by a peak of zero if unguarded."""
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+    assert "Пока нет данных по дням" in response.text
 
 
 def test_statistics_pages_are_not_indexable(client, ndb_context):

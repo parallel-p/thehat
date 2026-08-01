@@ -4,29 +4,51 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>{% block title %}Шляпа{% endblock %}</title>
-    <style>
-        body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-               margin: 0 auto; max-width: 60rem; padding: 1.5rem; line-height: 1.5; }
-        h1 { font-size: 1.6rem; }
-        h2 { font-size: 1.2rem; margin-top: 2rem; }
-        table { border-collapse: collapse; width: 100%; margin-bottom: 1.5rem; }
-        th, td { border-bottom: 1px solid #ddd; padding: .35rem .5rem; text-align: left; }
-        th { font-weight: 600; }
-        td.num, th.num { text-align: right; }
-        nav a { margin-right: 1rem; }
-        .columns { display: flex; flex-wrap: wrap; gap: 2rem; }
-        .columns > div { flex: 1 1 15rem; }
-        form { margin: 1rem 0; }
-    </style>
+    <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17140F" media="(prefers-color-scheme: dark)">
+    <title>{% block title %}Статистика{% endblock %} — Шляпа</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
-<nav>
-    <a href="/">Главная</a>
-    <a href="/statistics/word_statistics">Слова</a>
-    <a href="/statistics/total_statistics">Общая статистика</a>
-</nav>
-<h1>{% block header %}{% endblock %}</h1>
-{% block content %}{% endblock %}
+
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/">Об игре</a>
+            <a href="/statistics/word_statistics"
+               {% block nav_words %}{% endblock %}>Слова</a>
+            <a href="/statistics/total_statistics"
+               {% block nav_total %}{% endblock %}>Общая статистика</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero" style="padding-block: var(--s7);">
+        <div class="wrap">
+            <p class="eyebrow"><span class="eyebrow__num">Sombrero</span> Статистика игр</p>
+            <h1 class="title">{% block header %}{% endblock %}</h1>
+            {% block subhead %}{% endblock %}
+        </div>
+    </section>
+
+    <section class="section" style="padding-block: var(--s7);">
+        <div class="wrap data">
+            {% block content %}{% endblock %}
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="wrap footer__inner">
+        <span>ЛКШ.Шляпа · параллель P</span>
+        <a href="/">На главную</a>
+        <a href="/tos/the-hat.html">Шляпа — политика</a>
+        <span class="footer__spacer"><a href="http://lksh.ru">lksh.ru</a></span>
+    </div>
+</footer>
+
 </body>
 </html>

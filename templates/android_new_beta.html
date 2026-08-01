@@ -1,72 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Шляпа - новое Android приложение</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-    <style>
-        html body {
-            height: 100%;
-            width: 100%;
-        }
-        .text {
-            display: table-cell;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 4em;
-            color: white;
-        }
-        .call {
-            display: table;
-            background: url(/img/background.png) fixed no-repeat center / cover;
-            height: 800px;
-            width: 100%;
-        }
-        body {
-            padding-top: 50px;
-            padding-bottom: 20px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Как установить новое приложение Шляпа для Android, пока оно на стадии beta.">
+    <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17140F" media="(prefers-color-scheme: dark)">
+    <title>Новое Android-приложение — Шляпа</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">Шляпа</a>
-        </div>
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
 
-            </ul>
-        </div>
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/">Об игре</a>
+            <a href="/statistics/total_statistics">Статистика</a>
+            <a href="/android/new/beta" aria-current="page">Скачать</a>
+        </nav>
     </div>
-</div>
-<div class="jumbotron">
-    <div class="container">
-        <h1>Новое Android приложение (beta)<h1>
-    </div>
-</div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>Установка приложения</h2>
-            <p>Новое Android приложение Шляпа пока находится на стадии beta тестирования, и пока что скачать его из Google Play его нельзя.
-            Чтобы скачать его, нужно
+</header>
+
+<main>
+    <section class="hero">
+        <div class="wrap wrap--narrow" style="padding-inline: 0;">
+            <p class="eyebrow"><span class="eyebrow__num">beta</span> Android</p>
+            <h1 class="title">Новое приложение</h1>
+            <p class="lead hero__lead">
+                Кроссплатформенная Шляпа с обновляемым словарём и режимом «на выживание».
+                Пока идёт beta-тестирование, поэтому в Google Play его ещё нет.
             </p>
-            <ol>
-                <li>Разрешить установку приложений из неизвестных источников в настройках телефона.</li>
-                <li><a href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">Скачать</a> и установить приложение.</li>
-            </ol>
-            <h2>Дополнительная информация</h2>
-            <p>Самаю актуальную информацию о разработке приложения можно найти в нашей <a href="https://vk.com/the_hat_new">группе ВКонтакте.</a></p>
-            <p>Сообщения об ошибках и предложения улучшений можно оставить в <a href="https://github.com/nzinov/beret/issues">issue tracker`е.</a></p>
+            <div class="btn-row hero__actions">
+                <a class="btn btn--primary"
+                   href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">
+                    Скачать APK
+                </a>
+                <a class="btn btn--ghost" href="/android/beta">Старое приложение</a>
+            </div>
         </div>
+    </section>
+
+    <section class="section">
+        <div class="wrap">
+            <div class="prose">
+                <p class="eyebrow"><span class="eyebrow__num">01</span> Установка</p>
+                <h2 class="section__title">Как установить</h2>
+                <ol>
+                    <li>Разрешите установку приложений из неизвестных источников в настройках телефона.</li>
+                    <li>
+                        <a href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">Скачайте</a>
+                        и установите приложение.
+                    </li>
+                </ol>
+
+                <p class="eyebrow" style="margin-top: var(--s7);">
+                    <span class="eyebrow__num">02</span> Если что-то не так
+                </p>
+                <h2 class="section__title" style="margin-top: 0;">Обратная связь</h2>
+                <p>
+                    Самую актуальную информацию о разработке можно найти в
+                    <a href="https://vk.com/the_hat_new">группе ВКонтакте</a>.
+                </p>
+                <p>
+                    Сообщения об ошибках и предложения улучшений оставляйте в
+                    <a href="https://github.com/nzinov/beret/issues">issue tracker</a>.
+                </p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="wrap footer__inner">
+        <span>ЛКШ.Шляпа · параллель P</span>
+        <a href="/">На главную</a>
+        <a href="/tos/the-hat.html">Шляпа — политика</a>
+        <span class="footer__spacer"><a href="http://lksh.ru">lksh.ru</a></span>
     </div>
-</div>
+</footer>
+
 </body>
 </html>
