@@ -54,10 +54,14 @@
 </div>
 
 {% if longest_time %}
-<p class="lead" style="margin-top: var(--s6); max-width: var(--measure);">
-    Дольше всего объясняли <a href="/statistics/word_statistics?word={{ longest_word|urlencode }}">{{ longest_word }}</a> —
-    в сумме {{ time(longest_time) }}.
-</p>
+<div style="margin-top: var(--s7);">
+    <p class="chart__caption">Дольше всего объясняли</p>
+    <div class="ws-row">
+        <a class="ws ws--honey" style="text-decoration: none;"
+           href="/statistics/word_statistics?word={{ longest_word|urlencode }}">{{ longest_word }}</a>
+    </div>
+    <p class="tile__note" style="margin-top: var(--s3);">в сумме {{ time(longest_time) }}</p>
+</div>
 {% endif %}
 
 {% if punch_peak %}

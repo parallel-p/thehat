@@ -840,6 +840,7 @@ a:hover {
 
 /* Two charts side by side on a wide sheet. */
 .chart-grid { display: grid; gap: var(--s6); align-items: start; }
+.chart-grid > * { min-width: 0; }
 @media (min-width: 48rem) { .chart-grid--2 { grid-template-columns: 1fr 1fr; } }
 
 /* -- punchcard -----------------------------------------------------------
@@ -899,7 +900,11 @@ a:hover {
   padding-top: var(--s4);
   border-bottom: 1px solid var(--rule);
 }
-.column { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+/* Grid items floor at their min-content width unless told otherwise, and 24
+   of them in a row put a ~430px floor under the whole chart — which on a
+   phone widened the track its neighbours share and pushed their values off
+   the screen. Every cell in these strips must be free to shrink. */
+.column { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; min-width: 0; }
 .column__fill {
   display: block;
   background: var(--mark-sky);
@@ -921,7 +926,9 @@ a:hover {
   padding-top: var(--s2);
   font-variant-numeric: tabular-nums;
 }
-.column__label { text-align: center; }
+/* min-width alone: the label must still be free to spill out of its 4px
+   cell, because only every third (or fourteenth) one is shown. */
+.column__label { text-align: center; min-width: 0; }
 /* Every third tick stays; the rest would collide. */
 .column__label--hidden { visibility: hidden; }
 
