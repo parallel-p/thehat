@@ -40,6 +40,27 @@ def test_word_statistics_lists_hardest_and_easiest(client, ndb_context):
     assert "w11" in response.text
 
 
+def test_hardest_words_are_ranked_by_the_conservative_estimate(client,
+                                                               ndb_context):
+    """A barely-played word must not outrank a well-measured one on E alone.
+
+    "новичок" has the higher mu but is still at the prior sigma; "мерка" is
+    lower but measured. Ranking by mu - 2*sigma puts "мерка" first, and the
+    same in reverse for the easiest table.
+    """
+    GlobalDictionaryWord(id="новичок", word="новичок", E=80.0, D=50.0 / 3,
+                         used_times=2).put()
+    GlobalDictionaryWord(id="мерка", word="мерка", E=70.0, D=3.0,
+                         used_times=200).put()
+    GlobalDictionaryWord(id="лёгкое", word="лёгкое", E=20.0, D=3.0,
+                         used_times=200).put()
+    response = client.get("/statistics/word_statistics")
+    assert response.status_code == 200
+    assert response.text.index("мерка") < response.text.index("новичок")
+    # The tables show the bound they rank by: 70 - 6 and 20 + 6.
+    assert "64.0" in response.text and "26.0" in response.text
+
+
 def test_word_statistics_for_a_single_word(client, ndb_context):
     GlobalDictionaryWord(id="кот", word="кот", E=61.25, D=4.0, used_times=10,
                          guessed_times=8, failed_times=1,

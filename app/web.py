@@ -83,6 +83,18 @@ _FREQ_BUCKETS = [(0.0, 0.3, "реже 0,3"), (0.3, 1.0, "0,3–1"),
                  (10.0, 30.0, "10–30"), (30.0, float("inf"), "чаще 30")]
 
 
+# E and D are a word's TrueSkill mu and sigma (prior 50 +- 50/3, see
+# trueskill_env). Ordering the leaderboards by E alone puts words up top that
+# are merely unmeasured: two plays with a lucky outcome leave mu high while
+# sigma is still near the prior. So rank by the conservative estimate instead,
+# mu - k*sigma for the hardest and mu + k*sigma for the easiest -- the same
+# "conservative skill estimate" TrueSkill itself uses for leaderboards, which
+# there is k = 3. At k = 2 a word must clear ~98% one-sided confidence, and an
+# unplayed word scores 50 - 33 = 17, so the prior sinks to the bottom on its
+# own and no minimum-games cutoff is needed.
+_CONSERVATIVE_SIGMAS = 2.0
+
+
 def _word_analytics():
     """The analytical stats the old site drew as matplotlib PNGs, plus the
     error-prone-words table, all from one projection pass.
@@ -136,8 +148,19 @@ def _word_analytics():
          for word, e, _d, used, failed in shape if used >= 10 and failed),
         key=lambda row: -row["share"])[:10]
 
+    # The hardest and easiest words, ranked by the pessimistic end of each
+    # word's own interval rather than by E. See _CONSERVATIVE_SIGMAS.
+    ranked = [{"word": word, "E": e, "D": d} for word, e, d, _u, _f in shape]
+    hardest = sorted(
+        ranked, key=lambda row: -(row["E"] - _CONSERVATIVE_SIGMAS * row["D"])
+    )[:10]
+    easiest = sorted(
+        ranked, key=lambda row: row["E"] + _CONSERVATIVE_SIGMAS * row["D"]
+    )[:10]
+
     return {"by_length": length_rows, "d_by_games": d_rows,
-            "by_freq": freq_rows, "danger_top": danger}
+            "by_freq": freq_rows, "danger_top": danger,
+            "hardest": hardest, "easiest": easiest}
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -158,14 +181,12 @@ def word_statistics(request: Request, word: str = None):
     context = {"word": word, "word_entity": entity,
                "top": [], "bottom": [], "rand": []}
     if not entity:
-        context["top"] = cached(
-            "words_top",
-            lambda: GlobalDictionaryWord.query().order(
-                -GlobalDictionaryWord.E).fetch(limit=10))
-        context["bottom"] = cached(
-            "words_bottom",
-            lambda: GlobalDictionaryWord.query().order(
-                GlobalDictionaryWord.E).fetch(limit=10))
+        # Both leaderboards come from the analytics pass, which already reads
+        # every played word: they need E and D together, and no datastore
+        # ordering can express mu -+ k*sigma anyway.
+        analytics = cached("word_analytics", _word_analytics)
+        context["top"] = analytics["hardest"]
+        context["bottom"] = analytics["easiest"]
         count = cached(
             "used_words_count",
             lambda: GlobalDictionaryWord.query(
@@ -174,8 +195,7 @@ def word_statistics(request: Request, word: str = None):
             context["rand"] = GlobalDictionaryWord.query(
                 GlobalDictionaryWord.used_times > 0).fetch(
                     limit=10, offset=random.randint(0, count - 10))
-        context["danger_top"] = cached(
-            "word_analytics", _word_analytics)["danger_top"]
+        context["danger_top"] = analytics["danger_top"]
     return templates.TemplateResponse(request, "word_statistics.html", context)
 
 

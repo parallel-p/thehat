@@ -21,7 +21,10 @@
 </form>
 {% endblock %}
 
-{% macro word_table(caption, rows) %}
+{# The two leaderboards are ordered by the conservative end of each word's
+   interval, not by E, so they show that end and say so in the header — a
+   column of E would read as mis-sorted. `bound` is 'low' or 'high'. #}
+{% macro word_table(caption, rows, bound=none) %}
 <div class="table-scroll">
     <table class="table">
         <caption>{{ caption }}</caption>
@@ -29,7 +32,11 @@
             <tr>
                 <th class="rank" scope="col">#</th>
                 <th scope="col">Слово</th>
-                <th class="num" scope="col">Сложность</th>
+                <th class="num" scope="col">
+                    {%- if bound == 'low' %}Сложность &gt;
+                    {%- elif bound == 'high' %}Сложность &lt;
+                    {%- else %}Сложность{% endif -%}
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -39,7 +46,13 @@
                 <td class="word">
                     <a href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
                 </td>
+                {% if bound == 'low' %}
+                <td class="num">{{ '%.1f'|format(w.E - 2 * w.D) }}</td>
+                {% elif bound == 'high' %}
+                <td class="num">{{ '%.1f'|format(w.E + 2 * w.D) }}</td>
+                {% else %}
                 <td class="num">{{ '%.1f'|format(w.E) }}</td>
+                {% endif %}
             </tr>
             {% else %}
             <tr><td colspan="3" class="empty">Пока нет данных</td></tr>
@@ -182,10 +195,17 @@
     {% endif %}
 
     <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); align-items: start;">
-        <div>{{ word_table('Самые сложные', top) }}</div>
-        <div>{{ word_table('Самые простые', bottom) }}</div>
+        <div>{{ word_table('Самые сложные', top, 'low') }}</div>
+        <div>{{ word_table('Самые простые', bottom, 'high') }}</div>
         <div>{{ word_table('Случайные', rand) }}</div>
     </div>
+    <p class="tile__note" style="margin-top: var(--s3); max-width: var(--measure);">
+        В первых двух таблицах показана не сама сложность, а её гарантированная
+        часть — оценка за вычетом погрешности. Слово, сыгранное пару раз, может
+        показать высокую сложность случайно, поэтому наверх попадают слова,
+        про которые уже точно известно, что они трудные, а не те, про которые
+        известно мало. Саму оценку видно на странице слова.
+    </p>
 
     {% if danger_top %}
     <div style="margin-top: var(--s7);">
