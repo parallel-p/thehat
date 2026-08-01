@@ -1,0 +1,284 @@
+/* ==========================================================================
+   Шляпа — the app at /play
+   --------------------------------------------------------------------------
+   Loaded after /assets/hat.css, which brings the whole «Бумажки» language:
+   the tokens, Playfair, the torn word slips (.ws), the buttons, the tables.
+   Nothing is redefined here — this file only lays out the screens the site
+   does not have: a stack of full-height panels, one visible at a time.
+
+   The one place the design is deliberately louder than the site is the round
+   screen. A word being explained across a table has to be legible at arm's
+   length, upside down, in bad light, so it takes the whole panel in the
+   display serif and the buttons are as large as the thumb can want.
+   ========================================================================== */
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;      /* no pull-to-refresh mid-round */
+}
+body {
+  background: var(--paper);
+  margin: 0;
+  /* The app is a single view: it never scrolls as a whole, only inside a
+     screen that says it may. */
+  overflow: hidden;
+}
+
+/* -- screens ------------------------------------------------------------- */
+
+.screen { display: none; }
+body[data-screen="loading"]  .screen[data-for="loading"],
+body[data-screen="home"]     .screen[data-for="home"],
+body[data-screen="lobby"]    .screen[data-for="lobby"],
+body[data-screen="handoff"]  .screen[data-for="handoff"],
+body[data-screen="round"]    .screen[data-for="round"],
+body[data-screen="verdict"]  .screen[data-for="verdict"],
+body[data-screen="score"]    .screen[data-for="score"],
+body[data-screen="dm-start"] .screen[data-for="dm-start"],
+body[data-screen="dm-round"] .screen[data-for="dm-round"],
+body[data-screen="dm-score"] .screen[data-for="dm-score"] {
+  display: flex;
+  flex-direction: column;
+  /* dvh, not vh: iOS toolbars would otherwise sit on top of the buttons. */
+  height: 100dvh;
+}
+.screen--scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen--tap { cursor: pointer; }
+
+/* Safe areas everywhere; the round screen is full-bleed and would otherwise
+   put its buttons under the home indicator. */
+.pad {
+  padding:
+    calc(var(--s6) + env(safe-area-inset-top))
+    calc(var(--s5) + env(safe-area-inset-right))
+    calc(var(--s6) + env(safe-area-inset-bottom))
+    calc(var(--s5) + env(safe-area-inset-left));
+  max-width: 34rem;
+  width: 100%;
+  margin-inline: auto;
+  flex: 1;
+}
+.pad.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--s2);
+}
+
+/* -- home ---------------------------------------------------------------- */
+
+.app-brand {
+  font-family: var(--display-face);
+  font-size: clamp(2.4rem, 12vw, 3.4rem);
+  line-height: 1;
+  margin: 0 0 var(--s2);
+}
+.app-sub { margin: 0 0 var(--s7); }
+.app-title { font-family: var(--display-face); font-size: var(--t-title); margin: 0 0 var(--s4); }
+.app-title--small { font-size: var(--t-section); margin-top: var(--s7); }
+
+.modes { display: grid; gap: var(--s4); }
+.mode {
+  appearance: none;
+  border: 0;
+  border-radius: var(--r-card);
+  padding: var(--s6) var(--s5);
+  text-align: left;
+  font: inherit;
+  color: var(--slip-ink);
+  cursor: pointer;
+  display: grid;
+  gap: var(--s1);
+  /* A tile is a slip: the same torn edge the site uses for words. */
+  clip-path: var(--tear-b);
+  transition: transform 120ms ease;
+}
+.mode:active { transform: scale(0.985) rotate(-0.4deg); }
+.mode--honey { background: var(--slip-honey); }
+.mode--sky   { background: var(--slip-sky); }
+.mode__name { font-family: var(--display-face); font-size: 1.6rem; }
+/* The slip inks are measured for contrast at full strength; fading them is
+   how a legible label becomes an illegible one. Size carries the hierarchy. */
+.mode__note { font-family: var(--sans); font-size: var(--t-small); }
+
+.app-links {
+  margin-top: var(--s7);
+  display: flex;
+  gap: var(--s5);
+  flex-wrap: wrap;
+  font-size: var(--t-small);
+}
+.app-status { font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s5); }
+.app-install { margin-top: var(--s4); }
+
+/* -- lobby --------------------------------------------------------------- */
+
+.bar { margin-bottom: var(--s4); }
+.link-btn {
+  appearance: none; background: none; border: 0; padding: 0;
+  font: inherit; color: var(--ink-muted); cursor: pointer;
+}
+.link-btn:hover { color: var(--ink); }
+
+.players { list-style: none; padding: 0; margin: 0 0 var(--s4); display: grid; gap: var(--s2); }
+.player { display: flex; align-items: center; gap: var(--s3); }
+.player__input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-family: var(--serif);
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: var(--s3) var(--s4);
+}
+.player__input:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.player__drop {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  color: var(--ink-muted); font-size: 1.4rem; line-height: 1; padding: var(--s2);
+}
+.field-error { color: var(--rose-deep); font-family: var(--sans); font-size: var(--t-small); }
+
+.fields { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.field { display: grid; gap: var(--s2); font-family: var(--sans); font-size: var(--t-small); }
+.field--wide { grid-column: 1 / -1; }
+.field--check { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--s3); }
+.field__label { color: var(--ink-muted); }
+.field__input {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: var(--s2) var(--s3);
+  width: 100%;
+}
+.field input[type="range"] { accent-color: var(--brass); width: 100%; }
+.field input[type="checkbox"] { accent-color: var(--brass); width: 1.15rem; height: 1.15rem; }
+
+/* -- handoff ------------------------------------------------------------- */
+
+.big-name {
+  font-family: var(--display-face);
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1.1;
+  margin: 0 0 var(--s4);
+}
+.hint { color: var(--ink-muted); font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s6); }
+.countdown {
+  font-family: var(--display-face);
+  font-size: clamp(5rem, 30vw, 9rem);
+  line-height: 1;
+  margin: var(--s5) 0 0;
+}
+
+/* -- round --------------------------------------------------------------- */
+
+.round {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding:
+    calc(var(--s4) + env(safe-area-inset-top))
+    calc(var(--s4) + env(safe-area-inset-right))
+    calc(var(--s4) + env(safe-area-inset-bottom))
+    calc(var(--s4) + env(safe-area-inset-left));
+  gap: var(--s4);
+}
+.round__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+}
+.round__timer {
+  font-size: 2.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1;
+}
+/* The last seconds, when the guesser has one word left. */
+body[data-phase="last"] .round__timer { color: var(--rose-deep); }
+.round__left b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.word {
+  align-self: center;
+  justify-self: center;
+  text-align: center;
+  font-family: var(--display-face);
+  /* Sized to be read across a table; long Russian words still have to fit. */
+  font-size: clamp(2.2rem, 13vw, 4.5rem);
+  line-height: 1.05;
+  margin: 0;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.round__acts { display: grid; gap: var(--s3); }
+.act-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.act {
+  appearance: none;
+  border: 0;
+  border-radius: var(--r-card);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--slip-ink);
+  padding: var(--s5) var(--s4);
+  cursor: pointer;
+  transition: transform 100ms ease;
+  touch-action: manipulation;      /* no double-tap zoom on the hot buttons */
+}
+.act:active { transform: scale(0.98); }
+.act--ok { background: var(--slip-honey); padding-block: var(--s6); font-size: 1.25rem; }
+.act--fail { background: var(--slip-rose); }
+.act--give { background: var(--paper-raised); color: var(--ink-muted); }
+
+/* -- verdict ------------------------------------------------------------- */
+
+.outcomes { list-style: none; padding: 0; margin: var(--s5) 0; display: grid; gap: var(--s3); }
+.outcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding-block: var(--s3);
+  border-bottom: 1px solid var(--rule);
+}
+.outcome__word { font-family: var(--serif); font-style: italic; font-size: 1.0625rem; }
+.outcome__pick {
+  font: inherit;
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: var(--s2) var(--s3);
+}
+
+/* -- deathmatch ---------------------------------------------------------- */
+
+.dm-rules { max-width: 22rem; margin-bottom: var(--s6); }
+.dm-final {
+  font-family: var(--display-face);
+  font-size: clamp(4rem, 25vw, 7rem);
+  line-height: 1;
+  margin: 0 0 var(--s6);
+}
+/* The number that just changed blinks, so a harder game is noticed. */
+.blinkable.blink { animation: blink 300ms steps(1) 6; }
+@keyframes blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mode, .act { transition: none; }
+  .blinkable.blink { animation: none; color: var(--brass-text); }
+}

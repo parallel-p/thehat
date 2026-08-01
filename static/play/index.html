@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру как можно больше слов.">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Шляпа">
+    <title>Шляпа</title>
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/play/icons/hat-192.png">
+    <link rel="manifest" href="/play/manifest.webmanifest">
+    <link rel="stylesheet" href="/assets/hat.css">
+    <link rel="stylesheet" href="/play/app.css">
+</head>
+<body data-screen="loading">
+
+<!-- 1. Loading ---------------------------------------------------------- -->
+<section class="screen" data-for="loading">
+    <div class="pad">
+        <p class="app-brand">Шляпа</p>
+        <p class="muted" id="loading-note">Достаём слова из шляпы…</p>
+        <div class="stack" id="loading-error" hidden>
+            <p>Словарь ещё не скачан, а сети нет.</p>
+            <p class="muted">Один раз нужно открыть игру с интернетом — дальше она
+                работает где угодно.</p>
+            <button class="btn btn--primary" data-act="retry-load">Попробовать снова</button>
+        </div>
+    </div>
+</section>
+
+<!-- 2. Home ------------------------------------------------------------- -->
+<section class="screen" data-for="home">
+    <div class="pad">
+        <p class="app-brand">Шляпа</p>
+        <p class="muted app-sub">Объясняйте слова на время</p>
+
+        <div class="modes">
+            <button class="mode mode--honey" data-act="new-game">
+                <span class="mode__name">Быстрая игра</span>
+                <span class="mode__note">компанией, по очереди</span>
+            </button>
+            <button class="mode mode--sky" data-act="new-dm">
+                <span class="mode__name">Режим для двоих</span>
+                <span class="mode__note">на выживание, вдвоём</span>
+            </button>
+        </div>
+
+        <p class="app-links">
+            <a href="http://thehat.ru/rules/">Правила игры</a>
+            <a href="/statistics/word_statistics">Статистика слов</a>
+        </p>
+        <p class="app-status muted" id="outbox-note" hidden></p>
+        <p class="app-status muted" id="install-note" hidden>
+            Чтобы играть без интернета: «Поделиться» → «На экран „Домой“».
+        </p>
+        <button class="btn btn--ghost app-install" id="install-btn" hidden>Установить</button>
+    </div>
+</section>
+
+<!-- 3. Lobby ------------------------------------------------------------ -->
+<section class="screen screen--scroll" data-for="lobby">
+    <div class="pad">
+        <div class="bar">
+            <button class="link-btn" data-act="home">← Назад</button>
+        </div>
+        <h1 class="app-title">Кто играет</h1>
+
+        <ul class="players" id="players"></ul>
+        <button class="btn btn--ghost" data-act="add-player">Добавить игрока</button>
+        <p class="field-error" id="players-error" hidden></p>
+
+        <h2 class="app-title app-title--small">Настройки</h2>
+        <div class="fields">
+            <label class="field">
+                <span class="field__label">Слов на игрока</span>
+                <input class="field__input" type="number" id="s-words" min="1" max="50" inputmode="numeric">
+            </label>
+            <label class="field">
+                <span class="field__label">Длина хода, сек</span>
+                <input class="field__input" type="number" id="s-round" min="5" max="120" inputmode="numeric">
+            </label>
+            <label class="field">
+                <span class="field__label">Добавочное время, сек</span>
+                <input class="field__input" type="number" id="s-extra" min="0" max="30" inputmode="numeric">
+            </label>
+            <label class="field field--wide">
+                <span class="field__label">Сложность слов: <b id="s-diff-val"></b></span>
+                <input type="range" id="s-diff" min="0" max="100" step="1">
+            </label>
+            <label class="field field--wide">
+                <span class="field__label">Разброс сложности: <b id="s-disp-val"></b></span>
+                <input type="range" id="s-disp" min="0" max="45" step="1">
+            </label>
+            <label class="field field--check">
+                <input type="checkbox" id="s-teams">
+                <span>Фиксированные пары</span>
+            </label>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn--primary" data-act="start-game">Начать игру</button>
+        </div>
+    </div>
+</section>
+
+<!-- 4. Handoff ---------------------------------------------------------- -->
+<section class="screen screen--tap" data-for="handoff" data-act="begin-turn">
+    <div class="pad center">
+        <p class="muted">Объясняет</p>
+        <p class="big-name" id="h-explainer"></p>
+        <p class="muted">отгадывает</p>
+        <p class="big-name" id="h-guesser"></p>
+        <p class="hint" id="h-hint">Нажмите, когда телефон у объясняющего</p>
+        <p class="countdown" id="h-count" hidden></p>
+    </div>
+</section>
+
+<!-- 5. Round ------------------------------------------------------------ -->
+<section class="screen" data-for="round">
+    <div class="round">
+        <div class="round__top">
+            <span class="round__timer" id="r-timer">0</span>
+            <span class="round__left" id="r-left"></span>
+        </div>
+        <p class="word" id="r-word"></p>
+        <div class="round__acts">
+            <button class="act act--ok" data-act="guessed">Угадано</button>
+            <div class="act-row">
+                <button class="act act--fail" data-act="failed">Ошибка</button>
+                <button class="act act--give" data-act="concede">Сдаться</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 6. Verdict ---------------------------------------------------------- -->
+<section class="screen screen--scroll" data-for="verdict">
+    <div class="pad">
+        <h1 class="app-title">Что получилось</h1>
+        <p class="muted">Можно поправить, пока ход не закрыт.</p>
+        <ul class="outcomes" id="outcomes"></ul>
+        <div class="btn-row">
+            <button class="btn btn--primary" data-act="next-turn">Дальше</button>
+            <button class="btn btn--ghost" data-act="finish-game">Закончить игру</button>
+        </div>
+    </div>
+</section>
+
+<!-- 7. Score ------------------------------------------------------------ -->
+<section class="screen screen--scroll" data-for="score">
+    <div class="pad">
+        <h1 class="app-title">Итог</h1>
+        <div class="table-scroll">
+            <table class="table" id="score-table"></table>
+        </div>
+        <p class="app-status muted" id="score-note"></p>
+        <div class="btn-row">
+            <button class="btn btn--primary" data-act="home">На главную</button>
+        </div>
+    </div>
+</section>
+
+<!-- 8. Deathmatch ------------------------------------------------------- -->
+<section class="screen screen--tap" data-for="dm-start" data-act="begin-dm">
+    <div class="pad center">
+        <p class="app-brand">Режим для двоих</p>
+        <p class="muted dm-rules">Одна минута. За каждое отгаданное слово —
+            добавочные секунды; каждые пять слов игра становится злее.</p>
+        <p class="hint">Нажмите, чтобы начать</p>
+        <p class="countdown" id="d-count" hidden></p>
+        <button class="link-btn" data-act="home">← Назад</button>
+    </div>
+</section>
+
+<section class="screen" data-for="dm-round">
+    <div class="round">
+        <div class="round__top">
+            <span class="round__timer" id="d-timer">60</span>
+            <span class="round__left">
+                <b id="d-score">0</b> ·
+                сложность <b id="d-diff" class="blinkable">15</b> ·
+                +<b id="d-add" class="blinkable">10</b>с
+            </span>
+        </div>
+        <p class="word" id="d-word"></p>
+        <div class="round__acts">
+            <button class="act act--ok" data-act="dm-guessed">Угадано</button>
+            <button class="act act--give" data-act="dm-concede">Сдаться</button>
+        </div>
+    </div>
+</section>
+
+<section class="screen" data-for="dm-score">
+    <div class="pad center">
+        <p class="muted">Отгадано слов</p>
+        <p class="dm-final" id="d-final">0</p>
+        <div class="btn-row btn-row--center">
+            <button class="btn btn--primary" data-act="new-dm">Ещё раз</button>
+            <button class="btn btn--ghost" data-act="home">На главную</button>
+        </div>
+    </div>
+</section>
+
+<script type="module" src="/play/js/main.js"></script>
+</body>
+</html>

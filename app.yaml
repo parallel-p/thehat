@@ -39,6 +39,41 @@ handlers:
   upload: templates/android_new_beta.html
   mime_type: text/html
 
+# The app. /play is one document; everything under it is its shell.
+# The document is short-lived in caches for the same reason as the worker: it
+# is what points at the current script filenames.
+- url: /play
+  static_files: static/play/index.html
+  upload: static/play/index\.html
+  mime_type: text/html
+  expiration: "0s"
+
+# The worker has to be served from the root of its scope, and must not be held
+# in a cache longer than the app it updates.
+- url: /play/sw\.js
+  static_files: static/play/sw.js
+  upload: static/play/sw\.js
+  mime_type: application/javascript
+  # App Engine adds its own Cache-Control to static files; setting one here as
+  # well sends both. `expiration` is the knob that changes App Engine's, and
+  # the worker is the one file that must never be served stale — it is what
+  # ships every future update.
+  expiration: "0s"
+  http_headers:
+    # /play, not /play/ — the document is at /play and a trailing-slash scope
+    # would not cover it. A worker may only claim a scope above its own
+    # directory when the server says so, which is what this header is.
+    Service-Worker-Allowed: /play
+
+- url: /play/manifest\.webmanifest
+  static_files: static/play/manifest.webmanifest
+  upload: static/play/manifest\.webmanifest
+  mime_type: application/manifest+json
+
+- url: /play/(.*)
+  static_files: static/play/\1
+  upload: static/play/.*
+
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico

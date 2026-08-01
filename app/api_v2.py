@@ -9,6 +9,7 @@ byte-identical responses.
 
 import json
 import logging
+import re
 
 from fastapi import APIRouter, Request
 from starlette.concurrency import run_in_threadpool
@@ -37,8 +38,45 @@ async def upload_game_log_v2(request: Request):
     return legacy_response(b"", status_code=202)
 
 
+# A client-chosen id may only ever name a GameLog. It arrives from the network,
+# so it is length-capped and restricted to the characters a UUID needs; anything
+# else is ignored rather than rejected, since a log is worth more than an id.
+_GAME_ID_RE = re.compile(r"\A[A-Za-z0-9_-]{8,64}\Z")
+
+
+def _client_game_id(body):
+    try:
+        value = json.loads(body).get("game_id")
+    except (ValueError, AttributeError):
+        return None
+    if isinstance(value, str) and _GAME_ID_RE.match(value):
+        return value
+    return None
+
+
 def _store_log_v2(body):
-    key = GameLog(json=body).put()
+    """Store one log and schedule its rating pass.
+
+    A log that names itself with `game_id` is keyed by that id, so a client
+    that retries after an ambiguous failure overwrites its own entity instead
+    of adding a second one. That matters because ratings are cumulative and
+    never recomputed: a game counted twice moves every word in it twice, and
+    nothing later puts it back. Logs with no id keep the old behaviour -- an
+    auto id, and no way to tell a retry from a new game.
+    """
+    game_id = _client_game_id(body)
+    if game_id is None:
+        key = GameLog(json=body).put()
+        tasks.enqueue_stats_task(key.urlsafe().decode("ascii"))
+        return
+
+    key = ndb.Key(GameLog, game_id)
+    if key.get() is not None:
+        # Already accepted. Not re-queued: the first task either has run or is
+        # still to run, and either way it rates this game exactly once.
+        logger.info("duplicate game log %s ignored", game_id)
+        return
+    GameLog(key=key, json=body).put()
     tasks.enqueue_stats_task(key.urlsafe().decode("ascii"))
 
 
@@ -65,7 +103,13 @@ def _serve_dictionary(request, lang):
         return legacy_response(b"", status_code=304)
 
     data = read_dictionary_blob(key)
-    return legacy_response(data, headers={"ETag": '"{}"'.format(key)})
+    # The blob is rebuilt by a cron, not per request, and the ETag already makes
+    # a stale read safe -- so let a client hold it for an hour and revalidate in
+    # the background rather than blocking a game on a conditional request.
+    return legacy_response(data, headers={
+        "ETag": '"{}"'.format(key),
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    })
 
 
 @router.get("/api/v2/dictionaries")

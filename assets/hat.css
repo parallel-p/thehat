@@ -7,7 +7,9 @@
    lying on the same table. The game is playful, the score is honest:
    everything that speaks may play, everything that counts stays strict.
 
-   Self-contained on purpose. No CDN, no third-party request, no JavaScript.
+   Self-contained on purpose. No CDN, no third-party request. The pages carry
+   no JavaScript at all; /play, which is an app rather than a document, is the
+   one exception, and it borrows this file wholesale.
    Playfair Display is self-hosted from /assets/fonts (OFL).
 
    Contents

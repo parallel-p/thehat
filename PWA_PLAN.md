@@ -6,6 +6,17 @@ this repo, installable on both Android and iOS.
 
 Branch: `pwa/plan`, cut from `migration/py3`.
 
+## Status
+
+**Built and deployed to staging.** WP1–WP7 and WP9–WP10 are done and live at
+`/play`; the plan below is kept as the record of why it is shaped this way,
+with the three findings from building it in §11.
+
+Not done: WP8 was folded into the build (the app takes `assets/hat.css` whole
+rather than being restyled afterwards), and nothing has been verified on real
+iPhone or Android hardware — only in Chrome at phone widths, including a
+genuine offline start with the server killed.
+
 ## 0. Decisions
 
 Settled, so the rest of this document assumes them:
@@ -478,3 +489,60 @@ Multiplayer over the network, accounts, the user's own word lists
 wired in later), languages other than `ru`, and any change to how difficulty is
 computed. Game history and word complaints are deferred, not designed away —
 see §0.1.
+
+---
+
+## 11. What building it turned up
+
+Three things the plan could not have known, all of them found by running the
+thing rather than reading it.
+
+### 11.1 Failed words are counted nowhere
+
+`parse_log_v2` fills `seen_words_time` only in its `'guessed'` branch, and the
+pipeline iterates exactly that dict when calling `update_word`. So a word that
+was an error, or that went back in the hat, is written to the log, shown to the
+player on the verdict screen — and then never reaches a counter. It does not
+even increment `used_times`.
+
+The consequence is not local to the app: **`failed_times` can only ever have
+been fed by v1 logs**, which no client has produced for years. The site's
+«ошибкоопасные слова» table is therefore ranking on frozen history, and will
+keep doing so no matter how many games the new app sends. Pinned by
+`tests/test_pwa_log_contract.py::test_the_apps_log_survives_the_whole_pipeline`
+so the day someone changes it, it is a decision rather than an accident.
+
+Worth fixing separately — either by counting attempts in the parser, or by
+retiring the table.
+
+### 11.2 A worker at /play/sw.js cannot control /play
+
+The obvious registration — scope `/play/` — installs cleanly, reports success,
+and then controls nothing, because the document is at `/play` and a
+trailing-slash scope does not cover it. The app would have looked fine and
+simply never worked offline. It needs scope `/play` plus
+`Service-Worker-Allowed: /play` from the server, both of which are now in
+`app.yaml` with the reason written next to them.
+
+### 11.3 Borrowing the stylesheet means borrowing its class names
+
+`static/play/app.css` deliberately adds no colour and no type, only layout, so
+that the app cannot drift from the site. The cost is a shared namespace: the
+first version used `.tile__note`, which `hat.css` already defines for the
+statistics pages in `--ink-muted` — a colour meant for dark felt, and
+unreadable on a honey slip. The app's own classes are now named for what they
+are (`.mode`, `.mode__name`), which is the discipline this arrangement asks
+for in exchange for never having a second design.
+
+## 12. Before this goes to production
+
+- Install from Safari on a real iPhone and from Chrome on a real Android, and
+  play a full game offline on each. Everything else has been verified in
+  headless Chrome, which is not the same thing — particularly for audio
+  unlocking, the wake lock, and safe areas.
+- Leave an installed copy untouched for a week and open it offline, to see
+  whether `navigator.storage.persist()` actually held (§6). This is the most
+  likely field failure and cannot be rushed.
+- Watch the first real games arrive: a game whose words all came in under two
+  seconds is discarded whole and silently (§2.1), which is exactly what a
+  tester tapping through produces.
