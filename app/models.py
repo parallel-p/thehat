@@ -99,6 +99,14 @@ class WordLookup(ndb.Model):
     proper_word = ndb.StringProperty(required=True)
 
 
+class WordFrequency(ndb.Model):
+    """Corpus frequency of a word, in uses per million; the entity id is the
+    word itself. Written once by the legacy admin importer and never since —
+    read here only for the difficulty-vs-frequency statistic."""
+    word = ndb.StringProperty()
+    frequency = ndb.FloatProperty()
+
+
 def _danger(self):
     # Preserved verbatim from the python27 app, where `/` on two ints is floor
     # division. The value is therefore ~always 0. Changing it to true division

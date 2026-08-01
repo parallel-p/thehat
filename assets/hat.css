@@ -1,64 +1,135 @@
 /* ==========================================================================
-   Шляпа — design language: "paper & ink"
+   Шляпа — design language: «Бумажки» (Slips)
    --------------------------------------------------------------------------
-   The game is slips of paper in a hat, so the site is paper and ink: a warm
-   page, near-black text, hairline rules, and one accent borrowed from a hat
-   band. Serif for anything that speaks, sans for anything that measures.
+   The game is played in the evening: green felt, lamplight, and coloured
+   paper slips — the brightest things on the table. Ink speaks, slips play.
+   The evening is the primary theme; day is a cool porcelain score sheet
+   lying on the same table. The game is playful, the score is honest:
+   everything that speaks may play, everything that counts stays strict.
 
-   Self-contained on purpose. No CDN, no webfont request, no JavaScript —
-   the pages using this are static handlers plus two server-rendered
-   statistics pages, and the app itself takes no external dependencies.
+   Self-contained on purpose. No CDN, no third-party request, no JavaScript.
+   Playfair Display is self-hosted from /assets/fonts (OFL).
 
    Contents
-     1. Tokens
-     2. Reset & base
-     3. Layout
-     4. Masthead & footer
-     5. Type
-     6. Buttons & links
-     7. Sections & figures
-     8. Prose (terms, policies)
-     9. Data: tables, stat tiles, bar charts
+     1. Fonts
+     2. Tokens (evening first, day via prefers-color-scheme: light)
+     3. Reset & base
+     4. Layout: the table and the sheet
+     5. Masthead & footer
+     6. Type
+     7. Buttons & links
+     8. Word slips & appliqué
+     9. Sections & figures
+    10. Prose (terms, policies)
+    11. Data: tables, stat tiles, bar charts
    ========================================================================== */
 
-/* 1. Tokens ============================================================== */
+/* 1. Fonts =============================================================== */
+
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/assets/fonts/playfair-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/assets/fonts/playfair-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2212;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/assets/fonts/playfair-italic-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: italic;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/assets/fonts/playfair-italic-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F, U+2212;
+}
+
+/* 2. Tokens ==============================================================
+   Evening is the default. All contrast ratios are measured, not estimated. */
 
 :root {
-  /* -- paper -------------------------------------------------------------
-     Surfaces run sunk → page → raised, all within a narrow warm band so the
-     page reads as one sheet rather than stacked panels. */
-  --paper:        #FBF7EF;
-  --paper-raised: #FFFDF8;
-  --paper-sunk:   #F4EEE2;
+  /* -- the room and the felt ------------------------------------------- */
+  --mat:          #0B110E;
+  --paper:        #17251D;
+  --paper-raised: #1E2F25;
+  --paper-sunk:   #121C16;
 
-  /* -- ink --------------------------------------------------------------- */
-  --ink:        #1C1917;   /* 16.4:1 on paper */
-  --ink-muted:  #6E655B;   /*  5.4:1 on paper — AA body, still recessive */
-  --rule:       #E2D9C8;
+  /* -- ink under lamplight ---------------------------------------------- */
+  --ink:       #F1EBDC;   /* 13.4:1 on felt */
+  --ink-muted: #9FAC9C;   /*  6.7:1 */
+  --rule:      #2C3C31;
 
-  /* -- hat band (accent) -------------------------------------------------
-     One accent, used for links, the primary button, and data marks.
-     6.8:1 on paper as text; 4.7:1 as a chart mark. */
-  --band:        #A02C2C;
-  --band-strong: #7A1F24;
-  --band-wash:   #F3E4E1;
+  /* -- the brass hat band ------------------------------------------------
+     Small and precise: link underlines, active nav, focus rings.
+     Never fills, never large surfaces. */
+  --brass:      #C9A24B;  /* 6.6:1 on felt */
+  --brass-text: #C9A24B;
+
+  /* -- slips -------------------------------------------------------------
+     Physical paper: identical day and night. In the evening they are the
+     brightest spots on the felt (all >= 7.6:1). Fixed roles: rose —
+     navigation, lilac — about the game, honey — words, sky — time. */
+  --slip-rose:  #E8A79B;
+  --slip-honey: #E3AC3F;
+  --slip-sky:   #A9C8D6;
+  --slip-lilac: #BFABD6;
+  --slip-ink:   #322824;  /* >= 6.8:1 on every slip */
+
+  /* text accents in slip colours: at night, the pastel itself */
+  --rose-deep:  #E8A79B;
+  --honey-deep: #E3AC3F;
+  --sky-deep:   #A9C8D6;
+  --lilac-deep: #BFABD6;
 
   /* -- data marks --------------------------------------------------------
-     Single-hue ordinal ramp, light → dark. Validated (monotone lightness,
-     >=0.06 ΔL per step, light end 2.53:1 on paper, hue spread 7°). Charts
-     here are all single-series magnitude, so `--mark` carries every bar and
-     the ramp is there for the rare ordered case. */
-  --mark:      #A02C2C;
-  --mark-soft: #D08C82;
-  --ramp-1: #D08C82;
-  --ramp-2: #B85E52;
-  --ramp-3: #A02C2C;
-  --ramp-4: #7A1F24;
-  --mark-track: #EDE4D5;   /* unfilled bar track — one step off surface */
+     In the evening the mark is the slip itself; by day it condenses. */
+  --mark-honey: #E3AC3F;
+  --mark-sky:   #A9C8D6;
+  --mark-lilac: #BFABD6;
+  --mark-track: #24332A;
+
+  /* -- buttons: the lamplight pill -------------------------------------- */
+  --btn-bg: #F1EBDC;
+  --btn-fg: #17251D;
+
+  /* -- light ------------------------------------------------------------- */
+  --shadow-slip: 0 3px 10px rgba(0, 0, 0, 0.45);
+  --shadow-sheet: 0 24px 70px rgba(0, 0, 0, 0.6);
+  --lamp: radial-gradient(ellipse 70% 45% at 50% -5%, rgba(241, 235, 220, 0.07), transparent 70%);
+  /* slip shadows follow the torn contour: drop-shadow, never box-shadow */
+  --slip-filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.3));
+  /* appliqué at the edge of lamplight */
+  --decor-o: 0.5;
+
+  /* drawings float on the felt at night; the paper card is a day thing */
+  --print-bg: transparent;
+  --print-border: transparent;
+  --print-pad: 0;
+  --print-shadow: none;
+
+  /* -- torn edges: three rip variants, cycled by nth-child --------------- */
+  --tear-a: polygon(1% 8%, 9% 2%, 22% 6%, 37% 1%, 52% 5%, 68% 0%, 83% 5%, 95% 1%, 99% 22%, 96% 42%, 100% 63%, 97% 84%, 99% 95%, 85% 92%, 70% 98%, 54% 93%, 38% 99%, 22% 94%, 8% 99%, 2% 88%, 4% 62%, 0% 38%);
+  --tear-b: polygon(3% 2%, 18% 7%, 33% 2%, 49% 6%, 64% 1%, 79% 6%, 93% 2%, 98% 14%, 95% 38%, 99% 58%, 96% 80%, 99% 96%, 84% 94%, 68% 99%, 52% 94%, 35% 98%, 19% 93%, 6% 97%, 1% 78%, 4% 55%, 1% 30%);
+  --tear-c: polygon(2% 12%, 12% 4%, 27% 8%, 43% 2%, 58% 7%, 74% 2%, 88% 7%, 97% 3%, 99% 28%, 95% 50%, 99% 74%, 96% 94%, 80% 97%, 63% 92%, 46% 98%, 29% 93%, 13% 98%, 3% 93%, 1% 70%, 3% 45%, 0% 22%);
 
   /* -- type -------------------------------------------------------------
-     No webfonts. Georgia carries Cyrillic well and is near-universal;
-     Android falls through to Noto Serif, which is a close match in colour. */
+     Playfair speaks, Georgia tells, the system sans counts. */
+  --display-face: "Playfair Display", Georgia, "Noto Serif", serif;
   --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua",
            "Noto Serif", "Liberation Serif", "Times New Roman", serif;
   --sans:  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
@@ -66,10 +137,9 @@
   --mono:  ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
            "Liberation Mono", monospace;
 
-  /* Fluid scale. Display is deliberately the only very large size. */
-  --t-display: clamp(2.75rem, 9vw, 5.25rem);
-  --t-title:   clamp(1.75rem, 4vw, 2.5rem);
-  --t-section: clamp(1.35rem, 2.6vw, 1.75rem);
+  --t-display: clamp(2.9rem, 8vw, 5.1rem);
+  --t-title:   clamp(1.9rem, 4vw, 2.7rem);
+  --t-section: clamp(1.45rem, 2.6vw, 1.9rem);
   --t-lead:    clamp(1.0625rem, 1.6vw, 1.1875rem);
   --t-body:    1.0625rem;
   --t-small:   0.875rem;
@@ -82,36 +152,52 @@
 
   --measure: 34rem;          /* prose line length, ~70 characters */
   --page: 68rem;             /* outer container */
-  --radius: 3px;             /* paper is cut, not moulded — keep it crisp */
+  --r-card: 10px;
+  --r-pill: 999px;
 }
 
-/* Night. Selected steps, not an inverted ramp: the accent is re-picked for
-   the dark surface (#17140F) and re-validated there. */
-@media (prefers-color-scheme: dark) {
+/* Day: a porcelain score sheet on the same table. Cool, never cream. */
+@media (prefers-color-scheme: light) {
   :root {
-    --paper:        #17140F;
-    --paper-raised: #1F1B15;
-    --paper-sunk:   #120F0B;
+    --mat:          #3C4A41;
+    --paper:        #F4F5F1;
+    --paper-raised: #FBFCF9;
+    --paper-sunk:   #EAEDE6;
 
-    --ink:       #EFE7D9;   /* 15.0:1 */
-    --ink-muted: #A79C8C;   /*  6.8:1 */
-    --rule:      #332C22;
+    --ink:       #1D2823;   /* 13.9:1 on porcelain */
+    --ink-muted: #5F6B63;   /*  5.1:1 */
+    --rule:      #D8DED4;
 
-    --band:        #E0837A;  /* 6.7:1 as text on night */
-    --band-strong: #F0A79C;
-    --band-wash:   #2A1D19;
+    --brass:      #C9A24B;
+    --brass-text: #7E621C;  /* 5.3:1 — brass as running text needs depth */
 
-    --mark:      #CC6058;    /* inside the dark lightness band, >=3:1 */
-    --mark-soft: #8A3A38;
-    --ramp-1: #F0A79C;
-    --ramp-2: #E0837A;
-    --ramp-3: #CC6058;
-    --ramp-4: #B04640;
-    --mark-track: #2A241C;
+    --rose-deep:  #9C4A43;  /* 5.5:1 */
+    --honey-deep: #8A650F;  /* 4.9:1 */
+    --sky-deep:   #3F6675;  /* 5.7:1 */
+    --lilac-deep: #6B5588;  /* 5.9:1 */
+
+    --mark-honey: #A97812;  /* 3.6:1 as a mark */
+    --mark-sky:   #567F8E;  /* 4.0:1 */
+    --mark-lilac: #6B5588;  /* 5.9:1 */
+    --mark-track: #E2E7DD;
+
+    --btn-bg: #1D2823;
+    --btn-fg: #F4F5F1;
+
+    --shadow-slip: 0 2px 6px rgba(29, 40, 35, 0.2);
+    --shadow-sheet: 0 24px 70px rgba(10, 16, 13, 0.5);
+    --lamp: none;
+    --slip-filter: drop-shadow(0 1px 1px rgba(29, 40, 35, 0.2)) drop-shadow(0 5px 10px rgba(29, 40, 35, 0.16));
+    --decor-o: 1;
+
+    --print-bg: #FBFCF9;
+    --print-border: var(--rule);
+    --print-pad: var(--s4);
+    --print-shadow: var(--shadow-slip);
   }
 }
 
-/* 2. Reset & base ======================================================== */
+/* 3. Reset & base ======================================================== */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -129,7 +215,7 @@ body {
   /* Russian words are long and the display size is large; never let a single
      word push the page wider than the viewport. */
   overflow-wrap: break-word;
-  background: var(--paper);
+  background: var(--mat);
   color: var(--ink);
   font-family: var(--serif);
   font-size: var(--t-body);
@@ -140,12 +226,12 @@ body {
 
 img { max-width: 100%; height: auto; display: block; }
 
-::selection { background: var(--band-wash); color: var(--ink); }
+::selection { background: var(--slip-honey); color: var(--slip-ink); }
 
 :focus-visible {
-  outline: 2px solid var(--band);
+  outline: 2px solid var(--brass);
   outline-offset: 3px;
-  border-radius: 1px;
+  border-radius: 2px;
 }
 
 .visually-hidden {
@@ -154,7 +240,21 @@ img { max-width: 100%; height: auto; display: block; }
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* 3. Layout ============================================================== */
+/* 4. Layout ==============================================================
+   The page is a table in a room. In the evening the sheet IS the felt;
+   by day it is the score sheet lying on it. On phones the sheet fills
+   the screen; the room shows only around a wide viewport. */
+
+.sheet {
+  max-width: 86rem;
+  margin-inline: auto;
+  background: var(--paper);
+  min-height: 100vh;
+}
+@media (min-width: 64rem) {
+  body { padding: var(--s6); }
+  .sheet { border-radius: 8px; box-shadow: var(--shadow-sheet); overflow: hidden; }
+}
 
 .wrap {
   width: 100%;
@@ -167,30 +267,38 @@ img { max-width: 100%; height: auto; display: block; }
 .stack > * + * { margin-top: var(--s4); }
 .stack--loose > * + * { margin-top: var(--s6); }
 
-/* 4. Masthead & footer =================================================== */
+/* 5. Masthead & footer =================================================== */
 
-.masthead {
-  border-bottom: 1px solid var(--rule);
-  background: var(--paper);
-}
+.masthead { border-bottom: 1px solid var(--rule); }
 .masthead__inner {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--s3) var(--s5);
   padding-block: var(--s4);
 }
 .masthead__brand {
-  font-family: var(--serif);
-  font-size: 1.125rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  font-family: var(--display-face);
+  font-weight: 600;
+  font-size: 1.3rem;
   color: var(--ink);
   text-decoration: none;
   margin-right: auto;
 }
-.masthead__brand:hover { color: var(--band); }
+.masthead__brand::before {
+  content: "";
+  width: 15px;
+  height: 10px;
+  background: var(--slip-rose);
+  border-radius: 1px 4px 2px 3px;
+  clip-path: var(--tear-c);
+  transform: rotate(-6deg);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+.masthead__brand:hover { color: var(--ink); }
 .masthead__nav {
   display: flex;
   flex-wrap: wrap;
@@ -202,13 +310,13 @@ img { max-width: 100%; height: auto; display: block; }
 .masthead__nav a {
   color: var(--ink-muted);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
+  border-bottom: 2px solid transparent;
   padding-bottom: 2px;
 }
 .masthead__nav a:hover,
 .masthead__nav a[aria-current="page"] {
   color: var(--ink);
-  border-bottom-color: var(--band);
+  border-bottom-color: var(--brass);
 }
 
 .footer {
@@ -226,28 +334,37 @@ img { max-width: 100%; height: auto; display: block; }
   padding-block: var(--s6);
 }
 .footer a { color: var(--ink-muted); }
-.footer a:hover { color: var(--band); }
+.footer a:hover { color: var(--ink); }
 .footer__spacer { margin-left: auto; }
 
-/* 5. Type ================================================================ */
+/* 6. Type ================================================================ */
 
 h1, h2, h3, h4 {
-  font-family: var(--serif);
   overflow-wrap: break-word;
-  font-weight: 700;
   line-height: 1.15;
-  letter-spacing: -0.01em;
   margin: 0;
   text-wrap: balance;
 }
 
 .display {
+  font-family: var(--display-face);
+  font-weight: 500;
   font-size: var(--t-display);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  line-height: 1.04;
+  letter-spacing: -0.01em;
 }
-.title   { font-size: var(--t-title); }
-.section__title { font-size: var(--t-section); }
+.title { font-family: var(--display-face); font-weight: 600; font-size: var(--t-title); line-height: 1.1; }
+.section__title { font-family: var(--display-face); font-weight: 600; font-size: var(--t-section); line-height: 1.15; }
+
+/* The accent word: Playfair italic underlined by hand with wavy brass.
+   One per headline, never more. */
+.display em, .title em, .section__title em {
+  font-style: italic;
+  text-decoration: underline wavy var(--brass);
+  text-decoration-thickness: 0.045em;
+  text-underline-offset: 0.14em;
+  text-decoration-skip-ink: none;
+}
 
 .lead {
   font-size: var(--t-lead);
@@ -256,26 +373,36 @@ h1, h2, h3, h4 {
 }
 .muted { color: var(--ink-muted); }
 
-/* Small caps label — the recurring "01 — Что такое Шляпа" motif. */
+/* The section tab: a torn slip in the section's colour instead of a number.
+   Lowercase italic, not small caps — tabs speak, they don't count. */
 .eyebrow {
-  font-family: var(--sans);
-  font-size: var(--t-micro);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
   display: flex;
   align-items: center;
   gap: var(--s3);
-  margin-bottom: var(--s4);
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 0.9375rem;
+  color: var(--ink-muted);
+  margin: 0 0 var(--s4);
 }
-.eyebrow::after {
+.eyebrow::before {
   content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--rule);
+  width: 18px;
+  height: 11px;
+  flex: none;
+  background: var(--eb, var(--slip-rose));
+  border-radius: 1px 4px 2px 3px;
+  clip-path: var(--tear-b);
+  transform: rotate(-5deg);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
 }
-.eyebrow__num { color: var(--band); font-variant-numeric: tabular-nums; }
+.eyebrow--center { justify-content: center; }
+.eyebrow--lilac { --eb: var(--slip-lilac); }
+.eyebrow--honey { --eb: var(--slip-honey); }
+.eyebrow--sky   { --eb: var(--slip-sky); }
+/* A short brass prefix — «beta», «Sombrero», a step number on a page where
+   the steps really are a sequence. */
+.eyebrow__num { color: var(--brass-text); font-variant-numeric: tabular-nums; }
 
 .rule {
   border: 0;
@@ -283,44 +410,56 @@ h1, h2, h3, h4 {
   margin-block: var(--s7);
 }
 
-/* 6. Buttons & links ===================================================== */
+/* 7. Buttons & links ===================================================== */
 
-a { color: var(--band); text-underline-offset: 0.18em; }
-a:hover { color: var(--band-strong); }
+/* Links: ink underlined with the brass band. Straight at rest; wavy under
+   the cursor — the page smiles only when played with. */
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--brass);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 150ms ease;
+}
+a:hover {
+  color: var(--ink);
+  text-decoration-color: var(--brass-text);
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+}
 
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--s2);
   font-family: var(--sans);
   font-size: var(--t-small);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 1;
-  padding: 0.85em 1.5em;
-  border-radius: var(--radius);
+  padding: 0.95em 1.8em;
+  border-radius: var(--r-pill);
   border: 1px solid transparent;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 120ms ease, color 120ms ease,
-              border-color 120ms ease;
+  transition: transform 150ms ease, background-color 150ms ease,
+              border-color 150ms ease;
 }
+.btn:hover { transform: translateY(-2px) rotate(-1deg); }
+.btn:active { transform: translateY(0) rotate(0) scale(0.98); }
 .btn--primary {
-  background: var(--band);
-  border-color: var(--band);
-  color: var(--paper);
-}
-.btn--primary:hover {
-  background: var(--band-strong);
-  border-color: var(--band-strong);
-  color: var(--paper);
+  background: var(--btn-bg);
+  border-color: var(--btn-bg);
+  color: var(--btn-fg);
 }
 .btn--ghost {
   background: transparent;
   border-color: var(--rule);
   color: var(--ink);
 }
-.btn--ghost:hover { border-color: var(--ink); color: var(--ink); }
+.btn--ghost:hover { border-color: var(--ink); }
 
 .btn-row {
   display: flex;
@@ -328,16 +467,129 @@ a:hover { color: var(--band-strong); }
   gap: var(--s3);
   align-items: center;
 }
+.btn-row--center { justify-content: center; }
 
-/* 7. Sections & figures ================================================== */
+/* 8. Word slips & appliqué ==============================================
+   A slip with a word: real paper. Torn edges, a fold crease down the
+   middle (it was folded before going into the hat), paper grain, and a
+   shadow that follows the torn contour. */
+
+.ws {
+  position: relative;
+  display: inline-block;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.125rem;
+  color: var(--slip-ink);
+  padding: 0.5em 1.05em 0.58em;
+  border-radius: 2px 8px 3px 7px;   /* fallback edge if clip-path is unsupported */
+  clip-path: var(--tear, var(--tear-a));
+  filter: var(--slip-filter);
+  transform: rotate(var(--rot, -2deg)) translateY(var(--ty, 0));
+  transition: transform 180ms ease;
+}
+.ws::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(103deg, rgba(255,255,255,0) 45%, rgba(50,40,36,0.13) 49.5%, rgba(255,255,255,0.22) 51.5%, rgba(255,255,255,0) 57%),
+    linear-gradient(165deg, rgba(255,255,255,0.26), rgba(255,255,255,0) 40%, rgba(50,40,36,0.07)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.ws:hover { transform: rotate(0deg) translateY(-2px); }
+.ws--rose  { background: var(--slip-rose); }
+.ws--lilac { background: var(--slip-lilac); }
+.ws--honey { background: var(--slip-honey); }
+.ws--sky   { background: var(--slip-sky); }
+
+.ws-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s3);
+  align-items: center;
+}
+.ws-row--center { justify-content: center; }
+.ws-row > :nth-child(4n+1) { --rot: -3deg;   --tear: var(--tear-a); }
+.ws-row > :nth-child(4n+2) { --rot: 2.5deg;  --tear: var(--tear-b); --ty: 3px; }
+.ws-row > :nth-child(4n+3) { --rot: -1.5deg; --tear: var(--tear-c); --ty: -2px; }
+.ws-row > :nth-child(4n)   { --rot: 3deg;    --tear: var(--tear-b); }
+
+/* The appliqué: cut coloured paper (scissored, not torn) and halftone dot
+   patches bleeding off the hero's edges. Desktop only, never under text.
+   In the evening the paper sits at the edge of lamplight (--decor-o). */
+.decor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--decor-o);
+  display: none;
+}
+@media (min-width: 60rem) { .decor { display: block; } }
+.decor > span { position: absolute; }
+.decor .cut { filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.2)); }
+/* The solid shapes and dot patches are cut-paper hat silhouettes — hats you
+   could play from — clipped by the inline <clipPath> defs the landing page
+   carries (original paths, drawn for this site). Each felt hat has a tapered
+   crown, a creased top and an upturned brim, so the shape reads as a hat with
+   no outline to help it. The three at the right overlap on purpose. */
+.decor__tophat { background: var(--slip-rose); clip-path: url(#hat-top); width: clamp(21rem, 30vw, 29rem); aspect-ratio: 1; left: -9rem; top: 11%; transform: rotate(-9deg); }
+.decor__sombrero { background: var(--slip-sky); clip-path: url(#hat-sombrero); width: clamp(16.5rem, 24vw, 22.5rem); aspect-ratio: 1; right: -7rem; bottom: -2.5rem; transform: rotate(7deg); }
+.decor__fedora { background: var(--slip-lilac); clip-path: url(#hat-fedora); width: clamp(11.25rem, 16.5vw, 15rem); aspect-ratio: 1; right: -1.5rem; bottom: 18%; transform: rotate(-8deg); }
+/* Lamplight modelling: a crown gleam, a shaded base and the slips' paper
+   grain, clipped by the hat shape. The left hat is lit from its right, the
+   right cluster from its left — both toward the lamp over the hero.
+   --gleam sits on each hat's own crown, which starts at a different height. */
+.decor__tophat, .decor__sombrero, .decor__fedora { position: absolute; }
+.decor__tophat::after, .decor__sombrero::after, .decor__fedora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 40% 22% at 50% var(--gleam, 14%), rgba(241, 235, 220, 0.34), transparent 70%),
+    linear-gradient(var(--light-from, 155deg), rgba(241, 235, 220, 0.20), rgba(241, 235, 220, 0) 45%, rgba(4, 7, 5, 0.30) 97%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.1 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.decor__tophat { --light-from: 205deg; --gleam: 13%; }
+.decor__sombrero { --gleam: 16%; }
+.decor__fedora { --gleam: 26%; }
+
+.decor__dots-honey {
+  width: clamp(15rem, 22.5vw, 21.75rem); aspect-ratio: 1; left: -3rem; top: 54%;
+  background-image: radial-gradient(circle, var(--slip-honey) 1.4px, transparent 1.9px);
+  background-size: 10px 10px;
+  clip-path: url(#hat-grad);
+  transform: rotate(6deg);
+}
+.decor__dots-rose {
+  width: clamp(12.75rem, 19.5vw, 18rem); aspect-ratio: 1; right: -3.5rem; top: 9%;
+  background-image: radial-gradient(circle, var(--slip-rose) 1.3px, transparent 1.8px);
+  background-size: 9px 9px;
+  clip-path: url(#hat-winter);
+  transform: rotate(-5deg);
+}
+
+/* 9. Sections & figures ================================================== */
 
 .hero {
-  padding-block: clamp(var(--s8), 14vh, var(--s9));
+  position: relative;
+  overflow: hidden;
+  padding-block: clamp(var(--s7), 10vh, var(--s9)) var(--s8);
   border-bottom: 1px solid var(--rule);
+  background-image: var(--lamp);
 }
+.hero .wrap { position: relative; z-index: 1; }
 .hero__title { max-width: 18ch; }
 .hero__lead { margin-top: var(--s5); }
 .hero__actions { margin-top: var(--s6); }
+.hero__slips { margin-top: var(--s7); }
+
+/* The landing hero sits centered under the lamp. */
+.hero--center { text-align: center; }
+.hero--center .hero__title { max-width: 15ch; margin-inline: auto; }
+.hero--center .hero__lead { margin-inline: auto; }
 
 .section { padding-block: var(--s8); }
 .section + .section { border-top: 1px solid var(--rule); }
@@ -356,16 +608,36 @@ a:hover { color: var(--band-strong); }
 }
 .split__media img { margin-inline: auto; }
 
-/* A slip of paper: the one place the metaphor is literal. */
+/* Pictures are prints lying on the table: a white paper card, tilted by
+   hand — the tilt alternates with the section. The card exists only by
+   day: at night transparent drawings float directly on the felt. */
+.split__media--slip img {
+  background: var(--print-bg);
+  border: 1px solid var(--print-border);
+  border-radius: 6px;
+  padding: var(--print-pad);
+  transform: rotate(-1.5deg);
+  box-shadow: var(--print-shadow);
+}
+.split--flip .split__media--slip img { transform: rotate(1.8deg); }
+/* A photograph is a physical print with white baked into its pixels —
+   it keeps the card in both themes. */
+.split__media--photo img {
+  background: #FBFCF9;
+  border-color: var(--rule);
+  padding: var(--s4);
+  box-shadow: var(--shadow-slip);
+}
+
+/* A note pinned to the page: raised card. */
 .slip {
   background: var(--paper-raised);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: var(--r-card);
   padding: var(--s5);
-  box-shadow: 0 1px 0 var(--rule);
 }
 
-/* 8. Prose =============================================================== */
+/* 10. Prose ============================================================== */
 
 .prose { max-width: var(--measure); }
 .prose > * + * { margin-top: var(--s4); }
@@ -382,8 +654,9 @@ a:hover { color: var(--band-strong); }
   border-radius: 2px;
 }
 
-/* 9. Data ================================================================
-   Everything below is sans + tabular figures: measurement, not voice. */
+/* 11. Data ===============================================================
+   Everything below is sans + tabular figures: measurement, not voice.
+   The score does not smile. */
 
 .data { font-family: var(--sans); }
 
@@ -429,7 +702,7 @@ a:hover { color: var(--band-strong); }
   white-space: nowrap;
 }
 .table .rank { color: var(--ink-muted); width: 1%; font-variant-numeric: tabular-nums; }
-.table .word { font-family: var(--serif); font-size: 1rem; }
+.table .word { font-family: var(--serif); font-style: italic; font-size: 1rem; }
 
 /* -- stat tiles --------------------------------------------------------- */
 .tiles {
@@ -438,7 +711,7 @@ a:hover { color: var(--band-strong); }
   gap: 1px;
   background: var(--rule);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border-radius: var(--r-card);
   overflow: hidden;
 }
 .tile {
@@ -478,9 +751,8 @@ a:hover { color: var(--band-strong); }
 }
 
 /* -- bar chart ----------------------------------------------------------
-   Single-series magnitude, so: one hue, no legend (the caption names it),
-   hairline baseline, values direct-labelled at the tip. Pure CSS — there
-   were matplotlib-rendered PNGs here once, and they are not coming back. */
+   Single-series magnitude: one hue (the slip of the subject), no legend,
+   hairline baseline, values direct-labelled at the tip. */
 .chart { margin-top: var(--s4); }
 .chart__caption {
   font-family: var(--sans);
@@ -517,11 +789,10 @@ a:hover { color: var(--band-strong); }
   overflow: hidden;
 }
 .bar__fill {
-  /* Must be blockified: width/height do not apply to an inline box, and this
-     one is nested inside the track rather than being a grid/flex item. */
+  /* Must be blockified: width/height do not apply to an inline box. */
   display: block;
   height: 100%;
-  background: var(--mark);
+  background: var(--mark-honey);
   /* Square at the baseline, rounded at the data end. */
   border-radius: 0 3px 3px 0;
   min-width: 2px;
@@ -534,8 +805,60 @@ a:hover { color: var(--band-strong); }
   text-align: right;
 }
 .bar--empty .bar__value { color: var(--ink-muted); }
+/* A chart takes the slip of its subject: honey (default) for words,
+   sky for time, lilac for people. */
+.bars--sky .bar__fill { background: var(--mark-sky); }
+.bars--lilac .bar__fill { background: var(--mark-lilac); }
 
-/* Columns, for the 24-hour cycle where reading order is horizontal. */
+/* Two charts side by side on a wide sheet. */
+.chart-grid { display: grid; gap: var(--s6); align-items: start; }
+@media (min-width: 48rem) { .chart-grid--2 { grid-template-columns: 1fr 1fr; } }
+
+/* -- punchcard -----------------------------------------------------------
+   Hour-of-week grid: a dot per (day, hour), sized and weighted by count.
+   The evening table's own rhythm — when the hat actually comes out. */
+.punch {
+  display: grid;
+  grid-template-columns: max-content repeat(24, 1fr);
+  gap: 2px;
+  align-items: center;
+  justify-items: center;
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  color: var(--ink-muted);
+  min-width: 30rem;
+}
+.punch__day { justify-self: start; padding-right: var(--s2); }
+.punch__cell { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1; }
+.punch__dot {
+  /* --v is count/peak, set inline */
+  width: calc(0.25rem + var(--v, 0) * 0.85rem);
+  height: calc(0.25rem + var(--v, 0) * 0.85rem);
+  border-radius: 50%;
+  background: var(--mark-sky);
+  opacity: calc(0.3 + var(--v, 0) * 0.7);
+}
+.punch__dot--zero { width: 3px; height: 3px; background: var(--mark-track); opacity: 1; }
+.punch__hour { font-variant-numeric: tabular-nums; }
+
+/* -- difficulty scale -----------------------------------------------------
+   The old gauge, laid flat: a 0-100 track, the confidence band E +- 2D as a
+   wash, the measured value as a solid marker. */
+.scale { position: relative; margin-top: var(--s2); }
+.scale__track { position: relative; height: 14px; background: var(--mark-track); border-radius: 7px; }
+.scale__band { position: absolute; top: 0; bottom: 0; background: var(--mark-honey); opacity: 0.35; border-radius: 7px; }
+.scale__marker { position: absolute; top: -3px; bottom: -3px; width: 4px; border-radius: 2px; background: var(--mark-honey); }
+.scale__labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  color: var(--ink-muted);
+  padding-top: var(--s2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Columns, for cycles where reading order is horizontal. */
 .columns {
   display: grid;
   grid-auto-flow: column;
@@ -549,7 +872,7 @@ a:hover { color: var(--band-strong); }
 .column { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
 .column__fill {
   display: block;
-  background: var(--mark);
+  background: var(--mark-sky);
   border-radius: 3px 3px 0 0;
   min-height: 2px;
   /* Cap the mark: never fill the slot, let the leftover band be air. */
@@ -569,8 +892,19 @@ a:hover { color: var(--band-strong); }
   font-variant-numeric: tabular-nums;
 }
 .column__label { text-align: center; }
-/* Every third hour keeps its tick; the rest would collide. */
+/* Every third tick stays; the rest would collide. */
 .column__label--hidden { visibility: hidden; }
+
+/* Dense variant: one thin column per day over ~three months. */
+.columns--dense { gap: 1px; height: 6rem; }
+.columns--dense .column__fill { max-width: 8px; border-radius: 2px 2px 0 0; }
+.column__labels--dense {
+  gap: 1px;
+  white-space: nowrap;
+  /* A date is wider than its 1fr track; without minmax(0, …) the tracks
+     refuse to shrink below the text and the whole row drifts right. */
+  grid-auto-columns: minmax(0, 1fr);
+}
 
 /* -- search ------------------------------------------------------------- */
 .search {
@@ -581,16 +915,18 @@ a:hover { color: var(--band-strong); }
 }
 .search input[type="search"] {
   font-family: var(--serif);
+  font-style: italic;
   font-size: var(--t-body);
   color: var(--ink);
   background: var(--paper-raised);
   border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 0.6em 0.8em;
+  border-radius: var(--r-pill);
+  padding: 0.55em 1.1em;
   min-width: 14rem;
   flex: 1 1 14rem;
 }
-.search input[type="search"]:focus { border-color: var(--band); }
+.search input[type="search"]:focus { border-color: var(--brass); outline: none; }
+.search input[type="search"]::placeholder { color: var(--ink-muted); opacity: 1; }
 
 /* -- empty state -------------------------------------------------------- */
 .empty {
@@ -599,9 +935,21 @@ a:hover { color: var(--band-strong); }
   padding-block: var(--s5);
 }
 
-/* -- print -------------------------------------------------------------- */
+/* -- print ---------------------------------------------------------------
+   Paper is paper: print gets the day palette on white regardless of the
+   screen theme. */
 @media print {
-  .masthead__nav, .footer, .btn { display: none; }
-  body { background: #fff; color: #000; }
+  :root {
+    --mat: #fff; --paper: #fff; --paper-raised: #fff; --paper-sunk: #f2f2f2;
+    --ink: #000; --ink-muted: #444; --rule: #ccc;
+    --brass: #7E621C; --brass-text: #7E621C;
+    --mark-honey: #A97812; --mark-sky: #567F8E; --mark-lilac: #6B5588; --mark-track: #eee;
+    --lamp: none; --decor-o: 0;
+    --shadow-slip: none; --shadow-sheet: none; --slip-filter: none;
+    --print-bg: #fff; --print-border: #ccc; --print-pad: var(--s4); --print-shadow: none;
+  }
+  .masthead__nav, .footer, .btn, .decor { display: none; }
+  body { background: #fff; color: #000; padding: 0; }
+  .sheet { box-shadow: none; }
   .section, .hero { padding-block: var(--s5); }
 }

@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру как можно больше слов. Приложение считает время, ведёт счёт и измеряет сложность слов по статистике настоящих игр.">
-    <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#17140F" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
     <title>ЛКШ.Шляпа</title>
     <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
+<div class="sheet">
 
 <header class="masthead">
     <div class="wrap masthead__inner">
@@ -26,18 +27,42 @@
 
 <main>
 
-    <section class="hero">
+    <section class="hero hero--center">
+        <div class="decor" aria-hidden="true">
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+            <defs>
+                <!-- Hats drawn in a 512 box: tapered crown, creased top and an
+                     upturned brim, so each reads as a hat with no outline. -->
+                <clipPath id="hat-top" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M172 292 C164 230 160 140 158 66 C158 50 354 50 354 66 C352 140 348 230 340 292 C398 300 456 314 476 328 C486 335 480 344 464 350 C424 366 344 374 256 374 C168 374 88 366 48 350 C32 344 26 335 36 328 C56 314 114 300 172 292 Z"/></clipPath>
+                <clipPath id="hat-sombrero" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M178 216 C184 162 194 100 216 68 C224 56 238 62 256 62 C274 62 288 56 296 68 C318 100 328 162 334 216 C388 228 442 244 476 232 C492 226 504 214 506 224 C508 240 470 262 402 274 C356 282 300 286 256 286 C212 286 156 282 110 274 C42 262 4 240 6 224 C8 214 20 226 36 232 C70 244 124 228 178 216 Z"/></clipPath>
+                <clipPath id="hat-fedora" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M166 246 C158 200 162 156 176 130 C184 118 196 114 208 120 C226 130 241 135 256 135 C271 135 286 130 304 120 C316 114 328 118 336 130 C350 156 354 200 346 246 C402 252 456 264 470 272 C476 280 470 288 452 294 C396 310 330 318 256 318 C182 318 116 310 60 294 C42 288 36 280 42 272 C56 264 110 252 166 246 Z"/></clipPath>
+                <clipPath id="hat-grad" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M256 52 C304 70 424 114 456 136 C466 143 466 155 456 162 C424 184 304 228 256 246 C208 228 88 184 56 162 C46 155 46 143 56 136 C88 114 208 70 256 52 Z"/><path transform="scale(0.001953125)" d="M150 185 C158 265 200 296 256 296 C312 296 354 265 362 185 C330 168 292 158 256 158 C220 158 182 168 150 185 Z"/><path transform="scale(0.001953125)" d="M444 148 C438 190 438 224 442 246 C428 254 422 282 428 300 C432 314 462 314 466 300 C472 282 466 254 452 246 C456 224 456 190 450 148 Z"/></clipPath>
+                <clipPath id="hat-winter" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M100 286 C108 190 170 120 256 118 C342 120 404 190 412 286 C440 292 452 306 450 322 C448 344 384 358 256 358 C128 358 64 344 62 322 C60 306 72 292 100 286 Z"/><path transform="scale(0.001953125)" d="M256 48 C282 48 302 68 302 94 C302 120 282 140 256 140 C230 140 210 120 210 94 C210 68 230 48 256 48 Z"/></clipPath>
+            </defs>
+        </svg>
+            <span class="decor__tophat cut"></span>
+            <span class="decor__dots-honey"></span>
+            <span class="decor__sombrero cut"></span>
+            <span class="decor__fedora cut"></span>
+            <span class="decor__dots-rose"></span>
+        </div>
         <div class="wrap">
-            <p class="eyebrow"><span class="eyebrow__num">Летняя компьютерная школа</span></p>
-            <h1 class="display hero__title">Объясняйте слова на&nbsp;время</h1>
+            <p class="eyebrow eyebrow--center"><span>Летняя компьютерная школа</span></p>
+            <h1 class="display hero__title">Объясняйте <em>слова</em> на&nbsp;время</h1>
             <p class="lead hero__lead">
                 Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру
                 как можно больше слов. Приложение засечёт время, посчитает, кто сколько
                 объяснил, и подберёт слова подходящей сложности.
             </p>
-            <div class="btn-row hero__actions">
+            <div class="btn-row btn-row--center hero__actions">
                 <a class="btn btn--primary" href="/android/new/beta">Скачать приложение</a>
                 <a class="btn btn--ghost" href="http://thehat.ru/rules/">Правила игры</a>
+            </div>
+            <div class="ws-row ws-row--center hero__slips" aria-hidden="true">
+                <span class="ws ws--lilac">телескоп</span>
+                <span class="ws ws--honey">варенье</span>
+                <span class="ws ws--sky">гравитация</span>
+                <span class="ws ws--rose">балалайка</span>
             </div>
         </div>
     </section>
@@ -46,7 +71,7 @@
         <div class="wrap">
             <div class="split">
                 <div>
-                    <p class="eyebrow"><span class="eyebrow__num">01</span> Что такое Шляпа</p>
+                    <p class="eyebrow eyebrow--lilac"><span>Что такое Шляпа</span></p>
                     <h2 class="section__title">Игра, для которой нужны только слова</h2>
                     <div class="stack">
                         <p>
@@ -61,7 +86,7 @@
                         </p>
                     </div>
                 </div>
-                <figure class="split__media">
+                <figure class="split__media split__media--slip split__media--photo">
                     <img src="/assets/people_playing_hat.jpg"
                          alt="Компания играет в Шляпу за столом">
                 </figure>
@@ -73,7 +98,7 @@
         <div class="wrap">
             <div class="split split--flip">
                 <div>
-                    <p class="eyebrow"><span class="eyebrow__num">02</span> Откуда она взялась</p>
+                    <p class="eyebrow"><span>Откуда она взялась</span></p>
                     <h2 class="section__title">ЛКШ.Шляпа</h2>
                     <div class="stack">
                         <p>
@@ -88,7 +113,7 @@
                         </p>
                     </div>
                 </div>
-                <figure class="split__media">
+                <figure class="split__media split__media--slip">
                     <img src="/assets/hat.png" width="265" height="265" alt="">
                 </figure>
             </div>
@@ -99,8 +124,8 @@
         <div class="wrap">
             <div class="split">
                 <div>
-                    <p class="eyebrow"><span class="eyebrow__num">03</span> Сервер Sombrero</p>
-                    <h2 class="section__title">Сложность слова измеряется, а не угадывается</h2>
+                    <p class="eyebrow eyebrow--honey"><span>Сервер Sombrero</span></p>
+                    <h2 class="section__title">Сложность слова <em>измеряется</em>, а не угадывается</h2>
                     <div class="stack">
                         <p>
                             В обычных приложениях для Шляпы считается, что слово тем сложнее,
@@ -117,7 +142,7 @@
                         <p class="muted">Когда вы играете, вы помогаете двигать науку.</p>
                     </div>
                 </div>
-                <figure class="split__media">
+                <figure class="split__media split__media--slip">
                     <img src="/assets/sombrero.png" width="449" height="449" alt="">
                 </figure>
             </div>
@@ -128,8 +153,8 @@
         <div class="wrap">
             <div class="split split--flip">
                 <div>
-                    <p class="eyebrow"><span class="eyebrow__num">04</span> Новое приложение</p>
-                    <h2 class="section__title">Словарь, который обновляется</h2>
+                    <p class="eyebrow eyebrow--sky"><span>Новое приложение</span></p>
+                    <h2 class="section__title">Словарь, который <em>обновляется</em></h2>
                     <div class="stack">
                         <p>
                             Мы сделали новое кроссплатформенное приложение. В старом сложность
@@ -143,7 +168,7 @@
                         </div>
                     </div>
                 </div>
-                <figure class="split__media">
+                <figure class="split__media split__media--slip">
                     <img src="/assets/new_hat.png" width="300" height="300" alt="">
                 </figure>
             </div>
@@ -162,5 +187,6 @@
     </div>
 </footer>
 
+</div>
 </body>
 </html>

@@ -4,13 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#FBF7EF" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#17140F" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
     <title>{% block title %}Статистика{% endblock %} — Шляпа</title>
     <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
+<div class="sheet">
 
 <header class="masthead">
     <div class="wrap masthead__inner">
@@ -28,7 +29,7 @@
 <main>
     <section class="hero" style="padding-block: var(--s7);">
         <div class="wrap">
-            <p class="eyebrow"><span class="eyebrow__num">Sombrero</span> Статистика игр</p>
+            <p class="eyebrow eyebrow--honey"><span class="eyebrow__num">Sombrero</span> Статистика игр</p>
             <h1 class="title">{% block header %}{% endblock %}</h1>
             {% block subhead %}{% endblock %}
         </div>
@@ -50,5 +51,6 @@
     </div>
 </footer>
 
+</div>
 </body>
 </html>

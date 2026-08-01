@@ -24,7 +24,7 @@ os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
 KINDS = [
     "User", "Device", "UserDictionaryWord", "GlobalDictionaryWord", "WordLookup",
     "Dictionary", "GameLog", "UnknownWord", "DailyStatistics", "TotalStatistics",
-    "GamesForPlayerCount", "GameLength", "StatisticVersion",
+    "GamesForPlayerCount", "GameLength", "StatisticVersion", "WordFrequency",
 ]
 
 

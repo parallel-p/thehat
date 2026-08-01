@@ -110,3 +110,87 @@ def test_total_statistics_on_an_empty_database(client, ndb_context):
 def test_statistics_pages_are_not_indexable(client, ndb_context):
     response = client.get("/statistics/total_statistics")
     assert 'name="robots"' in response.text
+
+
+def test_word_statistics_shows_the_hardest_words_as_slips(client, ndb_context):
+    for index in range(12):
+        GlobalDictionaryWord(id="w{}".format(index), word="w{}".format(index),
+                             E=float(index), D=5.0, used_times=index).put()
+    response = client.get("/statistics/word_statistics")
+    # The three hardest words are showcased on paper slips above the tables.
+    assert 'class="ws ws--honey"' in response.text
+    assert "труднее всего объяснить" in response.text
+
+
+def test_word_statistics_lists_error_prone_words(client, ndb_context):
+    """The legacy «ошибкоопасные слова» table, with the error rate computed
+    honestly (the stored `danger` property keeps the py27 floor-division bug)."""
+    GlobalDictionaryWord(id="каламбур", word="каламбур", E=70.0, D=5.0,
+                         used_times=20, guessed_times=8, failed_times=10).put()
+    GlobalDictionaryWord(id="кот", word="кот", E=10.0, D=5.0,
+                         used_times=20, guessed_times=20, failed_times=0).put()
+    # Too few attempts to qualify, even though every one failed.
+    GlobalDictionaryWord(id="шум", word="шум", E=50.0, D=5.0,
+                         used_times=2, failed_times=2).put()
+    response = client.get("/statistics/word_statistics")
+    assert "Ошибкоопасные" in response.text
+    assert "50%" in response.text
+    # The danger table is the last content block; «шум» may appear in the
+    # hardest/easiest tables above, but not after the danger caption.
+    danger_section = response.text.split("Ошибкоопасные")[1]
+    assert "каламбур" in danger_section
+    assert "шум" not in danger_section
+
+
+def test_word_page_draws_the_difficulty_scale(client, ndb_context):
+    GlobalDictionaryWord(id="кот", word="кот", E=61.25, D=4.0, used_times=10,
+                         guessed_times=8, failed_times=1,
+                         total_explanation_time=80,
+                         counts_by_expl_time=[0, 3, 5]).put()
+    response = client.get("/statistics/word_statistics", params={"word": "кот"})
+    # The old gauge, flat: a confidence band E +- 2D and a marker at E.
+    assert 'class="scale__band"' in response.text
+    assert "left: 53.2%" in response.text          # E - 2D
+    assert "left: 61.2%" in response.text          # the marker
+
+
+def test_total_statistics_ports_the_legacy_extras(client, ndb_context):
+    from app.models import WordFrequency
+
+    total = TotalStatistics.get()
+    total.games = 42
+    total.words_used = 1234
+    total.by_hour[5] = 7          # Thursday (index offset +3), 05:00
+    total.put()
+    # Six words of one length so the by-length chart has a qualifying bucket.
+    for index in range(6):
+        word = "слово{}".format(index)
+        GlobalDictionaryWord(id=word, word=word, E=40.0 + index, D=6.0,
+                             used_times=3 + index,
+                             total_explanation_time=100 + index).put()
+        WordFrequency(id=word, word=word, frequency=5.0).put()
+
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+
+    # The hour-of-week punchcard: the single non-zero cell is the peak dot.
+    assert 'class="punch"' in response.text
+    assert "--v: 1.0" in response.text
+
+    # The longest-explained word, on a slip, with a human-readable duration.
+    assert "Дольше всего объясняли" in response.text
+    assert "слово5" in response.text
+    assert "минуту" in response.text               # 105 sec -> 1 минуту 45 секунд
+
+    # The analytics the old site rendered as matplotlib images.
+    assert "Анатомия сложности" in response.text
+    assert "по длине слова" in response.text
+    assert "числу партий" in response.text
+    assert "частотности" in response.text
+
+
+def test_total_statistics_hides_frequency_without_corpus_data(client, ndb_context):
+    GlobalDictionaryWord(id="кот", word="кот", E=40.0, D=6.0, used_times=3).put()
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+    assert "частотности" not in response.text

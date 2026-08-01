@@ -64,6 +64,19 @@
             <div class="tile__label">Сложность</div>
             <div class="hero-figure" style="margin-top: var(--s2);">{{ '%.1f'|format(word_entity.E) }}</div>
             <div class="tile__note">± {{ '%.1f'|format(word_entity.D * 2) }} — доверительный интервал</div>
+            {# The old difficulty gauge, laid flat: the confidence band E ± 2D
+               on a 0–100 track, the measured value as the marker. #}
+            {% set band_lo = [0.0, word_entity.E - 2 * word_entity.D]|max %}
+            {% set band_hi = [100.0, word_entity.E + 2 * word_entity.D]|min %}
+            {% set marker = [[0.0, word_entity.E]|max, 98.0]|min %}
+            <div class="scale">
+                <div class="scale__track">
+                    <span class="scale__band"
+                          style="left: {{ band_lo|round(1) }}%; width: {{ (band_hi - band_lo)|round(1) }}%"></span>
+                    <span class="scale__marker" style="left: {{ marker|round(1) }}%"></span>
+                </div>
+                <div class="scale__labels"><span>0 · легко</span><span>100 · трудно</span></div>
+            </div>
         </div>
         <div class="tile">
             <div class="tile__label">Попыток объяснить</div>
@@ -155,11 +168,57 @@
     </div>
     {% endif %}
 
+    {% if top %}
+    <div style="margin-bottom: var(--s7);">
+        <p class="chart__caption">Прямо сейчас труднее всего объяснить</p>
+        {% set slip_colours = ['honey', 'rose', 'sky'] %}
+        <div class="ws-row" style="margin-top: var(--s3);">
+            {% for w in top[:3] %}
+            <a class="ws ws--{{ slip_colours[loop.index0] }}" style="text-decoration: none;"
+               href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); align-items: start;">
         <div>{{ word_table('Самые сложные', top) }}</div>
         <div>{{ word_table('Самые простые', bottom) }}</div>
         <div>{{ word_table('Случайные', rand) }}</div>
     </div>
+
+    {% if danger_top %}
+    <div style="margin-top: var(--s7);">
+        <div class="table-scroll" style="max-width: 34rem;">
+            <table class="table">
+                <caption>Ошибкоопасные слова · где чаще всего нарушают правила</caption>
+                <thead>
+                    <tr>
+                        <th class="rank" scope="col">#</th>
+                        <th scope="col">Слово</th>
+                        <th class="num" scope="col">Сложность</th>
+                        <th class="num" scope="col">Ошибок</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in danger_top %}
+                    <tr>
+                        <td class="rank">{{ loop.index }}</td>
+                        <td class="word">
+                            <a href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+                        </td>
+                        <td class="num">{{ '%.1f'|format(w.E) }}</td>
+                        <td class="num">{{ w.share|round|int }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="tile__note" style="margin-top: var(--s2);">
+            доля объяснений с ошибкой; учитываются слова с десятью и более попытками
+        </p>
+    </div>
+    {% endif %}
 
 {% endif %}
 
