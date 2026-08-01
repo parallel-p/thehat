@@ -669,12 +669,12 @@ a:hover {
   font-family: var(--sans);
   font-size: var(--t-small);
 }
+/* A table is titled the same way a chart is: a line of prose above it. */
 .table caption {
   text-align: left;
-  color: var(--ink-muted);
-  font-size: var(--t-micro);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--serif);
+  font-size: var(--t-body);
+  color: var(--ink);
   padding-bottom: var(--s3);
 }
 .table th {
@@ -704,20 +704,46 @@ a:hover {
 .table .rank { color: var(--ink-muted); width: 1%; font-variant-numeric: tabular-nums; }
 .table .word { font-family: var(--serif); font-style: italic; font-size: 1rem; }
 
-/* -- stat tiles --------------------------------------------------------- */
-.tiles {
+/* -- headline figures ----------------------------------------------------
+   A page states its numbers the way a printed almanac does: set straight on
+   the paper, ruled apart, caption underneath. Deliberately not a row of
+   bordered cards with the label on top — that is a dashboard's idiom, and
+   this is a sheet, not a control panel. */
+.figures {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--rule);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-card);
-  overflow: hidden;
+  gap: var(--s5) var(--s6);
 }
-.tile {
-  background: var(--paper-raised);
-  padding: var(--s5);
+.figure { padding-left: var(--s4); border-left: 1px solid var(--rule); }
+.figure__value {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: clamp(2.1rem, 4vw, 2.9rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
+/* The unit rides with the number, at reading size. */
+.figure__unit { font-size: 1rem; font-weight: 400; color: var(--ink-muted); margin-left: 0.15em; }
+.figure__label {
+  display: block;
+  margin-top: var(--s3);
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+}
+
+/* "Show me the table" under a chart: a line of prose, like the captions. */
+.disclosure {
+  font-family: var(--serif);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.disclosure:hover { color: var(--ink); }
+
+/* -- stat tiles --------------------------------------------------------- */
 .tile__label {
   font-family: var(--sans);
   font-size: var(--t-micro);
@@ -726,14 +752,6 @@ a:hover {
   text-transform: uppercase;
   color: var(--ink-muted);
 }
-.tile__value {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: 2rem;
-  line-height: 1.1;
-  margin-top: var(--s2);
-  /* Proportional figures: this is a standalone number, not a column. */
-}
 .tile__note {
   font-family: var(--sans);
   font-size: var(--t-small);
@@ -741,26 +759,18 @@ a:hover {
   margin-top: var(--s1);
 }
 
-/* The one number a page leads with. Sans, never the display serif. */
-.hero-figure {
-  font-family: var(--sans);
-  font-weight: 600;
-  font-size: clamp(3rem, 7vw, 4.5rem);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
 /* -- bar chart ----------------------------------------------------------
    Single-series magnitude: one hue (the slip of the subject), no legend,
-   hairline baseline, values direct-labelled at the tip. */
+   values direct-labelled at the tip. */
 .chart { margin-top: var(--s4); }
+/* The chart's title is a line of prose, in the reading face — a page of
+   small uppercase sans labels reads as a dashboard. Only the units and
+   footnotes below a chart stay in the counting face. */
 .chart__caption {
-  font-family: var(--sans);
-  font-size: var(--t-micro);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  margin-bottom: var(--s3);
+  font-family: var(--serif);
+  font-size: var(--t-body);
+  color: var(--ink);
+  margin-bottom: var(--s4);
 }
 
 .bars {
@@ -781,21 +791,21 @@ a:hover {
   font-size: var(--t-micro);
   white-space: nowrap;
 }
+/* No filled track behind the mark: the bars stand on a single ruled axis,
+   the way a bar chart is set in print. A grey trough per row is chart-widget
+   furniture and puts a second, meaningless rectangle on every line. */
 .bar__track {
   display: block;
-  background: var(--mark-track);
-  border-radius: 2px;
+  position: relative;
   height: 14px;                    /* thin mark, well under the 24px cap */
-  overflow: hidden;
+  border-left: 1px solid var(--rule);
 }
 .bar__fill {
   /* Must be blockified: width/height do not apply to an inline box. */
   display: block;
   height: 100%;
   background: var(--mark-honey);
-  /* Square at the baseline, rounded at the data end. */
-  border-radius: 0 3px 3px 0;
-  min-width: 2px;
+  min-width: 1px;
 }
 .bar__value {
   font-variant-numeric: tabular-nums;
@@ -809,6 +819,24 @@ a:hover {
    sky for time, lilac for people. */
 .bars--sky .bar__fill { background: var(--mark-sky); }
 .bars--lilac .bar__fill { background: var(--mark-lilac); }
+
+/* Difficulty is an absolute scale, so its bars are measured against it and
+   not against the tallest bar in the group: peak-normalising a 46-to-58
+   range would draw a small real difference as a dramatic one. The tick is
+   50 — the average word — so every bar is read against it. */
+.bars--difficulty .bar__track::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 50%;
+  width: 1px;
+  /* Only the ends of the mark are drawn, so it reads whether the bar has
+     reached 50 or not — a line laid over the fill would be lost in it. */
+  background: linear-gradient(var(--ink-muted) 0 4px,
+                              transparent 4px calc(100% - 4px),
+                              var(--ink-muted) calc(100% - 4px) 100%);
+}
 
 /* Two charts side by side on a wide sheet. */
 .chart-grid { display: grid; gap: var(--s6); align-items: start; }
@@ -848,6 +876,8 @@ a:hover {
 .scale__track { position: relative; height: 14px; background: var(--mark-track); border-radius: 7px; }
 .scale__band { position: absolute; top: 0; bottom: 0; background: var(--mark-honey); opacity: 0.35; border-radius: 7px; }
 .scale__marker { position: absolute; top: -3px; bottom: -3px; width: 4px; border-radius: 2px; background: var(--mark-honey); }
+/* 50: the average word, so the reading has something to be read against. */
+.scale__mid { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--ink-muted); opacity: 0.5; }
 .scale__labels {
   display: flex;
   justify-content: space-between;

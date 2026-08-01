@@ -38,28 +38,27 @@
 
 {% block content %}
 
-<div class="tiles">
-    <div class="tile">
-        <div class="tile__label">Сыграно партий</div>
-        <div class="hero-figure" style="margin-top: var(--s2);">{{ total_games }}</div>
+<div class="figures">
+    <div class="figure">
+        <span class="figure__value">{{ total_games }}</span>
+        <span class="figure__label">сыграно партий</span>
     </div>
-    <div class="tile">
-        <div class="tile__label">Объяснено слов</div>
-        <div class="tile__value">{{ total_words }}</div>
+    <div class="figure">
+        <span class="figure__value">{{ total_words }}</span>
+        <span class="figure__label">объяснено слов</span>
     </div>
-    <div class="tile">
-        <div class="tile__label">Слов в словаре</div>
-        <div class="tile__value">{{ words_in_dictionary }}</div>
-        <div class="tile__note">{{ used_words }} хотя бы раз использованы</div>
+    <div class="figure">
+        <span class="figure__value">{{ words_in_dictionary }}</span>
+        <span class="figure__label">слов в словаре, {{ used_words }} из них хотя бы раз сыграны</span>
     </div>
-    {% if longest_time %}
-    <div class="tile">
-        <div class="tile__label">Дольше всего объясняли</div>
-        <div style="margin-top: var(--s3);"><span class="ws ws--honey">{{ longest_word }}</span></div>
-        <div class="tile__note" style="margin-top: var(--s3);">в сумме {{ time(longest_time) }}</div>
-    </div>
-    {% endif %}
 </div>
+
+{% if longest_time %}
+<p class="lead" style="margin-top: var(--s6); max-width: var(--measure);">
+    Дольше всего объясняли <a href="/statistics/word_statistics?word={{ longest_word|urlencode }}">{{ longest_word }}</a> —
+    в сумме {{ time(longest_time) }}.
+</p>
+{% endif %}
 
 {% if punch_peak %}
 <div class="chart" style="margin-top: var(--s7);">
@@ -169,7 +168,7 @@
     {% endif %}
 
     <details style="margin-top: var(--s5);">
-        <summary class="tile__label" style="cursor: pointer;">Вся история таблицей</summary>
+        <summary class="disclosure">Вся история таблицей</summary>
         <div class="table-scroll" style="margin-top: var(--s3);">
             <table class="table">
                 <thead>
@@ -203,66 +202,74 @@
 {% if analytics.by_length or analytics.d_by_games or analytics.by_freq %}
 <hr class="rule">
 <p class="eyebrow eyebrow--honey"><span>Анатомия сложности</span></p>
-<p class="tile__note" style="max-width: var(--measure); margin-bottom: var(--s5);">
+{# Prose, not a footnote: the reading face, like the rest of the page. #}
+<p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
     Зависимости, которые старый сайт рисовал картинками, — теперь из живых
     данных. Сложность измеряется по настоящим играм: 50 — среднее слово,
     больше — труднее.
 </p>
 <div class="chart-grid chart-grid--2">
     {% if analytics.by_length %}
-    {% set len_peak = analytics.by_length|map(attribute='avg')|max %}
     <div class="chart" style="margin-top: 0;">
         <p class="chart__caption">Средняя сложность по длине слова</p>
-        <div class="bars">
+        {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
+        <div class="bars bars--difficulty">
             {% for row in analytics.by_length %}
             <div class="bar">
                 <span class="bar__label">{{ row.label }} букв</span>
                 <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ (100.0 * row.avg / len_peak)|round(1) }}%"></span>
+                    <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
                 </span>
                 <span class="bar__value">{{ row.avg|round(1) }}</span>
             </div>
             {% endfor %}
         </div>
-        <p class="tile__note" style="margin-top: var(--s2);">длины, где есть хотя бы 5 использованных слов</p>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            тик — 50, средняя сложность; длины, где есть хотя бы 5 использованных слов
+        </p>
     </div>
     {% endif %}
 
     {% if analytics.d_by_games %}
-    {% set d_peak = analytics.d_by_games|map(attribute='avg')|max %}
     <div class="chart" style="margin-top: 0;">
         <p class="chart__caption">Погрешность сложности по числу партий со словом</p>
+        {# Measured against 50/3 — the погрешность of a word nobody has
+           played yet — so a bar reads as "столько неизвестности осталось". #}
         <div class="bars">
             {% for row in analytics.d_by_games %}
             <div class="bar">
                 <span class="bar__label">{{ row.label }} парт.</span>
                 <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ (100.0 * row.avg / d_peak)|round(1) }}%"></span>
+                    <span class="bar__fill" style="width: {{ [3.0 * row.avg, 100.0]|min|round(1) }}%"></span>
                 </span>
                 <span class="bar__value">{{ row.avg|round(1) }}</span>
             </div>
             {% endfor %}
         </div>
-        <p class="tile__note" style="margin-top: var(--s2);">чем больше партий, тем точнее оценка (D — среднее)</p>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            во всю ширину — 16,7, погрешность неигранного слова; чем больше партий,
+            тем точнее оценка
+        </p>
     </div>
     {% endif %}
 
     {% if analytics.by_freq %}
-    {% set freq_peak = analytics.by_freq|map(attribute='avg')|max %}
     <div class="chart" style="margin-top: 0;">
         <p class="chart__caption">Средняя сложность по частотности слова</p>
-        <div class="bars">
+        <div class="bars bars--difficulty">
             {% for row in analytics.by_freq %}
             <div class="bar">
                 <span class="bar__label">{{ row.label }}</span>
                 <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ (100.0 * row.avg / freq_peak)|round(1) }}%"></span>
+                    <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
                 </span>
                 <span class="bar__value">{{ row.avg|round(1) }}</span>
             </div>
             {% endfor %}
         </div>
-        <p class="tile__note" style="margin-top: var(--s2);">употреблений на миллион слов корпуса</p>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            тик — 50; по горизонтали слева указано число употреблений на миллион слов корпуса
+        </p>
     </div>
     {% endif %}
 </div>

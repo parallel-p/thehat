@@ -72,41 +72,43 @@
         ('Не отгадано', not_explained)
     ] %}
 
-    <div class="tiles">
-        <div class="tile">
-            <div class="tile__label">Сложность</div>
-            <div class="hero-figure" style="margin-top: var(--s2);">{{ '%.1f'|format(word_entity.E) }}</div>
-            <div class="tile__note">± {{ '%.1f'|format(word_entity.D * 2) }} — доверительный интервал</div>
-            {# The old difficulty gauge, laid flat: the confidence band E ± 2D
-               on a 0–100 track, the measured value as the marker. #}
-            {% set band_lo = [0.0, word_entity.E - 2 * word_entity.D]|max %}
-            {% set band_hi = [100.0, word_entity.E + 2 * word_entity.D]|min %}
-            {% set marker = [[0.0, word_entity.E]|max, 98.0]|min %}
-            <div class="scale">
-                <div class="scale__track">
-                    <span class="scale__band"
-                          style="left: {{ band_lo|round(1) }}%; width: {{ (band_hi - band_lo)|round(1) }}%"></span>
-                    <span class="scale__marker" style="left: {{ marker|round(1) }}%"></span>
-                </div>
-                <div class="scale__labels"><span>0 · легко</span><span>100 · трудно</span></div>
-            </div>
+    <div class="figures">
+        <div class="figure">
+            <span class="figure__value">{{ '%.1f'|format(word_entity.E) }}</span>
+            <span class="figure__label">сложность, ± {{ '%.1f'|format(word_entity.D * 2) }}</span>
         </div>
-        <div class="tile">
-            <div class="tile__label">Попыток объяснить</div>
-            <div class="tile__value">{{ word_entity.used_times }}</div>
-            <div class="tile__note">
-                из них отгадано {{ word_entity.guessed_times }}
-            </div>
+        <div class="figure">
+            <span class="figure__value">{{ word_entity.used_times }}</span>
+            <span class="figure__label">попыток объяснить, из них отгадано {{ word_entity.guessed_times }}</span>
         </div>
-        <div class="tile">
-            <div class="tile__label">Суммарное время</div>
-            <div class="tile__value">{{ word_entity.total_explanation_time }}<span style="font-size: 1rem;"> сек</span></div>
-            {% if word_entity.guessed_times > 0 %}
-            <div class="tile__note">
-                в среднем {{ word_entity.total_explanation_time // word_entity.guessed_times }} сек на отгадывание
-            </div>
-            {% endif %}
+        <div class="figure">
+            <span class="figure__value">{{ word_entity.total_explanation_time }}<span class="figure__unit"> сек</span></span>
+            <span class="figure__label">
+                суммарное время{% if word_entity.guessed_times > 0 %},
+                в среднем {{ word_entity.total_explanation_time // word_entity.guessed_times }} сек на отгадывание{% endif %}
+            </span>
         </div>
+    </div>
+
+    {# The old difficulty gauge, laid flat: the confidence band E ± 2D, the
+       measured value as the marker. The rating is a TrueSkill mu and is not
+       bounded by 100 — a handful of words sit above it — so the axis grows
+       to fit rather than claiming a range the number can exceed. #}
+    {% set band_lo = [0.0, word_entity.E - 2 * word_entity.D]|max %}
+    {% set band_hi = word_entity.E + 2 * word_entity.D %}
+    {% set scale_max = [100.0, ((band_hi / 10)|round(0, 'ceil')) * 10]|max %}
+    <div class="scale" style="max-width: 34rem; margin-top: var(--s6);">
+        <div class="scale__track">
+            <span class="scale__band"
+                  style="left: {{ (100.0 * band_lo / scale_max)|round(1) }}%; width: {{ (100.0 * (band_hi - band_lo) / scale_max)|round(1) }}%"></span>
+            <span class="scale__mid" style="left: {{ (5000.0 / scale_max)|round(1) }}%"></span>
+            <span class="scale__marker" style="left: {{ (100.0 * word_entity.E / scale_max)|round(1) }}%"></span>
+        </div>
+        <div class="scale__labels">
+            <span>0 · легко</span>
+            <span>{{ scale_max|int }} · трудно</span>
+        </div>
+        <p class="tile__note">светлая полоса — доверительный интервал, тик — 50, средняя сложность</p>
     </div>
 
     {% if word_entity.used_times > 0 %}
@@ -150,7 +152,7 @@
         </div>
 
         <details style="margin-top: var(--s5);">
-            <summary class="tile__label" style="cursor: pointer;">Показать таблицей</summary>
+            <summary class="disclosure">Показать таблицей</summary>
             <div class="table-scroll" style="margin-top: var(--s3); max-width: 24rem;">
                 <table class="table">
                     <thead>

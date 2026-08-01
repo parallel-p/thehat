@@ -39,8 +39,15 @@ colour appears only where the game would produce a slip of paper.
    underline (`.display em` etc. — one per headline, never more), eyebrows are
    lowercase Georgia italic rather than letterspaced caps, a link underline
    turns wavy under the cursor, a button tilts −1° on hover. Everything that
-   *counts* stays strict: tables, chart captions and tile labels keep the
-   sans, the small caps and the tabular figures.
+   *counts* stays strict: the numbers themselves — table cells, bar values,
+   headline figures, axis and unit labels — keep the sans and the tabular
+   figures, and never take the display serif.
+
+   The *titles* of those things are not numbers, and they read in Georgia
+   like the rest of the page: chart captions, table captions, disclosure
+   summaries. A page whose every block is announced by small letterspaced
+   uppercase sans stops looking like a sheet of paper and starts looking like
+   a dashboard, which is the one thing this site is not.
 
 ## Tokens
 
@@ -119,9 +126,12 @@ pills, cards are `--r-card` (10px), word slips get an irregular torn cut.
 
 Everything the python27 site showed publicly is ported, most of it reborn:
 
-- **Total**: tiles (games, words, dictionary + used, the longest-explained
-  word — shown on a honey slip with a human-readable duration via the ported
-  pluralisation macros); the **hour-of-week punchcard** (`.punch`, the old
+- **Total**: the headline figures (games, words, dictionary + used) set
+  straight on the paper and ruled apart, caption underneath — `.figures`,
+  deliberately not a row of bordered cards with the label on top, which is a
+  dashboard's idiom; the longest-explained word follows as a sentence, with a
+  human-readable duration via the ported pluralisation macros; the
+  **hour-of-week punchcard** (`.punch`, the old
   amCharts bubble chart as a 7×24 dot grid — dot size and opacity carry
   count); by-hour columns and by-day bars; games by player count; **daily
   activity strip** (`.columns--dense`, one thin column per day over the last
@@ -138,8 +148,10 @@ Everything the python27 site showed publicly is ported, most of it reborn:
   with the error rate computed honestly in Python (the stored `danger`
   property preserves a py27 floor-division bug and is ~always 0, so the old
   page ranked by garbage); per-word view with the old gauge laid flat
-  (`.scale`: a 0–100 track, confidence band E ± 2D, marker at E), outcome
-  bars, and the explanation-time histogram.
+  (`.scale`: confidence band E ± 2D, marker at E, a tick at 50 — the average
+  word — on an axis that grows past 100 when the rating does, because a
+  TrueSkill mu is not bounded and a few words sit above it), outcome bars,
+  and the explanation-time histogram.
 
 ## Charts
 
@@ -151,7 +163,15 @@ survives verbatim:
   (`.bars--sky`, `.bars--lilac` modifiers).
 - Marks are capped at 24px and never fill their slot; adjacent marks separate
   by a 2px surface gap, never a stroke.
-- Data ends are rounded (3px), baselines are square.
+- **No trough behind the mark.** Bars stand on one ruled axis, the way a bar
+  chart is set in print; a grey channel per row is chart-widget furniture and
+  puts a second, meaningless rectangle on every line.
+- **A fixed scale is drawn against itself, not against the tallest bar.**
+  Difficulty is 0–100, so `.bars--difficulty` maps the value straight to the
+  width and ticks 50 (the average word) above and below each bar —
+  peak-normalising a 46-to-58 range would draw a small real difference as a
+  dramatic one. Uncertainty D is measured against 50/3, its value for a word
+  nobody has played, so a bar reads as the unknown that is left.
 - Values are direct-labelled at the tip; hour labels appear every third column.
 - Tabular figures in columns only; text never wears the data colour.
 - Charts of many marks ship a `<details>` table view; column charts carry

@@ -71,7 +71,7 @@ def test_word_statistics_for_a_single_word(client, ndb_context):
 
     # The difficulty is the number the page leads with.
     assert "61.2" in response.text or "61.3" in response.text
-    assert 'class="hero-figure"' in response.text
+    assert 'class="figure__value"' in response.text
     # ...and the uncertainty is shown as +-2D, not the raw sigma.
     assert "8.0" in response.text
 
