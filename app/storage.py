@@ -8,6 +8,7 @@ import logging
 import threading
 
 from app import settings
+from app.gcp_auth import credentials
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ def _storage_client():
     if _client is None:
         from google.cloud import storage
 
-        _client = storage.Client(project=settings.PROJECT_ID)
+        _client = storage.Client(project=settings.PROJECT_ID,
+                                 credentials=credentials())
     return _client
 
 

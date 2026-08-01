@@ -12,6 +12,7 @@ from google.cloud import ndb
 from google.cloud.ndb import context as context_module
 
 from app import settings
+from app.gcp_auth import credentials
 
 _client = None
 
@@ -19,7 +20,8 @@ _client = None
 def client():
     global _client
     if _client is None:
-        _client = ndb.Client(project=settings.PROJECT_ID)
+        _client = ndb.Client(project=settings.PROJECT_ID,
+                             credentials=credentials())
     return _client
 
 

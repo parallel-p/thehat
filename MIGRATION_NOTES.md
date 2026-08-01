@@ -104,6 +104,9 @@ traffic split, so "fixing" these would make the two versions disagree.
 * In `parse_log_v2`, `explained_at_once[n] = n not in seen_by_player.values()`
   compares an int against a collection of sets and is therefore always `True`.
 * v1 logs whose `setup.type` is `freeplay` are rejected as `old_version`.
+* The dictionary's `diff` bucket is `index // (len(words) // 100)`, which runs
+  past 99 whenever the word count is not a multiple of 100 — production's
+  current blob reaches 100. Clients treat it as an opaque difficulty number.
 
 None of these should be changed before the python27 version is decommissioned
 (WP9). After that they are fair game, but each one changes stored ratings.
@@ -153,3 +156,4 @@ order.
 | End-to-end pipeline | 60 real logs replayed through HTTP + Cloud Tasks + Datastore on staging; final state matches the python27 reference for all 1,026 rated words (worst divergence 1.1e-12) |
 | Dictionary endpoint on staging | byte-identical to production's 1,320,528-byte response, same ETag, 304 honoured |
 | Composite indexes | `owner IN (...)` udict fan-out verified live on staging after `gcloud app deploy index.yaml` |
+| Dictionary generation | full cycle run on staging: build, upload, swap `Dictionary.gcs_key`, delete the old blob, endpoint serves the new one with the new ETag |

@@ -33,6 +33,13 @@ logger = logging.getLogger(__name__)
 
 def build_payload(words):
     """Serialise ``words`` exactly the way the python27 job did."""
+    if len(words) < 100:
+        # The original divided by `len(words) // 100` and blew up with
+        # ZeroDivisionError here. Fail with something readable instead; a
+        # dictionary this small is a mistake, not a valid artifact.
+        raise ValueError(
+            "refusing to build a dictionary from {} words: the difficulty "
+            "buckets need at least 100".format(len(words)))
     chunk_size = len(words) // 100
     data_object = []
     for i, word in enumerate(words):
