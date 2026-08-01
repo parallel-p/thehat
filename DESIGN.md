@@ -141,9 +141,14 @@ bottom of the games page: it was never about games.
   pluralisation macros (which every generated sentence on these pages goes
   through — «23 слов» is how a page announces that a machine wrote it).
   Then three named sections: **«Когда достают шляпу»** — the hour-of-week
-  punchcard (`.punch`, the old amCharts bubble chart as a 7×24 dot grid,
-  size and opacity carrying count) with by-hour columns and by-day bars
-  under it, since the three answer one question between them;
+  punchcard (`.punch`, the old amCharts bubble chart as a dot grid, size and
+  opacity carrying count) with by-hour columns and by-day bars under it,
+  since the three answer one question between them. Every punchcard cell
+  carries its own `--d` and `--h` and is placed explicitly, so the narrow
+  layout transposes it — hours down the page, days across — instead of
+  scrolling sideways, which used to hide the evening, the one part of that
+  chart anyone reads. **No chart scrolls sideways at any width**; if one
+  cannot fit, it changes shape.
   **«Как выглядит одна партия»** — players, words and minutes of an average
   game, from the daily records, over games by player count;
   **«Сколько уже сыграно»** — the daily activity strip (`.columns--dense`,

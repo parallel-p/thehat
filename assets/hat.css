@@ -852,20 +852,45 @@ a:hover {
 
 /* -- punchcard -----------------------------------------------------------
    Hour-of-week grid: a dot per (day, hour), sized and weighted by count.
-   The evening table's own rhythm — when the hat actually comes out. */
+   The evening table's own rhythm — when the hat actually comes out.
+
+   24 across by 7 down wants a landscape sheet, and on a phone it used to
+   need a 30rem scroller — which hid the evening, the one part of this chart
+   anybody reads. So every cell carries its own (--d, --h) and is placed
+   explicitly, and the narrow layout simply transposes the placement: hours
+   run down the page, days across. Same markup, no scrolling, at any width. */
 .punch {
   display: grid;
-  grid-template-columns: max-content repeat(24, 1fr);
+  grid-template-columns: max-content repeat(24, minmax(0, 1fr));
   gap: 2px;
   align-items: center;
   justify-items: center;
   font-family: var(--sans);
   font-size: var(--t-micro);
   color: var(--ink-muted);
-  min-width: 30rem;
 }
-.punch__day { justify-self: start; padding-right: var(--s2); }
-.punch__cell { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1; }
+.punch__day { grid-area: var(--d) / 1; justify-self: start; padding-right: var(--s2); }
+.punch__cell {
+  grid-area: var(--d) / calc(var(--h) + 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+}
+.punch__hour { grid-area: 8 / calc(var(--h) + 2); }
+/* Landscape has room for every third hour only; the rest hold their column. */
+.punch__hour--sparse { visibility: hidden; }
+
+@media (max-width: 48rem) {
+  .punch { grid-template-columns: max-content repeat(7, minmax(0, 1fr)); }
+  .punch__day { grid-area: 1 / calc(var(--d) + 1); justify-self: center; padding-right: 0; }
+  .punch__cell { grid-area: calc(var(--h) + 2) / calc(var(--d) + 1); aspect-ratio: auto; height: 1.25rem; }
+  .punch__hour { grid-area: calc(var(--h) + 2) / 1; justify-self: end; padding-right: var(--s2); }
+  /* A row per hour: there is room to name all of them, and down the side
+     they are what tells you which row you are looking at. */
+  .punch__hour--sparse { visibility: visible; }
+}
 .punch__dot {
   /* --v is count/peak, set inline */
   width: calc(0.25rem + var(--v, 0) * 0.85rem);
@@ -958,8 +983,9 @@ a:hover {
   font-variant-numeric: tabular-nums;
 }
 /* min-width alone: the label must still be free to spill out of its 4px
-   cell, because only every third (or fourteenth) one is shown. */
-.column__label { text-align: center; min-width: 0; }
+   cell, because only every third (or fourteenth) one is shown. nowrap comes
+   with it — free to shrink, a two-digit hour would set as two lines. */
+.column__label { text-align: center; min-width: 0; white-space: nowrap; }
 /* Every third tick stays; the rest would collide. */
 .column__label--hidden { visibility: hidden; }
 

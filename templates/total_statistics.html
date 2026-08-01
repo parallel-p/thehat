@@ -76,28 +76,29 @@
 {% if punch_peak %}
 <div class="chart">
     <p class="chart__caption">По дню недели и часу</p>
-    <div class="table-scroll">
-        <div class="punch" role="img"
-             aria-label="Распределение партий по дню недели и часу суток">
-            {% for row in punchcard %}
-            {% set day = day_names[loop.index0] %}
-            <span class="punch__day">{{ day }}</span>
-            {% for count in row %}
-            <span class="punch__cell">
-                {%- if count -%}
-                <span class="punch__dot" style="--v: {{ (1.0 * count / punch_peak)|round(2) }}"
-                      title="{{ day }} {{ loop.index0 }}:00 — {{ label(count, 'партия', 'партии', 'партий') }}"></span>
-                {%- else -%}
-                <span class="punch__dot punch__dot--zero"></span>
-                {%- endif -%}
-            </span>
-            {% endfor %}
-            {% endfor %}
-            <span class="punch__day"></span>
-            {% for hour in range(24) %}
-            <span class="punch__hour">{% if hour % 3 == 0 %}{{ hour }}{% endif %}</span>
-            {% endfor %}
-        </div>
+    {# Every cell states its own day and hour, so the stylesheet can lay the
+       grid out either way round without the markup changing. #}
+    <div class="punch" role="img"
+         aria-label="Распределение партий по дню недели и часу суток">
+        {% for row in punchcard %}
+        {% set day_index = loop.index %}
+        {% set day = day_names[loop.index0] %}
+        <span class="punch__day" style="--d: {{ day_index }}">{{ day }}</span>
+        {% for count in row %}
+        <span class="punch__cell" style="--d: {{ day_index }}; --h: {{ loop.index0 }}">
+            {%- if count -%}
+            <span class="punch__dot" style="--v: {{ (1.0 * count / punch_peak)|round(2) }}"
+                  title="{{ day }} {{ loop.index0 }}:00 — {{ label(count, 'партия', 'партии', 'партий') }}"></span>
+            {%- else -%}
+            <span class="punch__dot punch__dot--zero"></span>
+            {%- endif -%}
+        </span>
+        {% endfor %}
+        {% endfor %}
+        {% for hour in range(24) %}
+        <span class="punch__hour{% if hour % 3 %} punch__hour--sparse{% endif %}"
+              style="--h: {{ hour }}">{{ hour }}</span>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
