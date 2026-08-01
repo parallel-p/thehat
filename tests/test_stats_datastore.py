@@ -146,6 +146,39 @@ def test_update_total_statistics_buckets_by_hour_of_week(ndb_context):
     assert sum(total.by_hour) == 1
 
 
+def test_hour_of_week_is_the_players_own_clock(ndb_context):
+    """One instant, two zones, two different hours of the day.
+
+    The statistics pages present these buckets as "when people play", which
+    is only true if the hour is the one the players had on their own wall.
+    The client sends `time_zone_offset` and the pipeline adds it before
+    bucketing, so nothing downstream may shift them a second time.
+    """
+    from app.models import Dictionary
+
+    for word in ["кот", "дом", "мост", "лес"]:
+        GlobalDictionaryWord(id=word, word=word, E=50.0, D=16.0, lang="ru").put()
+    Dictionary(id="ru").put()
+
+    instant = datetime.datetime(2023, 11, 25, 18, 0,
+                                tzinfo=datetime.timezone.utc)
+    instant_ms = int(instant.timestamp() * 1000)
+
+    hours = []
+    for offset_hours in (0, 3):
+        TotalStatistics.get().key.delete()
+        payload = v2_log([("кот", 8000), ("дом", 12000),
+                          ("мост", 5000), ("лес", 21000)],
+                         start_ms=instant_ms,
+                         offset_ms=offset_hours * 60 * 60 * 1000)
+        assert stats.add_game_to_statistic(GameLog(json=payload).put()) == "ok"
+        buckets = TotalStatistics.get().by_hour
+        hours.append(next(i for i, n in enumerate(buckets) if n) % 24)
+
+    # Six in the evening in London, nine in the evening in Moscow.
+    assert hours == [18, 21]
+
+
 def test_update_total_statistics_without_a_timestamp(ndb_context):
     stats.update_total_statistics(7, None)
     total = TotalStatistics.get()
@@ -175,14 +208,15 @@ def test_update_game_len_prediction(ndb_context):
 # --------------------------------------------------------------------------
 
 
-def v2_log(word_times, players=("a", "b")):
+def v2_log(word_times, players=("a", "b"), start_ms=1700000000000, offset_ms=0):
     attempts = []
     for index, (word, ms) in enumerate(word_times):
         attempts.append({"word": word, "from": players[index % len(players)],
                          "to": players[(index + 1) % len(players)],
                          "time": ms, "extra_time": 0, "outcome": "guessed"})
-    return json.dumps({"version": "2.0", "start_timestamp": 1700000000000,
-                       "end_timestamp": 1700001800000, "time_zone_offset": 0,
+    return json.dumps({"version": "2.0", "start_timestamp": start_ms,
+                       "end_timestamp": start_ms + 1800000,
+                       "time_zone_offset": offset_ms,
                        "attempts": attempts}, ensure_ascii=False)
 
 

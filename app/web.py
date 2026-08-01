@@ -302,6 +302,16 @@ def total_statistics(request: Request):
     by_hour = [0] * 24
     by_day = [0] * 7
     # 7x24 punchcard, same hour-of-week layout the old bubble chart used.
+    # Slot 0 is the epoch hour, which fell on a Thursday, hence the +3 into a
+    # week that starts on Monday.
+    #
+    # These hours are already each player's own wall clock, and must not be
+    # shifted again here: stats._process_log adds the `time_zone_offset` the
+    # client sent (v2) or `setup.meta['time.offset']` (v1) to the game's
+    # start timestamp before update_total_statistics buckets it, falling back
+    # to DEFAULT_OFFSET = UTC+4, which is what Moscow was when the app was
+    # written. So a game at nine in the evening lands in the 21:00 slot
+    # wherever it was played.
     punchcard = [[0] * 24 for _ in range(7)]
     for hour, games in enumerate(total.by_hour or []):
         by_hour[hour % 24] += games
