@@ -17,11 +17,84 @@ let game = null;
 let dm = null;
 let clock = null;          // the running turn's ticker, if any
 
-function show(screen) {
+// -- navigation and the Android back button --------------------------------
+//
+// An installed app is judged on this: Back has to mean "up one", and only at
+// the top may it mean "close". A one-document app has no history of its own,
+// so without this every Back — from the lobby, from the middle of a round —
+// closes the whole thing.
+//
+// The stack is kept exactly one entry deep rather than one entry per screen.
+// Screens do not form a line you can walk back along: a finished round must
+// not be re-enterable, and «назад» from the middle of a game means the same
+// thing the on-screen button means, which is to end it and show the score.
+// So Back is a decision, not a rewind, and this is the table of decisions.
+const BACK = {
+  lobby: 'home',
+  'dm-start': 'home',
+  score: 'home',
+  'dm-score': 'home',
+  // Mid-game: end the game the same way «Закончить игру» does. Nothing is
+  // lost — what was played is committed and uploaded — and the player lands
+  // on the scoreboard rather than being dropped out of the app.
+  handoff: 'end-game',
+  round: 'end-game',
+  verdict: 'end-game',
+  'dm-round': 'end-dm',
+};
+
+let depth = 0;              // history entries we have pushed above the base
+
+function render(screen) {
   body.dataset.screen = screen;
   const isRound = screen === 'round' || screen === 'dm-round';
   keepAwake(isRound);
   if (!isRound) body.removeAttribute('data-phase');
+  // Whenever the home screen appears — by button, by Back, or on boot — the
+  // outbox count is re-read. A game finishing kicks off its upload without
+  // waiting for it, so any count taken at that moment is a guess.
+  if (screen === 'home') refreshOutbox();
+}
+
+function show(screen) {
+  if (screen === 'home' && depth === 1) {
+    // Let the browser do it, so the entry is really gone and one more Back
+    // closes the app. popstate below renders the home screen.
+    history.back();
+    return;
+  }
+  render(screen);
+  if (screen === 'home' || screen === 'loading') return;
+  if (depth === 0) { history.pushState({ screen }, ''); depth = 1; }
+  else history.replaceState({ screen }, '');
+}
+
+window.addEventListener('popstate', () => {
+  const from = body.dataset.screen;
+  depth = 0;                          // whatever we pushed is gone now
+  const target = BACK[from] || 'home';
+  if (target === 'end-game') leaveGame();
+  else if (target === 'end-dm') leaveDeathmatch();
+  else render('home');
+});
+
+/** Back out of a game in progress: stop the clock, keep what was played. */
+function leaveGame() {
+  if (clock) { clock.stop(); clock = null; }
+  if (!game || game.finished) { render('home'); return; }
+  // The word in hand was never resolved, so it is not recorded — it simply
+  // stays in the hat of a game that is now over.
+  endGame();
+}
+
+function leaveDeathmatch() {
+  if (clock) { clock.stop(); clock = null; }
+  if (!dm || dm.finished) { render('home'); return; }
+  dm.end(0).then(() => {
+    $('d-final').textContent = dm.score;
+    show('dm-score');
+    refreshOutbox();
+  });
 }
 
 // -- settings -------------------------------------------------------------
@@ -398,7 +471,7 @@ function setupInstall() {
 // -- actions ---------------------------------------------------------------
 
 const actions = {
-  home: () => { if (clock) { clock.stop(); clock = null; } show('home'); refreshOutbox(); },
+  home: () => { if (clock) { clock.stop(); clock = null; } show('home'); },
   'new-game': () => { renderPlayers(); fillSettingsForm(); $('players-error').hidden = true; show('lobby'); },
   'add-player': () => { names.push(`Игрок ${names.length + 1}`); renderPlayers(); },
   'start-game': async () => {
@@ -442,6 +515,11 @@ window.addEventListener('online', () => { logs.flush().then(refreshOutbox); });
 // -- boot ------------------------------------------------------------------
 
 async function start() {
+  // The base entry. Everything the app pushes sits above this one, so Back
+  // from the home screen is the browser's to handle — closing an installed
+  // app, or returning to whatever page linked here in a tab.
+  history.replaceState({ screen: 'home' }, '');
+  depth = 0;
   show('loading');
   $('loading-error').hidden = true;
   $('loading-note').hidden = false;
