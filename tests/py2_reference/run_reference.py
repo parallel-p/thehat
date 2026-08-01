@@ -43,12 +43,19 @@ calculation = imp.load_source(
     os.path.join(LEGACY, 'handlers', 'statistics', 'calculation.py'))
 
 
+ACCUMULATE = False
+
+
 class FakeWord(object):
     def __init__(self, word, E, D, lang):
         self.word = word
         self.E = E
         self.D = D
         self.lang = lang
+        self.used_times = 0
+        self.guessed_times = 0
+        self.failed_times = 0
+        self.total_explanation_time = 0
 
 
 class FakeLog(object):
@@ -105,6 +112,19 @@ def make_handler(words_by_key, langs):
             self.trace.append(['word', word, word_outcome, explanation_time,
                                repr(rating.mu) if rating else None,
                                repr(rating.sigma) if rating else None])
+            if not ACCUMULATE:
+                return
+            word_db = words_by_key.get(word.lower())
+            if word_db is None or rating is None:
+                return
+            word_db.used_times += 1
+            if word_outcome == 'guessed':
+                word_db.guessed_times += 1
+            elif word_outcome == 'failed':
+                word_db.failed_times += 1
+            word_db.total_explanation_time += explanation_time
+            word_db.E = rating.mu
+            word_db.D = rating.sigma
 
     calculation.GlobalDictionaryWord.get = staticmethod(
         lambda word: words_by_key.get(word.lower()))
@@ -140,6 +160,11 @@ def main():
                         help='JSON map word -> {"E":.., "D":.., "lang":..}')
     parser.add_argument('--out', required=True)
     parser.add_argument('--langs', default='ru')
+    parser.add_argument('--accumulate', metavar='PATH',
+                        help='apply update_word to the in-memory word table and '
+                             'dump the final state here; use with a word table '
+                             'seeded at the factory defaults, to predict what a '
+                             'sequential end-to-end replay should produce')
     args = parser.parse_args()
 
     with open(args.words) as handle:
@@ -148,6 +173,8 @@ def main():
         (word.lower(), FakeWord(word, spec['E'], spec['D'], spec.get('lang', 'ru')))
         for word, spec in raw_words.items())
 
+    global ACCUMULATE
+    ACCUMULATE = bool(args.accumulate)
     handler_class = make_handler(words_by_key, args.langs.split(','))
 
     written = 0
@@ -161,6 +188,18 @@ def main():
             sink.write(json.dumps(result, sort_keys=True) + '\n')
             written += 1
     sys.stderr.write('wrote {} traces to {}\n'.format(written, args.out))
+
+    if args.accumulate:
+        final = dict(
+            (w.word, {'E': w.E, 'D': w.D, 'used_times': w.used_times,
+                      'guessed_times': w.guessed_times,
+                      'failed_times': w.failed_times,
+                      'total_explanation_time': w.total_explanation_time})
+            for w in words_by_key.values())
+        with open(args.accumulate, 'w') as sink:
+            json.dump(final, sink, sort_keys=True)
+        sys.stderr.write('wrote final state for {} words to {}\n'.format(
+            len(final), args.accumulate))
 
 
 if __name__ == '__main__':

@@ -58,7 +58,14 @@ Result (`app/models.py: REASON_CODES`): `suspect_too_little_words=0`,
 `not_hat=1`, `suspect_too_quick_explanation=2`, `manual=3`, `old_version=4`,
 `aborted=5`, `format-error=6`.
 
-### 6. Cloud Tasks are pinned to the enqueueing version
+### 6. `/healthz` is unusable as a health endpoint
+
+App Engine's frontend reserves `/healthz` and answers it itself, so a route
+there never reaches the app. Found on the first staging deploy; the endpoint is
+`/_status`. `inbound_services: warmup` was added at the same time, since
+`min_instances` is 0.
+
+### 7. Cloud Tasks are pinned to the enqueueing version
 
 Not in the plan, but necessary. During the WP8 split the python27 version still
 serves most default traffic, so an unrouted task from the py3 version could be
@@ -115,6 +122,22 @@ The three cron jobs are gone; `cron.yaml` deploys an empty list at cutover.
 `/robots.txt` now disallows `/statistics/`, which was ~3.8k of the ~4k monthly
 requests.
 
+## Rating results depend on the order games are processed
+
+Worth knowing before the cutover. The four rating passes sort words by
+explanation time and feed them to TrueSkill as a ranking, so processing the same
+set of games in a different order produces different `E`/`D` — same counters,
+values differing in the second or third decimal.
+
+The statistics queue is concurrent (the legacy push queue ran
+`max_concurrent_requests: 5`, the Cloud Tasks queue is configured the same way),
+so production has always had this nondeterminism. It is not something the
+migration introduces, and it is not something to "fix" — but it does mean an
+end-to-end replay can only be compared against a reference run if the replay is
+forced to be sequential. `scripts/replay_logs.py --sequential` does that; without
+it the same 60 logs produced ~0.05–0.25 divergences in `E` purely from delivery
+order.
+
 ## Verification performed
 
 | What | How |
@@ -125,4 +148,8 @@ requests.
 | Dictionary blob format | byte-identical to the first 4,164 bytes of the blob production is serving |
 | Enum codes | python 2.7 derivation + 3,000 production entities |
 | Model compatibility | 3,700 production entities read through the new models |
-| Contracts 1–8 | 100 pytest cases against the Datastore emulator |
+| Contracts 1–8 | 110 pytest cases against the Datastore emulator |
+| Contracts 1–8 on staging | 41 live checks with the real client User-Agents, 0 failures (`scripts/smoke.py`) |
+| End-to-end pipeline | 60 real logs replayed through HTTP + Cloud Tasks + Datastore on staging; final state matches the python27 reference for all 1,026 rated words (worst divergence 1.1e-12) |
+| Dictionary endpoint on staging | byte-identical to production's 1,320,528-byte response, same ETag, 304 honoured |
+| Composite indexes | `owner IN (...)` udict fan-out verified live on staging after `gcloud app deploy index.yaml` |

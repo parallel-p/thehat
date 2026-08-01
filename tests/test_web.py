@@ -14,9 +14,20 @@ def test_index_serves_the_landing_page(client, ndb_context):
     assert response.headers["content-type"].startswith("text/html")
 
 
-def test_health_endpoints(client, ndb_context):
-    assert client.get("/healthz").json() == {"status": "ok"}
+def test_status_endpoints(client, ndb_context):
+    assert client.get("/_status").json() == {"status": "ok"}
     assert client.get("/_ah/warmup").status_code == 200
+
+
+def test_index_is_byte_identical_to_the_static_landing_handler(client, ndb_context):
+    """`/` is served by the app, `/landing` by an app.yaml static handler."""
+    import os
+
+    from app.web import LANDING_PAGE
+
+    with open(LANDING_PAGE, "rb") as handle:
+        assert client.get("/").content == handle.read()
+    assert os.path.basename(LANDING_PAGE) == "landing.html"
 
 
 def test_word_statistics_lists_hardest_and_easiest(client, ndb_context):

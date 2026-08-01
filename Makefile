@@ -5,8 +5,9 @@ EMULATOR_HOST ?= localhost:8432
 STAGING ?= the-hat-staging
 PROD ?= the-hat
 
-.PHONY: help venv emulator test lint deploy-staging deploy-prod-noserve \
-        golden fixtures indexes-staging queue-staging queue-prod clean
+.PHONY: help venv emulator test serve deploy-staging deploy-prod-noserve \
+        golden fixtures indexes-staging queue-staging queue-prod clean \
+        smoke-staging smoke-prod
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -73,6 +74,12 @@ deploy-staging: ## Deploy the app to staging
 
 deploy-prod-noserve: ## WP7: deploy to production without taking traffic
 	gcloud app deploy app.yaml --project $(PROD) --no-promote --version py3 --quiet
+
+smoke-staging: ## Smoke every contract against staging (includes write paths)
+	$(PY) -m scripts.smoke --target https://the-hat-staging.uc.r.appspot.com
+
+smoke-prod: ## WP7: read-only smoke against the un-promoted production version
+	$(PY) -m scripts.smoke --target https://py3-dot-$(PROD).appspot.com --read-only
 
 clean:
 	find . -name '__pycache__' -type d -prune -exec rm -rf {} +

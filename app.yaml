@@ -8,6 +8,11 @@ entrypoint: gunicorn -k uvicorn.workers.UvicornWorker -b :$PORT -w 2 --timeout 1
 env_variables:
   TZ: UTC
 
+# App Engine only forwards /_ah/warmup when this is declared. Worth having:
+# min_instances is 0, so most traffic bursts start with a cold instance.
+inbound_services:
+- warmup
+
 instance_class: F1
 
 automatic_scaling:

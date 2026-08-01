@@ -45,10 +45,19 @@ def cached(key, producer):
     return value
 
 
+LANDING_PAGE = os.path.join(TEMPLATES_DIR, "landing.html")
+
+
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    """The landing page. `/landing` serves the same file as a static handler."""
-    return templates.TemplateResponse(request, "landing.html")
+def index():
+    """The landing page.
+
+    Served as raw bytes rather than rendered, so that `/` and the static
+    `/landing` handler return byte-identical responses. The page has no
+    template variables.
+    """
+    with open(LANDING_PAGE, "rb") as handle:
+        return HTMLResponse(content=handle.read())
 
 
 @router.get("/statistics/word_statistics", response_class=HTMLResponse)
@@ -112,10 +121,15 @@ def total_statistics(request: Request):
 
 @router.get("/_ah/warmup", include_in_schema=False)
 def warmup():
+    """Sent by App Engine to a fresh instance; needs `inbound_services: warmup`."""
     return {"status": "ok"}
 
 
-@router.get("/healthz", include_in_schema=False)
-def healthz():
-    """Liveness probe used by WP1's deploy smoke test."""
+@router.get("/_status", include_in_schema=False)
+def status():
+    """Deploy smoke check.
+
+    Not `/healthz`: App Engine's frontend reserves that path and answers it
+    itself, so a route there is unreachable.
+    """
     return {"status": "ok"}
