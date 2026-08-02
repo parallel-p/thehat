@@ -15,3 +15,4 @@ tests/fixtures/prod_logs.jsonl
 tests/fixtures/ignored_logs.jsonl
 tests/fixtures/word_ratings_prod.json
 tests/fixtures/stats_golden_prod.jsonl
+.dictionary-cache.json
