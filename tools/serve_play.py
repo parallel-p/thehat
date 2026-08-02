@@ -47,6 +47,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Length", "0")
             self.end_headers()
             return
+        if self.path.startswith("/api/v2/word_seconds"):
+            # The real one is a reading at every difficulty, computed from the
+            # statistics pipeline; locally there is no datastore, so serve a
+            # curve of the same shape.
+            curve = []
+            for d in range(20, 86):
+                # Roughly what production reports: a few seconds at the easy
+                # end, growing steeply past the middle.
+                curve.append({"d": d, "avg": round(1.15 * pow(1.0425, d), 2),
+                              "count": 120})
+            body = json.dumps(curve).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         if self.path.startswith("/api/v2/dictionary"):
             with open(DICT, "rb") as handle:
                 body = handle.read()
