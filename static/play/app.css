@@ -169,6 +169,8 @@ body[data-screen="dm-score"] .screen[data-for="dm-score"] {
   margin: 0 0 var(--s4);
 }
 .hint { color: var(--ink-muted); font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s6); }
+/* Far from the thumb that is about to tap the panel to start the turn. */
+.handoff__quit { margin-top: var(--s8); font-size: var(--t-small); }
 .countdown {
   font-family: var(--display-face);
   font-size: clamp(5rem, 30vw, 9rem);

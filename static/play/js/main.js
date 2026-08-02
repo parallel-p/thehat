@@ -24,26 +24,22 @@ let clock = null;          // the running turn's ticker, if any
 // so without this every Back — from the lobby, from the middle of a round —
 // closes the whole thing.
 //
-// The stack is kept exactly one entry deep rather than one entry per screen.
-// Screens do not form a line you can walk back along: a finished round must
-// not be re-enterable, and «назад» from the middle of a game means the same
-// thing the on-screen button means, which is to end it and show the score.
-// So Back is a decision, not a rewind, and this is the table of decisions.
-const BACK = {
-  lobby: 'home',
-  'dm-start': 'home',
-  score: 'home',
-  'dm-score': 'home',
-  // Mid-game: end the game the same way «Закончить игру» does. Nothing is
-  // lost — what was played is committed and uploaded — and the player lands
-  // on the scoreboard rather than being dropped out of the app.
-  handoff: 'end-game',
-  round: 'end-game',
-  verdict: 'end-game',
-  'dm-round': 'end-dm',
-};
+// The stack is kept exactly one entry deep rather than one entry per screen,
+// because screens are not a line you can walk back along — a finished round
+// must not be re-enterable. Back is a decision, and there are three:
+//
+//   * outside a game, it goes up: lobby and the scoreboards return home, home
+//     belongs to the browser and closes an installed app.
+//   * inside a game, it does nothing at all. A phone gets passed around a
+//     table and pressed against a lot of hands; a stray Back must not be able
+//     to end a game people are playing. The ways out are on the screen.
+//   * while a countdown is running it stops the countdown, which is the one
+//     case where the reader clearly means "wait, not yet".
+const HOME_FROM = new Set(['lobby', 'score', 'dm-start', 'dm-score']);
+const IN_GAME = new Set(['handoff', 'round', 'verdict', 'dm-round']);
 
 let depth = 0;              // history entries we have pushed above the base
+let countdown = null;       // the 3-2-1 interval, when one is running
 
 function render(screen) {
   body.dataset.screen = screen;
@@ -69,33 +65,38 @@ function show(screen) {
   else history.replaceState({ screen }, '');
 }
 
+/** Stop a running 3-2-1 and put its screen back the way it was. */
+function cancelCountdown() {
+  if (!countdown) return false;
+  clearInterval(countdown);
+  countdown = null;
+  $('h-hint').hidden = false;
+  $('h-count').hidden = true;
+  $('d-count').hidden = true;
+  return true;
+}
+
+/** Consume the reader's Back without going anywhere. */
+function stayPut(screen) {
+  history.pushState({ screen }, '');
+  depth = 1;
+}
+
 window.addEventListener('popstate', () => {
   const from = body.dataset.screen;
   depth = 0;                          // whatever we pushed is gone now
-  const target = BACK[from] || 'home';
-  if (target === 'end-game') leaveGame();
-  else if (target === 'end-dm') leaveDeathmatch();
-  else render('home');
+
+  // "Wait, not yet" — the countdown stops and the screen waits to be tapped
+  // again. Checked before anything else, since a countdown runs on top of a
+  // screen that would otherwise be blocked or would go home.
+  if (cancelCountdown()) { stayPut(from); return; }
+
+  if (IN_GAME.has(from)) { stayPut(from); return; }
+
+  if (HOME_FROM.has(from)) { render('home'); return; }
+
+  render('home');                     // loading, or anything unforeseen
 });
-
-/** Back out of a game in progress: stop the clock, keep what was played. */
-function leaveGame() {
-  if (clock) { clock.stop(); clock = null; }
-  if (!game || game.finished) { render('home'); return; }
-  // The word in hand was never resolved, so it is not recorded — it simply
-  // stays in the hat of a game that is now over.
-  endGame();
-}
-
-function leaveDeathmatch() {
-  if (clock) { clock.stop(); clock = null; }
-  if (!dm || dm.finished) { render('home'); return; }
-  dm.end(0).then(() => {
-    $('d-final').textContent = dm.score;
-    show('dm-score');
-    refreshOutbox();
-  });
-}
 
 // -- settings -------------------------------------------------------------
 
@@ -186,22 +187,31 @@ function showHandoff() {
 }
 
 function beginTurn() {
-  if (body.dataset.screen !== 'handoff' || !$('h-count').hidden) return;
+  if (body.dataset.screen !== 'handoff' || countdown) return;
   $('h-hint').hidden = true;
   const counter = $('h-count');
   counter.hidden = false;
+  countdown = tick(counter, () => runTurn());
+}
+
+/**
+ * The 3-2-1 shared by both modes. The handle is module-scoped so that Back
+ * can stop it; a countdown is the one thing in a game Back may interrupt.
+ */
+function tick(counter, then) {
   let left = 3;
   counter.textContent = left;
   audio.play('tick');
-  const countdown = setInterval(() => {
+  return setInterval(() => {
     left -= 1;
     if (left > 0) {
       counter.textContent = left;
       audio.play('tick');
     } else {
       clearInterval(countdown);
+      countdown = null;
       audio.play('start');
-      runTurn();
+      then();
     }
   }, 1000);
 }
@@ -350,23 +360,10 @@ async function endGame() {
 // -- deathmatch ------------------------------------------------------------
 
 function beginDeathmatch() {
-  if (body.dataset.screen !== 'dm-start' || !$('d-count').hidden) return;
+  if (body.dataset.screen !== 'dm-start' || countdown) return;
   const counter = $('d-count');
   counter.hidden = false;
-  let left = 3;
-  counter.textContent = left;
-  audio.play('tick');
-  const countdown = setInterval(() => {
-    left -= 1;
-    if (left > 0) {
-      counter.textContent = left;
-      audio.play('tick');
-    } else {
-      clearInterval(countdown);
-      audio.play('start');
-      runDeathmatch();
-    }
-  }, 1000);
+  countdown = tick(counter, () => runDeathmatch());
 }
 
 async function runDeathmatch() {
@@ -471,7 +468,13 @@ function setupInstall() {
 // -- actions ---------------------------------------------------------------
 
 const actions = {
-  home: () => { if (clock) { clock.stop(); clock = null; } show('home'); },
+  // «← Назад» stays on screen while the deathmatch counts down, so it has to
+  // stop it — otherwise the countdown would fire on the home screen.
+  home: () => {
+    cancelCountdown();
+    if (clock) { clock.stop(); clock = null; }
+    show('home');
+  },
   'new-game': () => { renderPlayers(); fillSettingsForm(); $('players-error').hidden = true; show('lobby'); },
   'add-player': () => { names.push(`Игрок ${names.length + 1}`); renderPlayers(); },
   'start-game': async () => {
@@ -492,7 +495,7 @@ const actions = {
   concede: () => { audio.play('timeout'); currentWordAction(null); },
   'next-turn': nextTurn,
   'finish-game': endGame,
-  'new-dm': () => { $('d-count').hidden = true; show('dm-start'); },
+  'new-dm': () => { cancelCountdown(); show('dm-start'); },
   'begin-dm': beginDeathmatch,
   'dm-guessed': () => currentWordAction('guessed'),
   'dm-concede': () => currentWordAction(null),

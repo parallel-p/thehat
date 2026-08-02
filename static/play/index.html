@@ -117,6 +117,11 @@
         <p class="big-name" id="h-guesser"></p>
         <p class="hint" id="h-hint">Нажмите, когда телефон у объясняющего</p>
         <p class="countdown" id="h-count" hidden></p>
+        <!-- Back does nothing inside a game, so the way out has to be visible
+             somewhere between turns. Nested inside the tappable panel on
+             purpose: the click handler matches the nearest data-act, so this
+             button wins over the "start the turn" tap around it. -->
+        <button class="link-btn handoff__quit" data-act="finish-game">Закончить игру</button>
     </div>
 </section>
 
