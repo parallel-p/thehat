@@ -707,7 +707,7 @@ a:hover {
 .chrono { margin: 0; }
 .chrono__row {
   display: grid;
-  grid-template-columns: var(--chrono-when, 10rem) 1fr;
+  grid-template-columns: 10rem 1fr;
   gap: var(--s2) var(--s5);
   padding-block: var(--s4);
   border-top: 1px solid var(--rule);
@@ -722,10 +722,6 @@ a:hover {
 .chrono__what { margin: 0; max-width: var(--measure); }
 .chrono__row--now .chrono__when { color: var(--brass-text); font-weight: 600; }
 
-/* The same list with a role in place of a date — credits, not events, so
-   the left column is wider and carries no tabular figures. */
-.chrono--roles { --chrono-when: 12rem; }
-.chrono--roles .chrono__when { font-variant-numeric: normal; }
 
 /* Narrow: the date becomes a line above its entry rather than a column. */
 @media (max-width: 40rem) {
