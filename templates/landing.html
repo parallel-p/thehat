@@ -6,7 +6,7 @@
     <meta name="description" content="Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру как можно больше слов. Приложение считает время, ведёт счёт и измеряет сложность слов по статистике настоящих игр.">
     <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
-    <title>ЛКШ.Шляпа</title>
+    <title>Шляпа</title>
     <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="/assets/hat.css">
 </head>
@@ -19,6 +19,7 @@
         <nav class="masthead__nav" aria-label="Основная навигация">
             <a href="#about">Об игре</a>
             <a href="#sombrero">Сложность слов</a>
+            <a href="#history">История</a>
             <a href="/statistics/total_statistics">Статистика</a>
             <a href="/play">Играть</a>
         </nav>
@@ -47,7 +48,7 @@
             <span class="decor__dots-rose"></span>
         </div>
         <div class="wrap">
-            <p class="eyebrow eyebrow--center"><span>Летняя компьютерная школа</span></p>
+            <p class="eyebrow eyebrow--center"><span>играем с 2013 года</span></p>
             <h1 class="display hero__title">Объясняйте <em>слова</em> на&nbsp;время</h1>
             <p class="lead hero__lead">
                 Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру
@@ -81,40 +82,24 @@
                             устроить настоящее соревнование или просто отдохнуть.
                         </p>
                         <p>
-                            Подробные правила можно прочесть
+                            Сейчас Шляпа живёт в браузере. Она открывается на любом
+                            телефоне, ставится на домашний экран, занимает меньше
+                            мегабайта и играет без интернета: словарь и счёт остаются
+                            на телефоне, а сыгранные партии уходят на сервер, когда
+                            сеть вернётся.
+                        </p>
+                        <p>
+                            Правила лежат <a href="/play">в самой игре</a>, а подробные —
                             <a href="http://thehat.ru/rules/">на thehat.ru</a>.
                         </p>
+                        <div class="btn-row">
+                            <a class="btn btn--primary" href="/play">Играть</a>
+                        </div>
                     </div>
                 </div>
                 <figure class="split__media split__media--slip split__media--photo">
                     <img src="/assets/people_playing_hat.jpg"
                          alt="Компания играет в Шляпу за столом">
-                </figure>
-            </div>
-        </div>
-    </section>
-
-    <section class="section section--sunk">
-        <div class="wrap">
-            <div class="split split--flip">
-                <div>
-                    <p class="eyebrow"><span>Откуда она взялась</span></p>
-                    <h2 class="section__title">ЛКШ.Шляпа</h2>
-                    <div class="stack">
-                        <p>
-                            <a href="http://lksh.ru">Летняя компьютерная школа</a> — это лагерь
-                            для школьников, увлекающихся программированием. Они любят не только
-                            программировать, но и играть в Шляпу. Поэтому в параллели P ЛКШ 2013
-                            мы начали делать мобильное приложение.
-                        </p>
-                        <p>
-                            Теперь не нужно резать бумажки и придумывать слова — можно сразу
-                            приступить к самой интересной части.
-                        </p>
-                    </div>
-                </div>
-                <figure class="split__media split__media--slip">
-                    <img src="/assets/hat.png" width="265" height="265" alt="">
                 </figure>
             </div>
         </div>
@@ -140,6 +125,16 @@
                             которые изучают, как люди объясняют значения слов.
                         </p>
                         <p class="muted">Когда вы играете, вы помогаете двигать науку.</p>
+                        <div class="figures">
+                            <p class="figure">
+                                <span class="figure__value">{{ total_games }}</span>
+                                <span class="figure__label">партий сыграно и записано</span>
+                            </p>
+                            <p class="figure">
+                                <span class="figure__value">{{ total_words }}</span>
+                                <span class="figure__label">слов в словаре, у каждого своя измеренная сложность</span>
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <figure class="split__media split__media--slip">
@@ -149,33 +144,62 @@
         </div>
     </section>
 
-    <section class="section section--sunk">
+    <section class="section section--sunk" id="history">
         <div class="wrap">
-            <div class="split split--flip">
-                <div>
-                    <p class="eyebrow eyebrow--sky"><span>Играть прямо здесь</span></p>
-                    <h2 class="section__title">Ничего не нужно <em>устанавливать</em></h2>
-                    <div class="stack">
-                        <p>
-                            Шляпа открывается в браузере — на любом телефоне, и на айфоне
-                            тоже. Один раз с интернетом, дальше играет где угодно: в поезде,
-                            на даче, в походе. Словарь и счёт остаются на телефоне,
-                            а сыгранные партии уходят на сервер, когда сеть вернётся.
-                        </p>
-                        <p>
-                            Если добавить её на домашний экран, она открывается как
-                            обычное приложение и занимает меньше мегабайта.
-                        </p>
-                        <div class="btn-row">
-                            <a class="btn btn--primary" href="/play">Играть</a>
-                            <a class="btn btn--ghost" href="/android/new/beta">Приложение для Android</a>
-                        </div>
-                    </div>
+            <p class="eyebrow eyebrow--sky"><span>История</span></p>
+            <h2 class="section__title">Двенадцать лет <em>одной</em> игры</h2>
+            <p class="lead" style="margin-bottom: var(--s7);">
+                Сервер старше почти всего, что к нему подключалось: клиенты
+                менялись, словарь и статистика оставались.
+            </p>
+
+            <dl class="chrono">
+                <div class="chrono__row">
+                    <dt class="chrono__when">декабрь 2013</dt>
+                    <dd class="chrono__what">
+                        Первый коммит — 30 декабря. Шляпу начали писать в параллели P
+                        <a href="http://lksh.ru">Летней компьютерной школы</a>: за зиму
+                        и весну больше девятисот коммитов, и сервер, который с тех пор
+                        считает слова.
+                    </dd>
                 </div>
-                <figure class="split__media split__media--slip">
-                    <img src="/assets/new_hat.png" width="300" height="300" alt="">
-                </figure>
-            </div>
+                <div class="chrono__row">
+                    <dt class="chrono__when">ноябрь 2019</dt>
+                    <dd class="chrono__what">
+                        Второй формат лога: партия записывается по словам, со временем
+                        на каждое. Всё, что сервер знает о сложности, посчитано из этих
+                        записей — до них сравнивать слова было не с чем.
+                    </dd>
+                </div>
+                <div class="chrono__row">
+                    <dt class="chrono__when">17 ноября 2019</dt>
+                    <dd class="chrono__what">
+                        Первая сборка нового Android-приложения.
+                    </dd>
+                </div>
+                <div class="chrono__row">
+                    <dt class="chrono__when">май 2020</dt>
+                    <dd class="chrono__what">
+                        Приложение подключено к живому серверу: партии с телефонов
+                        начинают попадать в общую статистику.
+                    </dd>
+                </div>
+                <div class="chrono__row">
+                    <dt class="chrono__when">март 2024</dt>
+                    <dd class="chrono__what">
+                        Последняя версия приложения для Android — 2.0.0, опубликована
+                        на F-Droid.
+                    </dd>
+                </div>
+                <div class="chrono__row chrono__row--now">
+                    <dt class="chrono__when">август 2026</dt>
+                    <dd class="chrono__what">
+                        Сервер переписан с Python 2.7 на 3.12 и переехал на новый
+                        рантайм App&nbsp;Engine, сайт пересобран, а игра переехала
+                        в браузер — <a href="/play">и заменила приложение</a>.
+                    </dd>
+                </div>
+            </dl>
         </div>
     </section>
 
@@ -183,7 +207,7 @@
 
 <footer class="footer">
     <div class="wrap footer__inner">
-        <span>ЛКШ.Шляпа · параллель P</span>
+        <span>Шляпа · с 2013 года</span>
         <a href="/statistics/total_statistics">Статистика</a>
         <a href="/tos/the-hat.html">Шляпа — политика</a>
         <a href="/tos/word-filtering.html">Вычитка слов — политика</a>

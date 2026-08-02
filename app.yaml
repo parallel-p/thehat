@@ -24,9 +24,6 @@ handlers:
   static_files: static/robots.txt
   upload: static/robots\.txt
 
-- url: /landing
-  static_files: templates/landing.html
-  upload: templates/landing.html
   mime_type: text/html
 
 - url: /android/beta

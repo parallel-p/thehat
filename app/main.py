@@ -64,7 +64,6 @@ def _mount_static_for_local_dev():
     single_files = {
         "/robots.txt": ("static/robots.txt", "text/plain"),
         "/favicon.ico": ("favicon.ico", "image/x-icon"),
-        "/landing": ("templates/landing.html", "text/html"),
         "/android/beta": ("templates/android_beta.html", "text/html"),
         "/android/new/beta": ("templates/android_new_beta.html", "text/html"),
     }

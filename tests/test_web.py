@@ -10,7 +10,7 @@ from app.models import (DailyStatistics, GamesForPlayerCount,
 def test_index_serves_the_landing_page(client, ndb_context):
     response = client.get("/")
     assert response.status_code == 200
-    assert "ЛКШ.Шляпа" in response.text
+    assert "Объясняйте" in response.text
     assert response.headers["content-type"].startswith("text/html")
 
 
@@ -19,15 +19,27 @@ def test_status_endpoints(client, ndb_context):
     assert client.get("/_ah/warmup").status_code == 200
 
 
-def test_index_is_byte_identical_to_the_static_landing_handler(client, ndb_context):
-    """`/` is served by the app, `/landing` by an app.yaml static handler."""
-    import os
+def test_index_states_what_the_server_has_collected(client, ndb_context):
+    """The landing page's argument for itself is two live numbers.
 
-    from app.web import LANDING_PAGE
+    It used to be served as bytes, with `/landing` answered by an app.yaml
+    static handler; that handler is gone, because it would now hand the
+    reader the template's own braces. Both paths render the same page.
+    """
+    from app import web
+    from app.models import GlobalDictionaryWord, TotalStatistics
 
-    with open(LANDING_PAGE, "rb") as handle:
-        assert client.get("/").content == handle.read()
-    assert os.path.basename(LANDING_PAGE) == "landing.html"
+    TotalStatistics(id="total_statistics", games=35295, by_hour=[0] * (24 * 7)).put()
+    for index in range(3):
+        GlobalDictionaryWord(id="w{}".format(index), word="w{}".format(index)).put()
+    web._cache.pop("landing_numbers", None)
+
+    body = client.get("/").text
+    # A thousands separator a Russian typographer would accept, not a comma.
+    assert "35\u00a0295" in body
+    assert ">3<" in body
+    assert "{{" not in body and "{%" not in body
+    assert client.get("/landing").text == body
 
 
 def test_word_statistics_lists_hardest_and_easiest(client, ndb_context):

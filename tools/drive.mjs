@@ -6,7 +6,7 @@
 // Steps: click:ACT  sel:CSS  set:id=value  back  wait:MS  eval:JS  shot:FILE
 //        theme:dark|light  media:FEATURE=VALUE  pre:matchMedia=QUERY  reload
 //        hover:CSS  press:CSS  release  drag:CSS=dy  run:FILE.js
-//        sw:on|off  net:on|off
+//        sw:on|off  net:on|off  size:WxH
 // Output: one line per step — the step, the screen it landed on, and
 // history.length, which is what catches a back-button stack that grows.
 //
@@ -195,6 +195,13 @@ for (const step of steps) {
           downloadThroughput: -1, uploadThroughput: -1,
         }, sessionId);
       }
+    } else if (kind === 'size') {
+      // The site has a desktop layout (the appliqué only appears past 60rem)
+      // and the app has only a phone one; a fixed 390px viewport can see one
+      // of those. size:1200x900 sees the other.
+      const [width, height] = arg.split('x').map(n => parseInt(n, 10));
+      await rpc(ws, 'Emulation.setDeviceMetricsOverride',
+        { width, height, deviceScaleFactor: 2, mobile: width < 700 }, sessionId);
     } else if (kind === 'run') {
       // run:FILE — evaluate a local script inside the page. For work too long
       // to pass as an argument: it imports the app's own modules and plays

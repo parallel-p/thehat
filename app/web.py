@@ -46,7 +46,6 @@ def cached(key, producer):
     return value
 
 
-LANDING_PAGE = os.path.join(TEMPLATES_DIR, "landing.html")
 
 
 class Word(NamedTuple):
@@ -305,16 +304,31 @@ def _word_analytics():
             "danger_top": danger, "hardest": hardest, "easiest": easiest}
 
 
+def _thousands(number):
+    """35295 -> "35 295", with the space Russian typography wants."""
+    return "{:,}".format(number).replace(",", "\u00a0")
+
+
 @router.get("/", response_class=HTMLResponse)
-def index():
+@router.get("/landing", response_class=HTMLResponse)
+def index(request: Request):
     """The landing page.
 
-    Served as raw bytes rather than rendered, so that `/` and the static
-    `/landing` handler return byte-identical responses. The page has no
-    template variables.
+    Rendered, not served as bytes. The page says how many games the server
+    has recorded and how many words it has a measured difficulty for, and
+    those are the whole of its argument for existing — a number kept true by
+    remembering to edit it is a number that is wrong. Both are cached for an
+    hour like everything else here, so the most-visited page on the site
+    costs at most one datastore read an hour.
+
+    `/landing` is the same page: it used to be an app.yaml static handler,
+    which would now serve the template's own braces to the reader.
     """
-    with open(LANDING_PAGE, "rb") as handle:
-        return HTMLResponse(content=handle.read())
+    numbers = cached("landing_numbers", lambda: {
+        "total_games": _thousands(TotalStatistics.get().games),
+        "total_words": _thousands(GlobalDictionaryWord.query().count()),
+    })
+    return templates.TemplateResponse(request, "landing.html", dict(numbers))
 
 
 @router.get("/statistics/word_statistics", response_class=HTMLResponse)

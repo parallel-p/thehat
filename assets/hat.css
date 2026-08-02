@@ -698,6 +698,35 @@ a:hover {
   padding: var(--s5);
 }
 
+/* -- chronology ----------------------------------------------------------
+   A dated list, set the way a printed chronology is: the date in the
+   counting face on the left, the entry in the reading face beside it, a rule
+   between them. Deliberately not a timeline with a spine and dots — that is
+   an infographic's idiom, and this is a sheet of paper. The last row is the
+   present, and its date is the one thing here allowed the brass. */
+.chrono { margin: 0; }
+.chrono__row {
+  display: grid;
+  grid-template-columns: 10rem 1fr;
+  gap: var(--s2) var(--s5);
+  padding-block: var(--s4);
+  border-top: 1px solid var(--rule);
+}
+.chrono__row:last-child { border-bottom: 1px solid var(--rule); }
+.chrono__when {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chrono__what { margin: 0; max-width: var(--measure); }
+.chrono__row--now .chrono__when { color: var(--brass-text); font-weight: 600; }
+
+/* Narrow: the date becomes a line above its entry rather than a column. */
+@media (max-width: 40rem) {
+  .chrono__row { grid-template-columns: 1fr; }
+}
+
 /* 10. Prose ============================================================== */
 
 .prose { max-width: var(--measure); }
