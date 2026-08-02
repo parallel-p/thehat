@@ -37,6 +37,87 @@ def test_game_log_upload_preserves_non_ascii_bytes(client, ndb_context, monkeypa
     assert GameLog.query().fetch()[0].json == payload
 
 
+def test_game_log_with_an_id_is_stored_once(client, ndb_context, monkeypatch):
+    """A retried upload must not rate the game a second time.
+
+    Ratings are cumulative and never recomputed, so a game counted twice moves
+    every word in it twice and nothing later puts it back.
+    """
+    enqueued = []
+    monkeypatch.setattr("app.tasks.enqueue_stats_task",
+                        lambda key, countdown=None: enqueued.append(key))
+
+    payload = json.dumps({"version": "2.0", "game_id": "b3f0-RETRY-0001",
+                          "attempts": []})
+    first = client.post("/api/v2/game/log", content=payload.encode("utf-8"))
+    second = client.post("/api/v2/game/log", content=payload.encode("utf-8"))
+
+    # The client cannot tell the two apart, and must not need to.
+    assert first.status_code == second.status_code == 202
+    logs = GameLog.query().fetch()
+    assert len(logs) == 1
+    assert logs[0].key.id() == "b3f0-RETRY-0001"
+    assert len(enqueued) == 1
+
+
+def test_a_retried_upload_moves_a_rating_only_once(client, ndb_context,
+                                                   monkeypatch):
+    """The same thing again, but measured where it actually matters."""
+    from app import stats
+    from app.models import Dictionary as DictionaryModel, GlobalDictionaryWord
+
+    for word in ["кот", "дом", "мост", "лес"]:
+        GlobalDictionaryWord(id=word, word=word, E=50.0, D=16.0, lang="ru").put()
+    DictionaryModel(id="ru").put()
+
+    keys = []
+    monkeypatch.setattr("app.tasks.enqueue_stats_task",
+                        lambda key, countdown=None: keys.append(key))
+    payload = json.dumps({
+        "version": "2.0", "game_id": "0000-ONCE-0000",
+        "start_timestamp": 1700000000000, "end_timestamp": 1700001800000,
+        "time_zone_offset": 0,
+        "attempts": [
+            {"word": w, "from": i % 2, "to": (i + 1) % 2,
+             "time": 6000 + i * 2000, "extra_time": 0, "outcome": "guessed"}
+            for i, w in enumerate(["кот", "дом", "мост", "лес"])],
+    })
+    client.post("/api/v2/game/log", content=payload.encode("utf-8"))
+    client.post("/api/v2/game/log", content=payload.encode("utf-8"))
+    assert len(keys) == 1
+
+    from google.cloud import ndb
+    assert stats.add_game_to_statistic(ndb.Key(urlsafe=keys[0])) == "ok"
+    once = {w.word: w.E for w in GlobalDictionaryWord.query().fetch()}
+    assert all(count == 1
+               for count in (w.used_times
+                             for w in GlobalDictionaryWord.query().fetch()))
+    assert any(abs(e - 50.0) > 1e-6 for e in once.values())
+
+
+def test_game_log_ignores_an_unusable_id(client, ndb_context, monkeypatch):
+    """A malformed id loses de-duplication, never the game."""
+    monkeypatch.setattr("app.tasks.enqueue_stats_task",
+                        lambda key, countdown=None: None)
+    for bad in ('{"game_id": "../../etc", "attempts": []}',
+                '{"game_id": 17, "attempts": []}',
+                '{"game_id": "", "attempts": []}',
+                'not json at all'):
+        client.post("/api/v2/game/log", content=bad.encode("utf-8"))
+    logs = GameLog.query().fetch()
+    assert len(logs) == 4
+    assert all(isinstance(log.key.id(), int) for log in logs)
+
+
+def test_dictionary_may_be_held_for_an_hour(client, ndb_context, monkeypatch):
+    Dictionary(id="ru", gcs_key="abc").put()
+    monkeypatch.setattr("app.api_v2.read_dictionary_blob", lambda key: b"[]")
+    response = client.get("/api/v2/dictionary/ru")
+    assert response.status_code == 200
+    assert "max-age=3600" in response.headers["cache-control"]
+    assert response.headers["etag"] == '"abc"'
+
+
 def test_dictionaries_list(client, ndb_context):
     Dictionary(id="ru", gcs_key="123").put()
     response = client.get("/api/v2/dictionaries")
@@ -96,3 +177,48 @@ def test_etag_matching(header, key, expected):
     from app.api_v2 import etag_matches
 
     assert etag_matches(header, key) is expected
+
+
+def test_word_seconds_serves_a_reading_at_every_difficulty(client, monkeypatch):
+    """The /play settings screen reads a difficulty in seconds from here.
+
+    The numbers used to be a copy inside the app; the point of the endpoint is
+    that there is one computation, from the same projection the statistics page
+    uses, so the two cannot drift apart. Fed a fake dictionary here, since the
+    shape of the answer is what the app depends on, not the corpus.
+    """
+    from app import web
+
+    def fake_shape():
+        rows = []
+        # Forty words at each of five difficulties, taking longer as they get
+        # harder — enough for the window to fill at every point between them.
+        for difficulty, seconds in ((20, 4), (35, 7), (50, 9), (65, 14), (80, 30)):
+            for index in range(40):
+                rows.append(web.Word("w%d%d" % (difficulty, index), difficulty,
+                                     1.0, 2, 0, 2, seconds * 2))
+        return rows
+
+    monkeypatch.setattr(web, "_word_shape", fake_shape)
+    web._cache.pop("word_seconds", None)
+
+    response = client.get("/api/v2/word_seconds")
+
+    assert response.status_code == 200
+    # Python's json accepts `Infinity` and `NaN`; browsers do not. The app
+    # swallowed the parse error and quietly used its built-in table instead,
+    # which is the one failure this endpoint exists to prevent.
+    assert b"Infinity" not in response.content and b"NaN" not in response.content
+    rows = json.loads(response.content)
+
+    # A reading at every difficulty the corpus reaches, in order, and each one
+    # says how many words it was taken over.
+    points = [row["d"] for row in rows]
+    assert points == sorted(points)
+    assert set(points) >= set(range(20, 81))
+    assert all(row["count"] >= 20 for row in rows)
+    # Harder words take longer: the curve rises across the range.
+    readings = {row["d"]: row["avg"] for row in rows}
+    assert readings[20] < readings[50] < readings[80]
+    assert 3.5 < readings[20] < 6 and 25 < readings[80] < 31
+    assert response.headers["cache-control"].startswith("public, max-age=3600")

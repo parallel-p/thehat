@@ -1,9 +1,19 @@
 # Design language — «Бумажки» (Slips)
 
 One stylesheet, `assets/hat.css`, covers every page the site serves: the landing
-page, the two beta pages, the two privacy policies, and the two statistics
-pages. This language replaced "paper & ink" (warm cream, one red accent) after
-it was reviewed as too close to the default warm-cream-serif look.
+page, the two beta pages, the two privacy policies, the two statistics pages,
+and the game at `/play`. This language replaced "paper & ink" (warm cream, one
+red accent) after it was reviewed as too close to the default
+warm-cream-serif look.
+
+**Documents carry no JavaScript; the app is allowed it.** Every page that is a
+page renders with markup and CSS alone, and that is not negotiable — it is why
+they are fast, printable and legible with anything turned off. `/play` runs a
+stopwatch for people sitting around a table, so it is a program and says so:
+`static/play/` is the only place in the repo with script. It buys back its
+keep by taking this stylesheet whole rather than inventing a second look —
+`static/play/app.css` adds layout and nothing else, no colour, no type, no
+new tokens.
 
 ## The idea
 
@@ -22,6 +32,15 @@ colour appears only where the game would produce a slip of paper.
    in a room: the `.sheet` element is the felt (evening) or the score sheet
    (day), the body behind it is the room/mat, visible around wide viewports.
    A faint lamplight gradient (`--lamp`) sits over the hero — evening only.
+
+   The system's preference is the default, not the last word: `data-theme` on
+   `<html>` overrides it — `"day"`, `"night"`, or absent for "follow the
+   system". Only `/play` writes it (a three-state switch on its home screen,
+   remembered in `localStorage`); the site's pages carry no JavaScript and so
+   have nothing to remember a choice with. The day palette is therefore
+   written twice in `hat.css` — once behind the media query, once behind the
+   attribute — because CSS cannot share one block between the two. **They
+   must stay in step**, and nothing but tokens belongs in either.
 2. **Slips don't go dark.** Four slips — rose `#E8A79B`, honey `#E3AC3F`,
    sky `#A9C8D6`, lilac `#BFABD6` — are physical paper: identical in both
    themes. In the evening they are the brightest spots on the felt (≥ 7.6:1);

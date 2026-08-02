@@ -7,7 +7,7 @@ PROD ?= the-hat
 
 .PHONY: help venv emulator test serve deploy-staging deploy-prod-noserve \
         golden fixtures indexes-staging queue-staging queue-prod clean \
-        smoke-staging smoke-prod
+        smoke-staging smoke-prod play browser
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -80,6 +80,16 @@ smoke-staging: ## Smoke every contract against staging (includes write paths)
 
 smoke-prod: ## WP7: read-only smoke against the un-promoted production version
 	$(PY) -m scripts.smoke --target https://py3-dot-$(PROD).appspot.com --read-only
+
+# -- the /play app ----------------------------------------------------------
+
+play: ## Serve /play locally (http://localhost:8901/play)
+	$(PY) tools/serve_play.py
+
+browser: ## A headless Chrome that stays up, for tools/drive.mjs
+	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+		--headless=new --disable-gpu --remote-debugging-port=9222 \
+		--user-data-dir=/tmp/hat-play-profile
 
 clean:
 	find . -name '__pycache__' -type d -prune -exec rm -rf {} +

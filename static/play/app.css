@@ -1,0 +1,747 @@
+/* ==========================================================================
+   Шляпа — the app at /play
+   --------------------------------------------------------------------------
+   Loaded after /assets/hat.css, which brings the whole «Бумажки» language:
+   the tokens, Playfair, the torn word slips (.ws), the buttons, the tables.
+   Nothing is redefined here — this file only lays out the screens the site
+   does not have: a stack of full-height panels, one visible at a time.
+
+   The one place the design is deliberately louder than the site is the round
+   screen. A word being explained across a table has to be legible at arm's
+   length, upside down, in bad light, so it takes the whole panel in the
+   display serif and the buttons are as large as the thumb can want.
+   ========================================================================== */
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;      /* no pull-to-refresh mid-round */
+}
+body {
+  background: var(--paper);
+  margin: 0;
+  /* The app is a single view: it never scrolls as a whole, only inside a
+     screen that says it may. */
+  overflow: hidden;
+  /* Whole screens are tap targets here, so Chrome's default tap highlight
+     would flash a blue sheet over the phone every time somebody starts a
+     turn. Same for the selection that a fast double tap otherwise makes:
+     nothing on these screens is text you would want to copy. */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea { -webkit-user-select: text; user-select: text; }
+
+/* `hidden` has to actually hide. The attribute is nothing but a rule in the
+   browser's own stylesheet, and ANY author rule that sets `display` beats it
+   whatever the specificity — so a banner given `display: flex` here stayed on
+   screen as an empty bordered box, and a countdown given `display: grid`
+   would have covered its screen. This is the one place in the app that
+   deserves !important: the whole point is to outrank the rules above. */
+[hidden] { display: none !important; }
+
+/* Torn edges for slips the size of a button. The site's three --tear-*
+   variants are cut for word-sized paper: their percentages are of the box,
+   so the same 5% that bites 3px out of a word slip cuts a 17px pennant out
+   of a 340px one. These are the same idea at this scale — many small bites,
+   and far less wander along the long sides than across the short ones. Five
+   of them, because five slips share the home screen and no two pieces of
+   paper are torn alike. */
+:root {
+  --rip-1: polygon(0% 2.2%, 11.1% 2%, 22.2% 4.2%, 33.3% 4.3%, 44.4% 3.6%, 55.6% 1.5%, 66.7% 1.8%, 77.8% 1.8%, 88.9% 4.5%, 100% 4.4%, 99.6% 33.3%, 99.4% 66.7%, 100% 96.2%, 88.9% 99.1%, 77.8% 99.2%, 66.7% 95.9%, 55.6% 97.2%, 44.4% 95.4%, 33.3% 99.1%, 22.2% 98%, 11.1% 96.3%, 0% 97.4%, 0.1% 66.7%, 0.1% 33.3%);
+  --rip-2: polygon(0% 2%, 12.5% 0.3%, 25% 3%, 37.5% 4.3%, 50% 2.5%, 62.5% 3.1%, 75% 1.6%, 87.5% 4.6%, 100% 4.4%, 98.3% 25%, 99.9% 50%, 98.7% 75%, 100% 97.6%, 87.5% 98.8%, 75% 98.5%, 62.5% 98.5%, 50% 99.7%, 37.5% 95.6%, 25% 97.2%, 12.5% 96.6%, 0% 97.2%, 0.5% 75%, 0.6% 50%, 1.2% 25%);
+  --rip-3: polygon(0% 1%, 9.1% 1.6%, 18.2% 1.5%, 27.3% 2.3%, 36.4% 1%, 45.5% 1.3%, 54.5% 0.8%, 63.6% 4.1%, 72.7% 4.1%, 81.8% 2.4%, 90.9% 4.3%, 100% 2.2%, 99.3% 33.3%, 99.1% 66.7%, 100% 99.9%, 90.9% 99.7%, 81.8% 99.5%, 72.7% 95.7%, 63.6% 96.5%, 54.5% 96.9%, 45.5% 96.8%, 36.4% 95.3%, 27.3% 97.6%, 18.2% 98.7%, 9.1% 99.1%, 0% 98.9%, 1.6% 66.7%, 0.1% 33.3%);
+  --rip-4: polygon(0% 4%, 14.3% 4.3%, 28.6% 2.5%, 42.9% 4%, 57.1% 0.1%, 71.4% 3.9%, 85.7% 3.2%, 100% 2.2%, 98.7% 33.3%, 99.5% 66.7%, 100% 98%, 85.7% 96%, 71.4% 95%, 57.1% 95.2%, 42.9% 96.3%, 28.6% 96.8%, 14.3% 99.2%, 0% 96.2%, 0% 66.7%, 0.4% 33.3%);
+  --rip-5: polygon(0% 2.2%, 10% 1.8%, 20% 3.5%, 30% 2.3%, 40% 1.1%, 50% 3.4%, 60% 3.8%, 70% 3.6%, 80% 3.1%, 90% 0.2%, 100% 1.4%, 98.3% 25%, 98.7% 50%, 98.5% 75%, 100% 97.7%, 90% 97.3%, 80% 97.1%, 70% 99.1%, 60% 98.3%, 50% 98%, 40% 95.3%, 30% 96.8%, 20% 96.9%, 10% 97%, 0% 96.2%, 1.8% 75%, 0.3% 50%, 0.2% 25%);
+}
+
+/* -- screens ------------------------------------------------------------- */
+
+.screen { display: none; }
+body[data-screen="loading"]  .screen[data-for="loading"],
+body[data-screen="home"]     .screen[data-for="home"],
+body[data-screen="rules"]    .screen[data-for="rules"],
+body[data-screen="history"]  .screen[data-for="history"],
+body[data-screen="lobby"]    .screen[data-for="lobby"],
+body[data-screen="handoff"]  .screen[data-for="handoff"],
+body[data-screen="round"]    .screen[data-for="round"],
+body[data-screen="verdict"]  .screen[data-for="verdict"],
+body[data-screen="score"]    .screen[data-for="score"],
+body[data-screen="dm-start"] .screen[data-for="dm-start"],
+body[data-screen="dm-round"] .screen[data-for="dm-round"],
+body[data-screen="dm-score"] .screen[data-for="dm-score"] {
+  display: flex;
+  flex-direction: column;
+  /* dvh, not vh: iOS toolbars would otherwise sit on top of the buttons. */
+  height: 100dvh;
+  /* the countdown lays itself over the screen it belongs to */
+  position: relative;
+}
+.screen--scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen--tap { cursor: pointer; }
+
+/* Safe areas everywhere; the round screen is full-bleed and would otherwise
+   put its buttons under the home indicator. */
+.pad {
+  padding:
+    calc(var(--s6) + env(safe-area-inset-top))
+    calc(var(--s5) + env(safe-area-inset-right))
+    calc(var(--s6) + env(safe-area-inset-bottom))
+    calc(var(--s5) + env(safe-area-inset-left));
+  max-width: 34rem;
+  width: 100%;
+  margin-inline: auto;
+  flex: 1;
+}
+.pad.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--s2);
+}
+
+/* -- home ----------------------------------------------------------------
+   Nothing on this screen is a line of prose: the name of the game and every
+   way into it are pieces of paper lying on the felt. Which is also why there
+   is no subtitle — a slip that says «Обычная игра» has already said it. */
+
+/* The name of the game, set as type — on the loading screen and above the
+   deathmatch rules. On the home screen it is a slip instead (below). */
+.app-brand {
+  font-family: var(--display-face);
+  font-size: clamp(2.4rem, 12vw, 3.4rem);
+  line-height: 1;
+  margin: 0 0 var(--s2);
+}
+.app-title { font-family: var(--display-face); font-size: var(--t-title); margin: 0 0 var(--s4); }
+.app-title--small { font-size: var(--t-section); margin-top: var(--s7); }
+
+/* A piece of paper: torn edge, a shadow that follows the tear (drop-shadow,
+   never box-shadow — that would draw the rectangle back), and a sheen across
+   it. Each slip sets its own --rip and --rot, so no two are cut or laid down
+   alike; pressing one straightens it, which is the site's slip gesture. */
+.torn {
+  color: var(--slip-ink);
+  background-color: var(--paper-raised);
+  /* Lit from the top left and grained like the site's word slips — without
+     the grain a slip this size reads as a coloured rectangle with a
+     gradient on it rather than as paper. */
+  background-image:
+    linear-gradient(163deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 46%, rgba(50, 40, 36, 0.07)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  border-radius: 3px 9px 4px 8px;    /* fallback edge if clip-path is unsupported */
+  clip-path: var(--rip, var(--rip-1));
+  filter: var(--slip-filter);
+  transform: rotate(var(--rot, 0deg));
+}
+.torn--rose  { background-color: var(--slip-rose); }
+.torn--honey { background-color: var(--slip-honey); }
+.torn--sky   { background-color: var(--slip-sky); }
+.torn--lilac { background-color: var(--slip-lilac); }
+
+/* The name and the ways in are one group, centred in what the install banner
+   leaves; the banner itself keeps to the foot of the screen. */
+.home { display: flex; flex-direction: column; }
+.home__title {
+  --rip: var(--rip-3);
+  --rot: -1.6deg;
+  align-self: center;
+  max-width: 100%;
+  font-family: var(--display-face);
+  font-weight: 500;
+  font-size: clamp(2.6rem, 14vw, 3.8rem);
+  line-height: 1;
+  padding: 0.3em 0.75em 0.36em;
+  margin: auto 0 var(--s7);
+}
+
+.modes { display: grid; gap: var(--s5); margin-bottom: auto; }
+.modes__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
+.mode {
+  appearance: none;
+  border: 0;
+  padding: var(--s6) var(--s5);
+  font: inherit;
+  text-align: center;
+  text-decoration: none;             /* the two small ones are links */
+  cursor: pointer;
+  display: grid;
+  gap: var(--s1);
+  justify-items: center;
+  transition: transform 120ms ease;
+}
+.mode:active { transform: rotate(0deg) scale(0.985); }
+.mode__name { font-family: var(--display-face); font-size: 1.6rem; line-height: 1.1; }
+/* The slip inks are measured for contrast at full strength; fading them is
+   how a legible label becomes an illegible one. Size carries the hierarchy. */
+.mode__note { font-family: var(--sans); font-size: var(--t-small); }
+.mode--small { padding: var(--s5) var(--s2); }
+.mode--small .mode__name { font-size: 1.05rem; }
+
+.mode--game  { --rip: var(--rip-1); --rot: -0.7deg; }
+.mode--dm    { --rip: var(--rip-2); --rot: 0.6deg; }
+.mode--rules   { --rip: var(--rip-4); --rot: 1.1deg; }
+.mode--history { --rip: var(--rip-3); --rot: -0.9deg; }
+.mode--stats   { --rip: var(--rip-5); --rot: 1.4deg; }
+
+.app-status { font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s5); }
+
+/* The theme switch: three cells, no words. A setting on a screen whose job
+   is to start a game, so it is drawn in ink and rule — the coloured paper
+   above is what you press. Radios underneath, so a keyboard and a screen
+   reader get a real three-way choice; --at slides the marker to it. */
+.switch {
+  align-self: center;
+  margin-top: var(--s5);
+  position: relative;
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+}
+.switch__mark {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  transform: translateX(calc(var(--at, 0) * 2.25rem));
+  transition: transform 200ms ease;
+}
+.switch__cell {
+  position: relative;      /* over the marker */
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.switch__cell input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch__cell svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--ink-muted);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  transition: stroke 150ms ease;
+}
+.switch__cell svg .fill { fill: var(--ink-muted); stroke: none; transition: fill 150ms ease; }
+.switch__cell input:checked ~ svg { stroke: var(--ink); }
+.switch__cell input:checked ~ svg .fill { fill: var(--ink); }
+/* The ring belongs on the icon: the input it is really about has no size. */
+.switch__cell input:focus-visible ~ svg { outline: 2px solid var(--brass); outline-offset: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .switch__mark { transition: none; }
+}
+
+/* The install banner: an offer, so it sits at the foot of the screen and
+   never above the game. A quiet note pinned to the felt — the ways into the
+   game are the bright paper, and an offer must not compete with them. It
+   exists only where it can still be acted on. */
+.install {
+  /* No auto margin of its own: the two above (the title's and the modes')
+     have already pushed everything after them to the foot of the screen. */
+  margin-top: var(--s6);
+  padding: var(--s4) var(--s5);
+  background: var(--paper-raised);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-card);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s3) var(--s4);
+}
+.install__text {
+  flex: 1 1 11rem;
+  margin: 0;
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+}
+/* Not the site's lamplight pill: on a screen made of paper the one thing to
+   press here is a slip too. Sky, which is this language's colour for a
+   download. */
+.install__btn {
+  --rip: var(--rip-3);
+  --rot: -1.2deg;
+  flex: none;
+  appearance: none;
+  border: 0;
+  font: inherit;
+  font-family: var(--display-face);
+  font-size: 1.15rem;
+  line-height: 1;
+  padding: 0.5em 1em 0.56em;
+  cursor: pointer;
+  background-color: var(--slip-sky);
+  transition: transform 120ms ease;
+}
+.install__btn:active { transform: rotate(0deg) scale(0.98); }
+
+/* -- rules ---------------------------------------------------------------
+   A document, not a screen of an app: reading measure, the reading face, and
+   the particulars lettered A–L by the list itself so that the references
+   inside them ("правила B-F") cannot drift out of step with their markers. */
+
+.rules { max-width: var(--measure); }
+.rules p { margin: 0 0 var(--s4); }
+.rules__head {
+  font-family: var(--display-face);
+  font-size: var(--t-section);
+  margin: var(--s6) 0 var(--s3);
+}
+.rules__sub {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.125rem;
+  font-weight: 400;
+  margin: var(--s5) 0 var(--s2);
+}
+.rules__list {
+  list-style: upper-latin;
+  padding-left: var(--s5);
+  margin: 0;
+}
+.rules__list li { margin-bottom: var(--s4); padding-left: var(--s1); }
+.rules__list li::marker { color: var(--brass-text); font-weight: 700; }
+
+/* -- history --------------------------------------------------------------
+   A list of evenings. Each quick game folds its scoreboard away, because the
+   question this screen answers is "which evening", not "what was the score" —
+   that one is asked of exactly one row at a time. */
+
+.games { list-style: none; padding: 0; margin: var(--s5) 0 0; display: grid; gap: var(--s5); }
+.game { border-bottom: 1px solid var(--rule); padding-bottom: var(--s4); }
+.game__title {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  margin: 0;
+  cursor: pointer;
+}
+.game summary.game__title::marker { color: var(--brass-text); }
+.game__when {
+  display: block;
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  margin: var(--s1) 0 0;
+}
+/* The names can be long; the fold marker keeps its own column. */
+.game summary { list-style-position: outside; }
+.game .table { margin-top: var(--s3); }
+
+/* -- lobby ----------------------------------------------------------------
+   Four questions in the order they get asked, each with a heading of its
+   own — the old single grid of six controls made "разброс сложности" and
+   "слов на игрока" look like the same kind of decision. */
+
+.bar { margin-bottom: var(--s4); }
+.link-btn {
+  appearance: none; background: none; border: 0; padding: 0;
+  font: inherit; color: var(--ink-muted); cursor: pointer;
+}
+.link-btn:hover { color: var(--ink); }
+
+.lobby__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3) var(--s4);
+  margin-top: var(--s4);
+}
+.check { display: flex; align-items: center; gap: var(--s3); font-family: var(--sans); font-size: var(--t-small); }
+.check input { accent-color: var(--brass); width: 1.15rem; height: 1.15rem; }
+.check input:disabled + span { color: var(--ink-muted); }
+.field-note {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  margin: var(--s3) 0 0;
+  max-width: var(--measure);
+}
+
+/* -- who is playing ------------------------------------------------------
+   Order is not decoration here: fixed pairs are made of neighbours in this
+   list, and in a personal game the turn passes down it. So the rows can be
+   moved, and in pair mode each pair is tied together by its own colour. */
+
+/* No gap between the rows: each carries half of one as padding instead, so
+   that a pair's colour band runs unbroken down both of its rows. */
+.players { list-style: none; padding: 0; margin: 0; display: grid; }
+.player { display: flex; align-items: center; gap: var(--s2); padding-block: var(--s1); }
+.player__input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-family: var(--serif);
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: var(--s3) var(--s4);
+}
+.player__input:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+/* The grip. A row is dragged by this and nothing else, so that the name
+   inside it can still be tapped, selected and typed into. */
+.player__grip {
+  appearance: none;
+  background: none;
+  border: 0;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--ink-muted);
+  cursor: grab;
+  touch-action: none;              /* the finger drags the row, not the page */
+}
+.player__grip svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.player__grip:hover { color: var(--ink); }
+.player__grip:active { cursor: grabbing; }
+
+/* The row under the finger: lifted off the felt, and above its neighbours
+   while they slide out of its way. */
+.player--lifted { position: relative; z-index: 2; }
+.player--lifted .player__input {
+  box-shadow: var(--shadow-slip);
+  border-color: var(--brass);
+}
+.player { transition: transform 120ms ease; }
+.player--lifted { transition: none; }
+
+.player__drop {
+  appearance: none; background: none; border: 0; cursor: pointer; flex: none;
+  color: var(--ink-muted); font-size: 1.4rem; line-height: 1; padding: var(--s2);
+}
+.player__drop:hover { color: var(--rose-deep); }
+
+/* A pair is two rows held by one band of colour down their left. */
+.player--paired { border-left: 3px solid var(--pair); padding-left: var(--s3); }
+.player--pair-top { border-top-left-radius: 3px; }
+.player--pair-bottom { border-bottom-left-radius: 3px; margin-bottom: var(--s4); }
+
+.field-error { color: var(--rose-deep); font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s3); }
+
+/* The site's .btn-row carries no margin of its own — on the site it always
+   follows prose. Here it closes a screen, under a form or a table. */
+.btn-row { margin-top: var(--s6); }
+
+/* -- how hard the words are ----------------------------------------------
+   The statistics pages' .scale, with the slider inside it rather than under
+   it: the track is the scale, the wash is the band the words are drawn from,
+   and the thumb is the marker that scale draws — except that here you can
+   take hold of it. */
+
+.band {
+  position: relative;
+  display: block;
+  height: 1.5rem;
+  margin-block: var(--s1) 0;
+}
+/* The track itself, behind everything. */
+.band::before {
+  content: "";
+  position: absolute;
+  inset: 0.3125rem 0;              /* a 14px bar, centred in the 24px row */
+  background: var(--mark-track);
+  border-radius: 7px;
+}
+.band__wash {
+  position: absolute;
+  top: 0.3125rem;
+  bottom: 0.3125rem;
+  background: var(--mark-honey);
+  opacity: 0.35;
+  border-radius: 7px;
+}
+/* 50 — the average word, so the band is read against something. */
+.band__mid {
+  position: absolute;
+  top: 0.1875rem;
+  bottom: 0.1875rem;
+  left: 50%;
+  width: 1px;
+  background: var(--ink-muted);
+  opacity: 0.5;
+}
+.band__input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;              /* over the wash */
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+}
+.band__input::-webkit-slider-runnable-track { height: 1.5rem; background: none; }
+.band__input::-moz-range-track { height: 1.5rem; background: none; }
+/* The marker, made draggable. */
+.band__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 6px;
+  height: 1.375rem;
+  margin-top: 0.0625rem;
+  border-radius: 3px;
+  background: var(--brass);
+  border: 0;
+}
+.band__input::-moz-range-thumb {
+  width: 6px;
+  height: 1.375rem;
+  border-radius: 3px;
+  background: var(--brass);
+  border: 0;
+}
+.band__input:focus-visible { outline: 2px solid var(--brass); outline-offset: 4px; border-radius: 8px; }
+
+.band__ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  color: var(--ink-muted);
+  padding-top: var(--s2);
+}
+/* One line, always: «В среднем 7–27 с на слово» is a reading, and a reading
+   that reflows as the thumb moves reads as the layout misbehaving. */
+.band__read {
+  grid-column: 1 / -1;             /* a caption under the control, not a cell */
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  margin: var(--s2) 0 0;
+  white-space: nowrap;
+}
+.band__read b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.fields { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.field { display: grid; gap: var(--s2); font-family: var(--sans); font-size: var(--t-small); }
+.field--wide { grid-column: 1 / -1; }
+.field__label { color: var(--ink-muted); }
+.field__label b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.field__input {
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: var(--s2) var(--s3);
+  width: 100%;
+}
+.field input[type="range"] { accent-color: var(--brass); width: 100%; }
+
+/* -- handoff ------------------------------------------------------------- */
+
+.big-name {
+  font-family: var(--display-face);
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1.1;
+  margin: 0 0 var(--s4);
+}
+.hint { color: var(--ink-muted); font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s6); }
+/* Far from the thumb that is about to tap the panel to start the turn. */
+.handoff__quit { margin-top: var(--s8); font-size: var(--t-small); }
+/* A layer over its screen rather than a line inside it: the number is sized
+   to be seen from across the table, and in the column it used to push the
+   quit button — and itself — off the bottom of a short phone. Sized off the
+   smaller side of the viewport so one digit always fits, portrait or not. */
+.countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  font-family: var(--display-face);
+  /* One digit, as large as the shorter side of the phone allows: the ink of
+     a Playfair figure is about 0.68em tall and 0.45em wide. */
+  font-size: min(60vh, 80vw);
+  line-height: 1;
+  margin: 0;
+  /* Playfair's figures are old-style: the 3 hangs below the baseline, so a
+     line box centred by the grid leaves the ink sitting low. Measured, not
+     guessed — the ink of a digit is centred 0.22em above the middle of its
+     line box, and half of this padding is what puts it back. */
+  padding-bottom: 0.44em;
+}
+
+/* -- round --------------------------------------------------------------- */
+
+.round {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding:
+    calc(var(--s4) + env(safe-area-inset-top))
+    calc(var(--s4) + env(safe-area-inset-right))
+    calc(var(--s4) + env(safe-area-inset-bottom))
+    calc(var(--s4) + env(safe-area-inset-left));
+  gap: var(--s4);
+}
+.round__top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+}
+.round__timer {
+  font-size: 2.4rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1;
+}
+/* The last seconds, when the guesser has one word left. */
+body[data-phase="last"] .round__timer { color: var(--rose-deep); }
+.round__left b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* The middle row of the round screen, and the room a word has: the slip is
+   measured against this box and never allowed to be wider. */
+.word-slot {
+  display: grid;
+  place-items: center;
+  align-content: center;           /* word and clock together, not adrift */
+  gap: var(--s6);
+  min-width: 0;
+}
+
+/* Every word is a fresh slip out of the hat — the colour, the tear and the
+   tilt all change from one word to the next, so a new word is visibly a new
+   piece of paper rather than new text in the same place. (The site keeps
+   honey for words; here the four slips take turns, which is what a hatful of
+   paper actually looks like.) */
+.word {
+  text-align: center;
+  font-family: var(--display-face);
+  /* The ceiling: sized to be read across a table. fitWord() in main.js takes
+     it down from here whenever the word is too long for one line — padding
+     is in em precisely so that the whole slip scales with the type. */
+  font-size: clamp(2.2rem, 13vw, 4.5rem);
+  line-height: 1.05;
+  margin: 0;
+  padding: 0.3em 0.55em 0.36em;
+  white-space: nowrap;
+}
+.word--rose  { background-color: var(--slip-rose);  --rip: var(--rip-2); --rot: -1.5deg; }
+.word--honey { background-color: var(--slip-honey); --rip: var(--rip-4); --rot: 1.2deg; }
+.word--sky   { background-color: var(--slip-sky);   --rip: var(--rip-1); --rot: -0.7deg; }
+.word--lilac { background-color: var(--slip-lilac); --rip: var(--rip-5); --rot: 1.7deg; }
+
+.round__acts { display: grid; gap: var(--s3); }
+.act-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s3); }
+.act {
+  appearance: none;
+  border: 0;
+  border-radius: var(--r-card);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--slip-ink);
+  padding: var(--s5) var(--s4);
+  cursor: pointer;
+  transition: transform 100ms ease;
+  touch-action: manipulation;      /* no double-tap zoom on the hot buttons */
+}
+.act:active { transform: scale(0.98); }
+.act--ok { background: var(--slip-honey); padding-block: var(--s6); font-size: 1.25rem; }
+.act--fail { background: var(--slip-rose); }
+.act--give { background: var(--paper-raised); color: var(--ink-muted); }
+
+/* The last seconds. The explainer has stopped talking and the guesser has
+   one word and a few seconds, so the screen changes hands: the paper loses
+   its colour — it is no longer the thing being worked on — and the clock,
+   which was a corner reading, takes the middle of the room. */
+
+/* Drained, not replaced: grayscale keeps the slip's lightness, so it is
+   still a piece of paper with dark ink on it — just not a coloured one. */
+body[data-phase="last"] .word { filter: var(--slip-filter) grayscale(0.9); }
+body[data-phase="last"] .round__timer { visibility: hidden; }
+
+.last-call {
+  font-family: var(--display-face);
+  font-size: clamp(3.5rem, 22vw, 7rem);
+  line-height: 1;
+  margin: var(--s5) 0 0;
+  color: var(--rose-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -- the score ------------------------------------------------------------
+   Three numbers per player: what they guessed, what they got across, and the
+   sum. A pair is one row holding two people, so every cell stacks its two
+   lines and each column still reads straight down. */
+
+.score__icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: inline-block;
+  vertical-align: middle;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.score__names, .score__half { line-height: 1.35; }
+.score__names span, .score__half span { display: block; }
+.score__total { font-weight: 600; }
+/* The halves are supporting evidence for the total, not rivals to it. */
+.score__half { color: var(--ink-muted); }
+
+/* -- verdict ------------------------------------------------------------- */
+
+.outcomes { list-style: none; padding: 0; margin: var(--s5) 0; display: grid; gap: var(--s3); }
+.outcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding-block: var(--s3);
+  border-bottom: 1px solid var(--rule);
+}
+.outcome__word { font-family: var(--serif); font-style: italic; font-size: 1.0625rem; }
+.outcome__pick {
+  font: inherit;
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  background: var(--paper-raised);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  padding: var(--s2) var(--s3);
+}
+
+/* -- deathmatch ---------------------------------------------------------- */
+
+.dm-rules { max-width: 22rem; margin-bottom: var(--s6); }
+.dm-final {
+  font-family: var(--display-face);
+  font-size: clamp(4rem, 25vw, 7rem);
+  line-height: 1;
+  margin: 0 0 var(--s6);
+}
+/* The number that just changed blinks, so a harder game is noticed. */
+.blinkable.blink { animation: blink 300ms steps(1) 6; }
+@keyframes blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mode, .act, .install__btn { transition: none; }
+  .blinkable.blink { animation: none; color: var(--brass-text); }
+}

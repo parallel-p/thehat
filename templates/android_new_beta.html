@@ -19,7 +19,7 @@
         <nav class="masthead__nav" aria-label="Основная навигация">
             <a href="/">Об игре</a>
             <a href="/statistics/total_statistics">Статистика</a>
-            <a href="/android/new/beta" aria-current="page">Скачать</a>
+            <a href="/play">Играть</a>
         </nav>
     </div>
 </header>
@@ -27,18 +27,15 @@
 <main>
     <section class="hero">
         <div class="wrap wrap--narrow" style="padding-inline: 0;">
-            <p class="eyebrow eyebrow--sky"><span class="eyebrow__num">beta</span> Android</p>
-            <h1 class="title">Новое приложение</h1>
+            <p class="eyebrow eyebrow--sky"><span>Приложение</span></p>
+            <h1 class="title">Шляпа теперь открывается в браузере</h1>
             <p class="lead hero__lead">
-                Кроссплатформенная Шляпа с обновляемым словарём и режимом «на выживание».
-                Пока идёт beta-тестирование, поэтому в Google Play его ещё нет.
+                Отдельное приложение для Android больше не нужно: та же игра — оба
+                режима, тот же словарь, тот же счёт — работает прямо на странице,
+                без интернета и на любом телефоне, включая айфон.
             </p>
             <div class="btn-row hero__actions">
-                <a class="btn btn--primary"
-                   href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">
-                    Скачать APK
-                </a>
-                <a class="btn btn--ghost" href="/android/beta">Старое приложение</a>
+                <a class="btn btn--primary" href="/play">Играть</a>
             </div>
         </div>
     </section>
@@ -47,14 +44,23 @@
         <div class="wrap">
             <div class="prose">
                 <p class="eyebrow"><span class="eyebrow__num">01</span> Установка</p>
-                <h2 class="section__title">Как установить</h2>
+                <h2 class="section__title">Как добавить на домашний экран</h2>
+                <p>
+                    Так Шляпа открывается как обычное приложение — во весь экран,
+                    без адресной строки, и работает без сети.
+                </p>
                 <ol>
-                    <li>Разрешите установку приложений из неизвестных источников в настройках телефона.</li>
-                    <li>
-                        <a href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">Скачайте</a>
-                        и установите приложение.
-                    </li>
+                    <li><b>iPhone:</b> откройте <a href="/play">игру</a> в Safari,
+                        «Поделиться» → «На экран „Домой“».</li>
+                    <li><b>Android:</b> откройте <a href="/play">игру</a> в Chrome
+                        и нажмите «Установить» — она предложит сама.</li>
                 </ol>
+                <p class="muted">
+                    Старый APK всё ещё лежит
+                    <a href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">в релизах</a>
+                    и на F-Droid, но он больше не развивается: сыгранные им партии
+                    попадают на сервер дважды.
+                </p>
 
                 <p class="eyebrow" style="margin-top: var(--s7);">
                     <span class="eyebrow__num">02</span> Если что-то не так

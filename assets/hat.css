@@ -7,7 +7,9 @@
    lying on the same table. The game is playful, the score is honest:
    everything that speaks may play, everything that counts stays strict.
 
-   Self-contained on purpose. No CDN, no third-party request, no JavaScript.
+   Self-contained on purpose. No CDN, no third-party request. The pages carry
+   no JavaScript at all; /play, which is an app rather than a document, is the
+   one exception, and it borrows this file wholesale.
    Playfair Display is self-hosted from /assets/fonts (OFL).
 
    Contents
@@ -156,9 +158,22 @@
   --r-pill: 999px;
 }
 
-/* Day: a porcelain score sheet on the same table. Cool, never cream. */
+/* Day: a porcelain score sheet on the same table. Cool, never cream.
+   ------------------------------------------------------------------------
+   Two ways for day to come on, and the palette is written twice because CSS
+   has no way to share one declaration block between a media query and a
+   selector. THE TWO BLOCKS MUST STAY IN STEP — this one is the original,
+   and the copy under :root[data-theme="day"] directly below carries the
+   pointer back here. Nothing but tokens may live in either.
+
+   1. The system asks for it, and nothing has overridden that. This is the
+      whole story for the site, whose pages carry no JavaScript and so have
+      no memory of a choice.
+   2. /play was told to, by hand. It is an app, it has a switch, and it
+      writes data-theme on <html>: "day" or "night" for a choice made,
+      nothing at all for "follow the system". */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="night"]) {
     --mat:          #3C4A41;
     --paper:        #F4F5F1;
     --paper-raised: #FBFCF9;
@@ -195,6 +210,46 @@
     --print-pad: var(--s4);
     --print-shadow: var(--shadow-slip);
   }
+}
+
+/* Day asked for by hand, on a device whose system says night. The copy of
+   the block above — keep the two in step. */
+:root[data-theme="day"] {
+  --mat:          #3C4A41;
+  --paper:        #F4F5F1;
+  --paper-raised: #FBFCF9;
+  --paper-sunk:   #EAEDE6;
+
+  --ink:       #1D2823;
+  --ink-muted: #5F6B63;
+  --rule:      #D8DED4;
+
+  --brass:      #C9A24B;
+  --brass-text: #7E621C;
+
+  --rose-deep:  #9C4A43;
+  --honey-deep: #8A650F;
+  --sky-deep:   #3F6675;
+  --lilac-deep: #6B5588;
+
+  --mark-honey: #A97812;
+  --mark-sky:   #567F8E;
+  --mark-lilac: #6B5588;
+  --mark-track: #E2E7DD;
+
+  --btn-bg: #1D2823;
+  --btn-fg: #F4F5F1;
+
+  --shadow-slip: 0 2px 6px rgba(29, 40, 35, 0.2);
+  --shadow-sheet: 0 24px 70px rgba(10, 16, 13, 0.5);
+  --lamp: none;
+  --slip-filter: drop-shadow(0 1px 1px rgba(29, 40, 35, 0.2)) drop-shadow(0 5px 10px rgba(29, 40, 35, 0.16));
+  --decor-o: 1;
+
+  --print-bg: #FBFCF9;
+  --print-border: var(--rule);
+  --print-pad: var(--s4);
+  --print-shadow: var(--shadow-slip);
 }
 
 /* 3. Reset & base ======================================================== */
@@ -422,8 +477,14 @@ a {
   text-underline-offset: 0.2em;
   transition: text-decoration-color 150ms ease;
 }
+/* No colour here, deliberately. A link keeps its colour from `a` above, and
+   anything wearing a link — a button, a slip — keeps the colour its own
+   component gave it. `a:hover` is one specificity point heavier than a class,
+   so re-stating the ink here (which changed nothing for a link in running
+   text) quietly repainted every one of those: the label of «Играть» became
+   exactly the colour of the pill under it, 1:1, and a slip you pressed on the
+   phone went from 6.8:1 to 1.8:1 for as long as the tap's hover stuck. */
 a:hover {
-  color: var(--ink);
   text-decoration-color: var(--brass-text);
   text-decoration-style: wavy;
   text-decoration-thickness: 1.5px;
@@ -1026,7 +1087,10 @@ a:hover {
    Paper is paper: print gets the day palette on white regardless of the
    screen theme. */
 @media print {
-  :root {
+  /* The second selector is not decoration: a hand-picked theme is an
+     attribute, and an attribute outweighs the bare :root this block would
+     otherwise carry — paper would then print in the palette of a screen. */
+  :root, :root[data-theme] {
     --mat: #fff; --paper: #fff; --paper-raised: #fff; --paper-sunk: #f2f2f2;
     --ink: #000; --ink-muted: #444; --rule: #ccc;
     --brass: #7E621C; --brass-text: #7E621C;
