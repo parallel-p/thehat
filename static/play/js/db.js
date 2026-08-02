@@ -6,12 +6,15 @@
 // state where the settings survived but the dictionary did not.
 
 const NAME = 'hat';
-const VERSION = 1;
+// 2 added `history`. The upgrade only ever creates what is missing, so a
+// version bump costs an existing player nothing.
+const VERSION = 2;
 
 // buckets: one record per difficulty 0..100, each { i, words[] }
 // meta:    etag, settings, the used-word ring, deviceId
 // outbox:  finished game logs waiting to reach the server
-const STORES = ['buckets', 'meta', 'outbox'];
+// history: what was played, keyed by when — the app's own memory, never sent
+const STORES = ['buckets', 'meta', 'outbox', 'history'];
 
 let opening = null;
 

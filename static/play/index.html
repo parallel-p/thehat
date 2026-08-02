@@ -16,6 +16,15 @@
     <link rel="manifest" href="/play/manifest.webmanifest">
     <link rel="stylesheet" href="/assets/hat.css">
     <link rel="stylesheet" href="/play/app.css">
+    <!-- Before the first paint, and so before the module below has run: a
+         saved theme has to be on <html> when the stylesheet is applied, or
+         the app opens in the wrong palette and corrects itself in view. -->
+    <script>
+        try {
+            var t = localStorage.getItem('hat-theme');
+            if (t === 'day' || t === 'night') document.documentElement.dataset.theme = t;
+        } catch (e) { /* private mode: the system theme it is */ }
+    </script>
 </head>
 <body data-screen="loading">
 
@@ -33,36 +42,137 @@
     </div>
 </section>
 
-<!-- 2. Home ------------------------------------------------------------- -->
-<section class="screen" data-for="home">
-    <div class="pad">
-        <p class="app-brand">Шляпа</p>
-        <p class="muted app-sub">Объясняйте слова на время</p>
+<!-- 2. Home -------------------------------------------------------------
+     Five slips on the felt, no two torn the same way. Everything you can do
+     from here is a slip you press; there is nothing else on the screen. -->
+<section class="screen screen--scroll" data-for="home">
+    <div class="pad home">
+        <h1 class="home__title torn torn--rose">Шляпа</h1>
 
         <div class="modes">
-            <button class="mode mode--honey" data-act="new-game">
-                <span class="mode__name">Быстрая игра</span>
+            <button class="mode torn torn--honey mode--game" data-act="new-game">
+                <span class="mode__name">Обычная игра</span>
                 <span class="mode__note">компанией, по очереди</span>
             </button>
-            <button class="mode mode--sky" data-act="new-dm">
+            <button class="mode torn torn--sky mode--dm" data-act="new-dm">
                 <span class="mode__name">Режим для двоих</span>
                 <span class="mode__note">на выживание, вдвоём</span>
             </button>
+            <div class="modes__row">
+                <button class="mode mode--small torn torn--lilac mode--rules"
+                        data-act="rules">
+                    <span class="mode__name">Правила</span>
+                </button>
+                <button class="mode mode--small torn torn--rose mode--history"
+                        data-act="history">
+                    <span class="mode__name">История</span>
+                </button>
+                <a class="mode mode--small torn torn--honey mode--stats"
+                   href="/statistics/word_statistics">
+                    <span class="mode__name">Статистика</span>
+                </a>
+            </div>
         </div>
 
-        <p class="app-links">
-            <a href="http://thehat.ru/rules/">Правила игры</a>
-            <a href="/statistics/word_statistics">Статистика слов</a>
-        </p>
         <p class="app-status muted" id="outbox-note" hidden></p>
-        <p class="app-status muted" id="install-note" hidden>
-            Чтобы играть без интернета: «Поделиться» → «На экран „Домой“».
-        </p>
-        <button class="btn btn--ghost app-install" id="install-btn" hidden>Установить</button>
+
+        <!-- Three cells, no words: a half-lit disc for "as the phone says",
+             a sun, a moon. The marker slides to the one in force. -->
+        <div class="switch" id="theme" role="radiogroup" aria-label="Тема оформления">
+            <span class="switch__mark" aria-hidden="true"></span>
+            <label class="switch__cell" title="Как в системе">
+                <input type="radio" name="theme" value="auto" checked>
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <circle cx="8" cy="8" r="5.5"/>
+                    <path d="M8 2.5a5.5 5.5 0 0 0 0 11z" class="fill"/>
+                </svg>
+                <span class="visually-hidden">Как в системе</span>
+            </label>
+            <label class="switch__cell" title="День">
+                <input type="radio" name="theme" value="day">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <circle cx="8" cy="8" r="3.2"/>
+                    <path d="M13 8h2M11.54 4.46l1.41-1.41M8 3V1M4.46 4.46 3.05 3.05M3 8H1M4.46 11.54l-1.41 1.41M8 13v2M11.54 11.54l1.41 1.41"/>
+                </svg>
+                <span class="visually-hidden">День</span>
+            </label>
+            <label class="switch__cell" title="Вечер">
+                <input type="radio" name="theme" value="night">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                    <path d="M14 8.53A6 6 0 1 1 7.47 2 4.67 4.67 0 0 0 14 8.53z"/>
+                </svg>
+                <span class="visually-hidden">Вечер</span>
+            </label>
+        </div>
+
+        <!-- Shown only where installing is still possible: hidden inside an
+             installed app, and hidden in a browser that cannot offer it. -->
+        <aside class="install" id="install" hidden>
+            <p class="install__text" id="install-text"></p>
+            <button class="install__btn torn" id="install-btn" hidden>Установить</button>
+        </aside>
     </div>
 </section>
 
-<!-- 3. Lobby ------------------------------------------------------------ -->
+<!-- 3. Rules ----------------------------------------------------------
+     The text is the one from beret (nzinov/beret, lib/rules.dart), so that
+     retiring the app does not retire its rules. It lives in the shell rather
+     than behind a link, because a phone at a table has no internet. -->
+<section class="screen screen--scroll" data-for="rules">
+    <div class="pad">
+        <div class="bar">
+            <button class="link-btn" data-act="home">← Назад</button>
+        </div>
+        <h1 class="app-title">Правила</h1>
+        <div class="rules">
+            <h2 class="rules__head">Цель игры</h2>
+            <p>За ограниченное время объяснить партнёру как можно больше слов.</p>
+            <h2 class="rules__head">Общий ход игры</h2>
+            <p>Игроки садятся вокруг стола (обычно — 6-10 человек). В шляпе находится некоторое количество слов; игроки этих слов не знают. В каждый момент времени играют два человека — объясняющий и отгадывающий, остальные игроки ждут своей очереди и слушают. Объясняющий игрок при начале хода, читает написанное на экране слово (про себя) и объясняет это слово отгадывающему игроку, не используя слова, однокоренные загаданному. Отгадывающий игрок предлагает версии до тех пор, пока не назовёт загаданное слово. После этого объясняющий нажимает «Угадано» и объясняет следующее слово. Отгаданные слова в шляпу не возвращаются. По истечении времени ход заканчивается. Если слово не отгадано, то слово возвращается в шляпу, остальным игрокам слово не показывается. После этого ход переходит к следующему по часовой стрелке игроку.</p>
+            <h2 class="rules__head">Разновидности игры</h2>
+            <p>Игра может происходить в двух форматах: парном и личном.</p>
+            <h3 class="rules__sub">Парная игра</h3>
+            <p>При парной игре, как чаще всего и играют в компаниях, все игроки разбиваются на пары (поэтому число играющих обязательно должно быть чётным). Игроки каждой пары садятся друг напротив друга, чтобы не было путаницы со сменой игроков. Каждый игрок объясняет слова только своему партнёру. Каждая пара получает столько очков, сколько слов она отгадала.</p>
+            <h3 class="rules__sub">Личная игра</h3>
+            <p>При игре в личном зачёте каждый игрок объясняет слова разным игрокам. За каждое загаданное и за каждое отгаданное слово игрок получает по очку. Оптимальная схема для личной игры — когда каждый загадывает слова каждому по одному разу. Добавлять игроков в игру для удобства стоит в порядке рассадки.</p>
+            <h2 class="rules__head">Частности</h2>
+            <ol class="rules__list">
+                <li>Загадываемые слова — существительные нарицательные в единственном числе (если оно есть; «ножницы» и т.п. загадывать можно). Слово считается отгаданным, если отгадывающий произнёс его в любой форме (например, «Мама мыла…» — «Раму», если загадано «Рама»). Слово считается отгаданным, если отгадывающий произнёс слово, звучащее так же, как написанное на бумажке, так называемый омофон (например, «Такой с колчаном» — «Лук», если загадано «Луг»). Можно также совмещать эти правила (например, «Я вступаю в…» — «Брак», если загадано «Брага»).</li>
+                <li>Объясняющему запрещено произносить слова, однокоренные загаданному слову (в случаях сомнения по поводу однокоренности слов можно воспользоваться викисловарем <a href="https://ru.wiktionary.org/">ru.wiktionary.org</a> (а именно, разбором слова по составу и разделом «родственные слова»)). Слова, имеющие ту же приставку или суффикс, что и загаданное, произносить можно, не сообщая при этом, что у загаданного слова такая же приставка или суффикс. Объясняющему запрещено произносить аббревиатуры, одна из букв которых обозначает загаданное слово (например, нельзя говорить «МГУ» для «Университет»).</li>
+                <li>Объясняющему запрещено произносить слова, созвучные загаданному слову (а также слова, имеющие общие морфемы с загаданным), сообщая явно или намекая при этом (например, выделяя интонацией), что слова созвучны (или имеют общие морфемы, например, «большезга»). Объясняющему запрещено произносить слова, не существующие в русском языке, если такие слова вместе с загаданным и, возможно, дополнительными буквами образуют существующее слово. Например, нельзя сказать «птеро…» (для «дактиля») — так как вместе они образуют «птеродактиль», а также «бомбо…» (для «убежища») — так как вместе они образуют «бомбоубежище».</li>
+                <li>Объясняющий не может никаким образом апеллировать к буквам и слогам загаданного слова («первая буква – такая же, как и у …», «убери последние четыре буквы», «слово из трёх слогов» и т.п.). В частности, нельзя загадывать слова, прямо называя их анаграммы (например, «анаграмма от слова рост» нельзя, а «анаграмма к слову, обозначающему высоту» можно). Также запрещено апеллировать к начертанию буквы («круглая приставка», «в середине как крест»). Однако разрешено апеллировать к частям слова, не уточняя их размер («измени начало слова», «середина – как у слова, которое …»), а также к морфемам («измени окончание», «возьми приставку, как у моей фамилии»)</li>
+                <li>Также запрещено при объяснении передавать любую информацию мимикой или жестами.</li>
+                <li>При объяснении слова нельзя пользоваться переводами в случае, если одного из слов (сказанного объясняющим или его перевода) нет в русском языке с тем же значением. Это включает случаи и без явной апелляции к переводу на заданный язык. Например: нельзя говорить «хенд по-русски», «солнце по-английски» (загаданы рука и сан), «она длинная» (загадан шезлонг). Однако, если иностранное слово заимствованием перешло в русский язык, называть его можно: «рефрижератор по-простому», «установка по-английски». Если загадано иностранное слово, допускается говорить, из какого языка оно заимствовано, и произносить перевод: «любослов по-гречески». Также это правило действует в отношении объясняемых приставок и корней иностранного происхождения.</li>
+                <li>Если слово загадывается не через смысл, а по созвучию или по частям, то к объяснению любого из вспомогательных слов также относятся ограничения B-F.</li>
+                <li>Если объясняющий называет однокоренное с загаданным слово или иным образом нарушает правила B-F, он нажимает «Ошибка» (слово удаляется из шляпы) и передаёт ход следующему игроку. Если факт нарушения фиксируется после окончания хода, то слова, загаданные с нарушением или после него, не засчитываются.</li>
+                <li>Если отгадывающий называет слово, однокоренное загаданному, слово ещё не считается отгаданным. При этом объясняющий может сообщить о том, что загадано однокоренное слово, и попросить уточнить слово.</li>
+                <li>Объясняющий, отчаявшийся объяснить вытянутое слово, может вернуть слово в шляпу, нажав кнопку «Сдаться» и досрочно закончить объяснение. Заменить слово на другое не разрешается.</li>
+                <li>Время, отведённое на загадывание слов каждой парой игроков, — 20 секунд. По истечении этого времени объясняющий перестаёт объяснять, а у отгадывающего есть ещё 3 секунды и одно слово на то, чтобы дать ответ, после чего ответы больше не принимаются. Если загадывающий не смог остановиться по истечении времени, право трёх секунд отгадывающему не даётся.</li>
+                <li>Игроки, не загадывающие и не отгадывающие слово в данный момент, не должны ни мешать, ни помогать играющей паре . Не допускается никаким образом обсуждать ещё не отгаданные слова.</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<!-- 4. History ---------------------------------------------------------
+     What was played, kept only here: the log the app uploads carries the
+     words, not who won, and the server has never had anywhere to put an
+     evening's scoreboard. -->
+<section class="screen screen--scroll" data-for="history">
+    <div class="pad">
+        <div class="bar">
+            <button class="link-btn" data-act="home">← Назад</button>
+        </div>
+        <h1 class="app-title">История игр</h1>
+        <p class="empty" id="history-empty" hidden>Сыгранных игр пока нет.</p>
+        <ul class="games" id="games"></ul>
+    </div>
+</section>
+
+<!-- 5. Lobby ------------------------------------------------------------
+     Read top to bottom it is the order the questions are actually asked in:
+     who is playing, how they are paired, what words they get, how long a
+     turn lasts. -->
 <section class="screen screen--scroll" data-for="lobby">
     <div class="pad">
         <div class="bar">
@@ -71,10 +181,48 @@
         <h1 class="app-title">Кто играет</h1>
 
         <ul class="players" id="players"></ul>
-        <button class="btn btn--ghost" data-act="add-player">Добавить игрока</button>
         <p class="field-error" id="players-error" hidden></p>
 
-        <h2 class="app-title app-title--small">Настройки</h2>
+        <div class="lobby__row">
+            <button class="btn btn--ghost" data-act="add-player">Добавить игрока</button>
+            <label class="check">
+                <input type="checkbox" id="s-teams">
+                <span>Фиксированные пары</span>
+            </label>
+        </div>
+        <p class="field-note" id="teams-note" hidden>
+            Пары играют друг с другом весь вечер, поэтому игроков должно быть
+            чётное число.
+        </p>
+
+        <h2 class="app-title app-title--small">Слова</h2>
+        <div class="fields">
+            <!-- The statistics pages' scale, made draggable: the wash is the
+                 band the words are drawn from, and the thing you drag along
+                 it is the marker that used to just sit there. One control,
+                 not a picture of one plus a slider under it. -->
+            <label class="field field--wide">
+                <span class="field__label">Сложность <b id="s-diff-val">30</b></span>
+                <span class="band">
+                    <span class="band__wash" id="band-wash"></span>
+                    <span class="band__mid"></span>
+                    <input class="band__input" type="range" id="s-diff"
+                           min="0" max="100" step="1" aria-label="Сложность слов">
+                </span>
+                <span class="band__ends">
+                    <span>проще</span>
+                    <span>сложнее</span>
+                </span>
+            </label>
+
+            <label class="field field--wide">
+                <span class="field__label">Разброс <b id="s-disp-val">15</b></span>
+                <input type="range" id="s-disp" min="0" max="45" step="1">
+            </label>
+            <p class="band__read">В среднем <b id="s-secs">5 с</b> на слово</p>
+        </div>
+
+        <h2 class="app-title app-title--small">Ход</h2>
         <div class="fields">
             <label class="field">
                 <span class="field__label">Слов на игрока</span>
@@ -88,18 +236,6 @@
                 <span class="field__label">Добавочное время, сек</span>
                 <input class="field__input" type="number" id="s-extra" min="0" max="30" inputmode="numeric">
             </label>
-            <label class="field field--wide">
-                <span class="field__label">Сложность слов: <b id="s-diff-val"></b></span>
-                <input type="range" id="s-diff" min="0" max="100" step="1">
-            </label>
-            <label class="field field--wide">
-                <span class="field__label">Разброс сложности: <b id="s-disp-val"></b></span>
-                <input type="range" id="s-disp" min="0" max="45" step="1">
-            </label>
-            <label class="field field--check">
-                <input type="checkbox" id="s-teams">
-                <span>Фиксированные пары</span>
-            </label>
         </div>
 
         <div class="btn-row">
@@ -108,7 +244,7 @@
     </div>
 </section>
 
-<!-- 4. Handoff ---------------------------------------------------------- -->
+<!-- 6. Handoff ---------------------------------------------------------- -->
 <section class="screen screen--tap" data-for="handoff" data-act="begin-turn">
     <div class="pad center">
         <p class="muted">Объясняет</p>
@@ -116,6 +252,10 @@
         <p class="muted">отгадывает</p>
         <p class="big-name" id="h-guesser"></p>
         <p class="hint" id="h-hint">Нажмите, когда телефон у объясняющего</p>
+        <!-- The countdown is a layer over the whole screen, not another line
+             in this column: a 3 set at reading width is small, and a 3 set
+             large enough to read across a table would push this column off
+             the bottom of the phone. -->
         <p class="countdown" id="h-count" hidden></p>
         <!-- Back does nothing inside a game, so the way out has to be visible
              somewhere between turns. Nested inside the tappable panel on
@@ -125,14 +265,21 @@
     </div>
 </section>
 
-<!-- 5. Round ------------------------------------------------------------ -->
+<!-- 7. Round ------------------------------------------------------------ -->
 <section class="screen" data-for="round">
     <div class="round">
         <div class="round__top">
             <span class="round__timer" id="r-timer">0</span>
             <span class="round__left" id="r-left"></span>
         </div>
-        <p class="word" id="r-word"></p>
+        <!-- The word comes out of the hat on a slip, and the span inside it
+             is what gets measured: the slip never wraps, it shrinks. -->
+        <div class="word-slot">
+            <p class="word torn" id="r-word"><span></span></p>
+            <!-- The extra seconds, once the bell has gone: the one number in
+                 the room that matters, in the room's own middle. -->
+            <p class="last-call" id="r-last" hidden></p>
+        </div>
         <div class="round__acts">
             <button class="act act--ok" data-act="guessed">Угадано</button>
             <div class="act-row">
@@ -143,7 +290,7 @@
     </div>
 </section>
 
-<!-- 6. Verdict ---------------------------------------------------------- -->
+<!-- 8. Verdict ---------------------------------------------------------- -->
 <section class="screen screen--scroll" data-for="verdict">
     <div class="pad">
         <h1 class="app-title">Что получилось</h1>
@@ -156,7 +303,7 @@
     </div>
 </section>
 
-<!-- 7. Score ------------------------------------------------------------ -->
+<!-- 9. Score ------------------------------------------------------------ -->
 <section class="screen screen--scroll" data-for="score">
     <div class="pad">
         <h1 class="app-title">Итог</h1>
@@ -170,7 +317,7 @@
     </div>
 </section>
 
-<!-- 8. Deathmatch ------------------------------------------------------- -->
+<!-- 10. Deathmatch ------------------------------------------------------- -->
 <section class="screen screen--tap" data-for="dm-start" data-act="begin-dm">
     <div class="pad center">
         <p class="app-brand">Режим для двоих</p>
@@ -192,7 +339,9 @@
                 +<b id="d-add" class="blinkable">10</b>с
             </span>
         </div>
-        <p class="word" id="d-word"></p>
+        <div class="word-slot">
+            <p class="word torn" id="d-word"><span></span></p>
+        </div>
         <div class="round__acts">
             <button class="act act--ok" data-act="dm-guessed">Угадано</button>
             <button class="act act--give" data-act="dm-concede">Сдаться</button>
@@ -206,6 +355,8 @@
         <p class="dm-final" id="d-final">0</p>
         <div class="btn-row btn-row--center">
             <button class="btn btn--primary" data-act="new-dm">Ещё раз</button>
+            <!-- Only where the phone has a share sheet to open. -->
+            <button class="btn btn--ghost" data-act="share" id="share-btn" hidden>Поделиться</button>
             <button class="btn btn--ghost" data-act="home">На главную</button>
         </div>
     </div>
