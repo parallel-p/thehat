@@ -122,6 +122,45 @@ function nextFromBucket(index) {
   return list[cursors[index]++];
 }
 
+/**
+ * Any word outside `avoid`, looked for outward from `difficulty`.
+ *
+ * The fallback when the band is exhausted. It walks whole buckets rather than
+ * sampling, so it finds a word if the dictionary holds one at all — with
+ * thousands of words and a hat of at most a few hundred, it always does.
+ */
+function unusedNear(difficulty, avoid) {
+  const taken = new Set(avoid);
+  const start = Math.min(BUCKETS - 1, Math.max(0, Math.round(difficulty)));
+  for (let step = 0; step < BUCKETS; step++) {
+    for (const index of (step === 0 ? [start] : [start - step, start + step])) {
+      if (index < 0 || index >= BUCKETS) continue;
+      // One pass of the bucket: nextFromBucket advances the cursor, so this
+      // sees every word in it exactly once.
+      for (let seen = 0; seen < buckets[index].length; seen++) {
+        const candidate = nextFromBucket(index);
+        if (candidate && !taken.has(candidate)) return candidate;
+      }
+    }
+  }
+  return null;
+}
+
+// How much of the ring the fallback still respects when the band has nothing
+// unplayed left in it. Small: the point is only that a word does not come
+// back while the last one is still on screen, or in the deathmatch, in hand.
+const IMMEDIATE = 50;
+
+/** The most recently drawn words, newest first. */
+function justPlayed(ring) {
+  const out = [];
+  for (let step = 1; step <= Math.min(IMMEDIATE, ring.words.length); step++) {
+    const at = (ring.at - step + RING) % RING;
+    if (ring.words[at]) out.push(ring.words[at]);
+  }
+  return out;
+}
+
 async function readRing() {
   const ring = await db.get('meta', 'ring');
   return ring && Array.isArray(ring.words)
@@ -150,7 +189,11 @@ export async function getWords(count, difficulty, dispersion) {
       }
     }
     if (word === null) {
-      word = nextFromBucket(drawBucket(difficulty, dispersion)) || '—';
+      // The band has nothing unplayed left in it. Skipping recent words is a
+      // nicety; a hat holding the same word twice is a broken game — the
+      // players meet it once, guess it, and meet it again — so the second
+      // pass gives up the ring and keeps uniqueness instead.
+      word = unusedNear(difficulty, [...drawn, ...justPlayed(ring)]) || '—';
     }
     drawn.push(word);
     recent.add(word);

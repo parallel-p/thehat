@@ -1,4 +1,4 @@
-// Быстрая игра — the party game.
+// Обычная игра — the party game.
 //
 // A port of beret's game_state.dart. The pairing formulas below are copied
 // deliberately rather than reinvented: they are what makes the difference
@@ -21,6 +21,12 @@ export const DEFAULTS = {
 export class Game {
   constructor(settings, names) {
     this.settings = { ...DEFAULTS, ...settings };
+    // Pairs are neighbours two by two, so an odd table cannot have them: the
+    // formula below would ask for player n on a table of n. The lobby will
+    // not offer the setting for an odd number of players, but settings are
+    // remembered between evenings and players are not, so the game refuses
+    // it here too rather than trusting the screen that came before it.
+    if (names.length % 2 !== 0) this.settings.fixedTeams = false;
     this.players = names.map(name => ({
       name, explained: 0, guessed: 0,
     }));
@@ -107,7 +113,19 @@ export class Game {
     return this.word;
   }
 
-  /** Change a decision on the verdict screen, keeping the score honest. */
+  /**
+   * Change a decision on the verdict screen, keeping the score and the hat
+   * honest.
+   *
+   * The hat follows one rule, which is the whole of it: **a word from this
+   * turn is in the hat if and only if its outcome is null.** Guessed words
+   * are won, errored words are burnt (the printed rules, H), and only a word
+   * nobody claimed goes back in. Written as the rule rather than as the six
+   * transitions it produces, because as six cases three of them were wrong:
+   * «Ошибка» chosen for a word that had gone back left it in the hat AND
+   * logged it as burnt, «Ошибка» corrected to «Угадано» put it back, and a
+   * burnt word corrected to «Вернулось в шляпу» vanished from the game.
+   */
   amend(index, outcome) {
     const entry = this.turnLog[index];
     const was = entry.outcome || null;
@@ -116,16 +134,19 @@ export class Game {
     if (was === 'guessed') {
       this.players[this.explainer].explained -= 1;
       this.players[this.guesser].guessed -= 1;
-      // It was taken out of the hat when guessed; it goes back if it no longer
-      // counts, or the word would simply vanish from the game.
-      this.putBack(entry.word);
     }
     if (outcome === 'guessed') {
       this.players[this.explainer].explained += 1;
       this.players[this.guesser].guessed += 1;
+    }
+
+    if (was === null && outcome !== null) {
       const at = this.hat.indexOf(entry.word);
       if (at !== -1) this.hat.splice(at, 1);
+    } else if (was !== null && outcome === null) {
+      this.putBack(entry.word);
     }
+
     if (outcome) entry.outcome = outcome; else delete entry.outcome;
   }
 
@@ -146,8 +167,18 @@ export class Game {
     await logs.finish(this.log);
   }
 
-  /** Score rows, ordered as the game is scored. */
+  /**
+   * Score rows, ordered as the game is scored, each carrying the two numbers
+   * it is made of: what the player guessed and what they explained.
+   *
+   * A pair scores the words it got, which is the words its two members
+   * explained to each other — counting both sides would count every word
+   * twice. Its members travel with it so the scoreboard can show who did
+   * which half.
+   */
   standings() {
+    const shape = p => ({ name: p.name, guessed: p.guessed,
+                          explained: p.explained });
     if (this.settings.fixedTeams) {
       const teams = [];
       for (let i = 0; i + 1 < this.players.length; i += 2) {
@@ -155,13 +186,13 @@ export class Game {
         teams.push({
           name: `${a.name} и ${b.name}`,
           score: a.explained + b.explained,
+          members: [shape(a), shape(b)],
         });
       }
       return teams.sort((x, y) => y.score - x.score);
     }
     return this.players
-      .map(p => ({ name: p.name, score: p.explained + p.guessed,
-                   explained: p.explained, guessed: p.guessed }))
+      .map(p => ({ ...shape(p), score: p.explained + p.guessed }))
       .sort((x, y) => y.score - x.score);
   }
 }
