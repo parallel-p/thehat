@@ -112,6 +112,28 @@ def _serve_dictionary(request, lang):
     })
 
 
+@router.get("/api/v2/word_seconds")
+async def word_seconds():
+    """What a difficulty rating is worth on a stopwatch.
+
+    The rating is dimensionless by construction (see web._seconds_curve), so
+    the app at /play cannot turn a difficulty setting into "about nine seconds
+    a word" on its own. It asks here instead of carrying a copy of the numbers,
+    which would quietly go stale as the corpus grows; the answer is a reading
+    at every difficulty from 0 to 100, changes about as often as the
+    dictionary, and the app keeps the last one it received so that an evening
+    with no signal still has one.
+
+    [{"d": 0..100, "avg": seconds per attempt, "count": words behind it}]
+    """
+    from app import web            # local: web imports nothing from here
+
+    rows = await run_in_threadpool(web.word_seconds)
+    return legacy_response(json.dumps(rows), headers={
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+    })
+
+
 @router.get("/api/v2/dictionaries")
 def list_dictionaries():
     """Contract 3: the list of available languages, as a JSON array."""

@@ -177,3 +177,48 @@ def test_etag_matching(header, key, expected):
     from app.api_v2 import etag_matches
 
     assert etag_matches(header, key) is expected
+
+
+def test_word_seconds_serves_a_reading_at_every_difficulty(client, monkeypatch):
+    """The /play settings screen reads a difficulty in seconds from here.
+
+    The numbers used to be a copy inside the app; the point of the endpoint is
+    that there is one computation, from the same projection the statistics page
+    uses, so the two cannot drift apart. Fed a fake dictionary here, since the
+    shape of the answer is what the app depends on, not the corpus.
+    """
+    from app import web
+
+    def fake_shape():
+        rows = []
+        # Forty words at each of five difficulties, taking longer as they get
+        # harder — enough for the window to fill at every point between them.
+        for difficulty, seconds in ((20, 4), (35, 7), (50, 9), (65, 14), (80, 30)):
+            for index in range(40):
+                rows.append(web.Word("w%d%d" % (difficulty, index), difficulty,
+                                     1.0, 2, 0, 2, seconds * 2))
+        return rows
+
+    monkeypatch.setattr(web, "_word_shape", fake_shape)
+    web._cache.pop("word_seconds", None)
+
+    response = client.get("/api/v2/word_seconds")
+
+    assert response.status_code == 200
+    # Python's json accepts `Infinity` and `NaN`; browsers do not. The app
+    # swallowed the parse error and quietly used its built-in table instead,
+    # which is the one failure this endpoint exists to prevent.
+    assert b"Infinity" not in response.content and b"NaN" not in response.content
+    rows = json.loads(response.content)
+
+    # A reading at every difficulty the corpus reaches, in order, and each one
+    # says how many words it was taken over.
+    points = [row["d"] for row in rows]
+    assert points == sorted(points)
+    assert set(points) >= set(range(20, 81))
+    assert all(row["count"] >= 20 for row in rows)
+    # Harder words take longer: the curve rises across the range.
+    readings = {row["d"]: row["avg"] for row in rows}
+    assert readings[20] < readings[50] < readings[80]
+    assert 3.5 < readings[20] < 6 and 25 < readings[80] < 31
+    assert response.headers["cache-control"].startswith("public, max-age=3600")

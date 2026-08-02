@@ -162,6 +162,78 @@ def _frequency_outliers(shape, frequencies, limit=3):
 _CONSERVATIVE_SIGMAS = 2.0
 
 
+def _seconds_by_difficulty(shape):
+    """The rating in seconds, per difficulty bucket.
+
+    E is built out of these seconds -- every rating pass in stats ranks a
+    game's words by explanation time -- but only out of their *order* within
+    one game, so the scale itself carries no unit. This is what a point on it
+    is worth on a stopwatch.
+
+    Shared by the statistics page and by /api/v2/word_seconds, which is how
+    the app at /play can say what a difficulty setting costs without carrying
+    a copy of these numbers that goes stale.
+    """
+    groups = [[] for _ in _E_BUCKETS]
+    for row in shape:
+        for index, (low, high, _label) in enumerate(_E_BUCKETS):
+            if low <= row.E < high:
+                groups[index].append(row.per_attempt)
+                break
+    rows = [
+        {"label": label, "low": low,
+         # null, not inf: json.dumps writes a bare `Infinity` for it, which
+         # Python reads back happily and every JSON parser on the other side
+         # rejects. The last bucket simply has no upper bound.
+         "high": None if high == float("inf") else high,
+         "avg": sum(times) / len(times), "count": len(times)}
+        for (low, high, label), times in zip(_E_BUCKETS, groups)
+        if len(times) >= 5]
+    # No clock data recorded at all: a chart of zeroes would be a lie.
+    return rows if any(row["avg"] for row in rows) else []
+
+
+def _seconds_curve(shape):
+    """Average seconds per attempt at every difficulty from 0 to 100.
+
+    The five buckets above are what a bar chart wants; a slider wants a
+    reading at the point it is standing on. One difficulty on its own is thin
+    — the corpus is a few thousand rated words over 101 points — so each
+    reading is taken over a window either side of the point, widened until it
+    has something to average. The window is what makes the curve legible: a
+    per-point mean of ten words jumps by seconds between neighbours, and the
+    number under a slider that jumps is worse than no number.
+
+    `count` travels with each point so that thinness stays visible rather
+    than being smoothed into looking like data.
+    """
+    at_point = [[] for _ in range(101)]
+    for row in shape:
+        point = int(round(row.E))
+        if 0 <= point <= 100:
+            at_point[point].append(row.per_attempt)
+
+    rows = []
+    for point in range(101):
+        for window in (3, 6, 12, 25):
+            times = [time
+                     for index in range(max(0, point - window),
+                                        min(101, point + window + 1))
+                     for time in at_point[index]]
+            if len(times) >= 20:
+                break
+        if not times:
+            continue        # nothing anywhere near this difficulty
+        rows.append({"d": point, "avg": sum(times) / len(times),
+                     "count": len(times)})
+    return rows if any(row["avg"] for row in rows) else []
+
+
+def word_seconds():
+    """The curve on its own, cached like the pages that draw the buckets."""
+    return cached("word_seconds", lambda: _seconds_curve(_word_shape()))
+
+
 def _word_analytics():
     """The analytical stats the old site drew as matplotlib PNGs, plus the
     error-prone-words table, all from one projection pass.
@@ -195,22 +267,7 @@ def _word_analytics():
          "avg": sum(ds) / len(ds), "count": len(ds)}
         for bucket, ds in sorted(d_by_games.items())]
 
-    # The rating in seconds. E is built out of these seconds -- every rating
-    # pass in stats ranks a game's words by explanation time -- but only out
-    # of their *order* within one game, so the scale itself carries no unit.
-    # This is what a point on it is worth on a stopwatch.
-    sec_groups = [[] for _ in _E_BUCKETS]
-    for row in shape:
-        for index, (low, high, _label) in enumerate(_E_BUCKETS):
-            if low <= row.E < high:
-                sec_groups[index].append(row.per_attempt)
-                break
-    seconds_rows = [
-        {"label": label, "avg": sum(ss) / len(ss), "count": len(ss)}
-        for (low, high, label), ss in zip(_E_BUCKETS, sec_groups)
-        if len(ss) >= 5]
-    if not any(row["avg"] for row in seconds_rows):
-        seconds_rows = []   # no clock data recorded; the chart would be a lie
+    seconds_rows = _seconds_by_difficulty(shape)
 
     frequencies = _frequency_map()
     freq_groups = [[] for _ in _FREQ_BUCKETS]
