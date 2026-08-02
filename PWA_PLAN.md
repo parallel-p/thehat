@@ -40,13 +40,21 @@ come back:
   scoreboards. Nothing migrates: an existing player's history dies with the
   APK, and the PWA does not start keeping one. It is a day of work to add later
   (the data is already in the log the app builds) but it is not in v1.
+  *Since added* — `/play` keeps its own, in a `history` store, capped at fifty
+  games. An existing player's beret history still does not migrate.
 - **Word complaints.** The only channel for a player to flag an offensive or
   broken word disappears from the client. It has in fact been broken since the
   migration removed the endpoint, so nothing is *lost* today — but the decision
   not to restore it means the dictionary keeps no player-facing vetting path.
   Worth revisiting once §8.1 is in.
 - **The rules screen.** Acceptable: the rules already live on the site at
-  `thehat.ru/rules/`, and `/play` can link to them.
+  `thehat.ru/rules/`, and `/play` can link to them. *Since added* — the text
+  is carried in the shell instead, copied from `beret/lib/rules.dart`, because
+  a link is no use at a table with no signal.
+
+Of what beret had, that leaves the authors/credits page and word complaints
+outside `/play` by choice; complaints would need the server endpoint back
+(§8.1) before the client could mean anything by them.
 
 None of this blocks the plan. It is written down so that retiring the APK is a
 choice made with the bill visible.
@@ -533,6 +541,29 @@ statistics pages in `--ink-muted` — a colour meant for dark felt, and
 unreadable on a honey slip. The app's own classes are now named for what they
 are (`.mode`, `.mode__name`), which is the discipline this arrangement asks
 for in exchange for never having a second design.
+
+### 11.4 A Back the app absorbs must be re-armed by a tap, not by popstate
+
+Holding the reader inside a screen means putting a spare history entry above
+the one they are on and pushing another after each Back spends one. Doing that
+push from the `popstate` handler — the obvious place — is what breaks the app.
+Chromium's [history manipulation intervention][hmi] stops honouring the
+document's user activation once a same-document Back has happened, so a
+`pushState` from the handler counts as one made without a gesture, and the
+penalty is not aimed at the new entry: *every* same-document entry, the launch
+entry included, is then marked skippable. The next Back skips all of them and
+closes the installed app. It looked like "the countdown dismissal breaks Back",
+because dismissing a countdown was the one place that re-armed without a tap
+following it.
+
+So entries are pushed only while a gesture is in hand — the countdown gets its
+own entry when the tap starts it, and in-game spares are topped back up on the
+next tap, which also clears any skippable mark. It follows that no app can trap
+Back indefinitely without the reader touching the screen, which is the point of
+the intervention; two spares in a game are what a phone being passed around can
+absorb before a tap arrives.
+
+[hmi]: https://chromium.googlesource.com/chromium/src/+/main/docs/history_manipulation_intervention.md
 
 ## 12. Before this goes to production
 
