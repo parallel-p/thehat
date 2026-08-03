@@ -1,87 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Шляпа - Android приложение</title>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-    <style>
-        html body {
-            height: 100%;
-            width: 100%;
-        }
-        .text {
-            display: table-cell;
-            text-align: center;
-            vertical-align: middle;
-            font-size: 4em;
-            color: white;
-        }
-        .call {
-            display: table;
-            background: url(/img/background.png) fixed no-repeat center / cover;
-            height: 800px;
-            width: 100%;
-        }
-        body {
-            padding-top: 50px;
-            padding-bottom: 20px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Как установить старое приложение ЛКШ.Шляпа для Android и почему оно просит такие разрешения.">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
+    <title>Android-приложение — Шляпа</title>
+{% include "_icons.html" %}
+    <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
-<div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                <span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="/">Шляпа</a>
-        </div>
-        <div class="navbar-collapse collapse">
-            <ul class="nav navbar-nav">
+<div class="sheet">
 
-            </ul>
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/statistics/total_statistics">Статистика</a>
+            <a href="/play">Играть</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="wrap wrap--narrow" style="padding-inline: 0;">
+            <p class="eyebrow"><span class="eyebrow__num">beta</span> Android · старая версия</p>
+            <h1 class="title">ЛКШ.Шляпа для Android</h1>
+            <div class="slip" style="margin-top: var(--s5); max-width: var(--measure);">
+                <p style="margin: 0;">
+                    <strong>Шляпа теперь <a href="/play">открывается в браузере</a>.</strong>
+                    В нём словарь обновляется по статистике сервера — эта версия
+                    оставлена для тех, у кого она уже стоит.
+                </p>
+            </div>
         </div>
-    </div>
-</div>
-<div class="jumbotron">
-    <div class="container">
-        <h1>Android приложение (beta)<h1>
-    </div>
-</div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-12">
-            <h2>Внимание! Вышло <a href="/android/new/beta">новое приложение!</a></h2>
-            <h2>Установка приложения</h2>
-            <p>Android приложение ЛКШ.Шляпа пока находится на стадии beta тестирования, поэтому невозможно просто установить его из Google Play.
-            Чтобы скачать его, нужно
-            </p>
-            <ol>
-                <li>Вступить в
-                <a href="https://plus.google.com/communities/113148856233358057065">группу тестирования в Google+</a></li>
-                <li><a href="https://play.google.com/apps/testing/ru.lksh.sombrero">Согласиться на тестирование в Google Play</li>
-                <li><a href="https://play.google.com/store/apps/details?id=ru.lksh.sombrero">Скачать</a> приложение</li>
-            </ol>
-            <h2>Почему нужны такие разрешения?</h2>
-            <p>
-            Разрешение на доступ к вашему аккаунту Google нужно для того, чтобы связать его с вашим устройством.
-            На всех устройствах, связанных с одним аккаунтом личный словарь синхронизируется.
-            </p>
-            <p>
-            Доступ к настройкам синхронизации нужен для того, чтобы создать сервис синхронизации, который обновляет данные
-            даже тогда, когда само приложение не запущено.
-            </p>
-            <p>
-            Ну и без доступа к интернету нам никак не обойтись.)
-            </p>
-            <h2>Дополнительная информация</h2>
-            <p>В <a href="http://vk.com/testthehat">группе ВКонтакте</a> выкладываются последнее новости о разработке приложения</p>
-            <p>Сообщения об ошибках и предложения улучшений можно оставить в <a href="https://bitbucket.org/denspb/sombrero/issues">issue tracker`е</a></p>
+    </section>
+
+    <section class="section">
+        <div class="wrap">
+            <div class="prose">
+                <p class="eyebrow"><span class="eyebrow__num">01</span> Установка</p>
+                <h2 class="section__title">Как установить</h2>
+                <p>
+                    Приложение находится на стадии beta-тестирования, поэтому просто
+                    поставить его из Google Play нельзя. Нужно:
+                </p>
+                <ol>
+                    <li>
+                        Вступить в
+                        <a href="https://plus.google.com/communities/113148856233358057065">группу тестирования в Google+</a>.
+                    </li>
+                    <li>
+                        <a href="https://play.google.com/apps/testing/ru.lksh.sombrero">Согласиться на тестирование</a>
+                        в Google Play.
+                    </li>
+                    <li>
+                        <a href="https://play.google.com/store/apps/details?id=ru.lksh.sombrero">Скачать</a>
+                        приложение.
+                    </li>
+                </ol>
+
+                <p class="eyebrow" style="margin-top: var(--s7);">
+                    <span class="eyebrow__num">02</span> Разрешения
+                </p>
+                <h2 class="section__title" style="margin-top: 0;">Почему нужны такие разрешения</h2>
+                <p>
+                    Доступ к аккаунту Google нужен, чтобы связать его с устройством:
+                    на всех устройствах одного аккаунта личный словарь синхронизируется.
+                </p>
+                <p>
+                    Доступ к настройкам синхронизации нужен, чтобы создать сервис,
+                    который обновляет данные даже когда приложение не запущено.
+                </p>
+                <p>Ну и без доступа к интернету никак не обойтись.</p>
+
+                <p class="eyebrow" style="margin-top: var(--s7);">
+                    <span class="eyebrow__num">03</span> Если что-то не так
+                </p>
+                <h2 class="section__title" style="margin-top: 0;">Обратная связь</h2>
+                <p>
+                    В <a href="http://vk.com/testthehat">группе ВКонтакте</a>
+                    выкладываются новости о разработке.
+                </p>
+                <p>
+                    Сообщения об ошибках и предложения улучшений можно оставить в
+                    <a href="https://bitbucket.org/denspb/sombrero/issues">issue tracker</a>.
+                </p>
+            </div>
         </div>
-    </div>
+    </section>
+</main>
+
+
 </div>
 </body>
 </html>

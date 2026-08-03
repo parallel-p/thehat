@@ -1,0 +1,20 @@
+# Files not uploaded to App Engine.
+.gcloudignore
+.git/
+.gitignore
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# The python27 application, kept in-tree for reference only.
+legacy/
+
+# Development-only material.
+tests/
+scripts/
+Presentation/
+words/
+MIGRATION_PLAN.md
+README.md
+VERSION

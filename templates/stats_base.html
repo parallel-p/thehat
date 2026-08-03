@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
+    <title>{% block title %}Статистика{% endblock %} — Шляпа</title>
+{% include "_icons.html" %}
+    <link rel="stylesheet" href="/assets/hat.css">
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/statistics/word_statistics"
+               {% block nav_words %}{% endblock %}>Слова</a>
+            <a href="/statistics/total_statistics"
+               {% block nav_total %}{% endblock %}>Общая статистика</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <section class="hero" style="padding-block: var(--s7);">
+        <div class="wrap">
+            <p class="eyebrow eyebrow--honey"><span class="eyebrow__num">Sombrero</span> Статистика игр</p>
+            <h1 class="title">{% block header %}{% endblock %}</h1>
+            {% block subhead %}{% endblock %}
+        </div>
+    </section>
+
+    <section class="section" style="padding-block: var(--s7);">
+        <div class="wrap data">
+            {% block content %}{% endblock %}
+        </div>
+    </section>
+</main>
+
+
+</div>
+</body>
+</html>

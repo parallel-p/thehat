@@ -1,141 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ru">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-
-    <title>ЛКШ.Шляпа</title>
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.0/js/bootstrap.min.js"></script>
-
-    <!-- Custom CSS -->
-    <link href="/assets/landing-page.css" rel="stylesheet">
+    <meta name="description" content="Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру как можно больше слов. Приложение считает время, ведёт счёт и измеряет сложность слов по статистике настоящих игр.">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
+    <title>Шляпа</title>
+{% include "_icons.html" %}
+    <link rel="stylesheet" href="/assets/hat.css">
 </head>
-
 <body>
+<div class="sheet">
 
-    <!-- Header -->
-    <div class="intro-header">
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/statistics/word_statistics">Сложность слов</a>
+            <a href="/statistics/total_statistics">Статистика</a>
+            <a href="/play">Играть</a>
+        </nav>
+    </div>
+</header>
 
-        <div class="container">
+<main>
 
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="intro-message">
-                        <h1>ЛКШ.Шляпа</h1>
-                        <h3>Скачайте приложение и объясняйте слова!</h3>
-                        <hr class="intro-divider">
-                        <ul class="list-inline intro-social-buttons">
-                            <li>
-                                <a href="/android/beta" class="btn btn-default btn-lg"><span class="network-name">Android</span></a>
-                            </li>
-                            <li>
-                                <a href="/android/new/beta" class="btn btn-default btn-lg"><span class="network-name">Новое Android приложение</span></a>
-                            </li>
-                        </ul>
+    <section class="hero hero--center">
+        <div class="decor" aria-hidden="true">
+        <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+            <defs>
+                <!-- Hats drawn in a 512 box: tapered crown, creased top and an
+                     upturned brim, so each reads as a hat with no outline. -->
+                <clipPath id="hat-top" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M172 292 C164 230 160 140 158 66 C158 50 354 50 354 66 C352 140 348 230 340 292 C398 300 456 314 476 328 C486 335 480 344 464 350 C424 366 344 374 256 374 C168 374 88 366 48 350 C32 344 26 335 36 328 C56 314 114 300 172 292 Z"/></clipPath>
+                <clipPath id="hat-sombrero" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M178 216 C184 162 194 100 216 68 C224 56 238 62 256 62 C274 62 288 56 296 68 C318 100 328 162 334 216 C388 228 442 244 476 232 C492 226 504 214 506 224 C508 240 470 262 402 274 C356 282 300 286 256 286 C212 286 156 282 110 274 C42 262 4 240 6 224 C8 214 20 226 36 232 C70 244 124 228 178 216 Z"/></clipPath>
+                <clipPath id="hat-fedora" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M166 246 C158 200 162 156 176 130 C184 118 196 114 208 120 C226 130 241 135 256 135 C271 135 286 130 304 120 C316 114 328 118 336 130 C350 156 354 200 346 246 C402 252 456 264 470 272 C476 280 470 288 452 294 C396 310 330 318 256 318 C182 318 116 310 60 294 C42 288 36 280 42 272 C56 264 110 252 166 246 Z"/></clipPath>
+                <clipPath id="hat-grad" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M256 52 C304 70 424 114 456 136 C466 143 466 155 456 162 C424 184 304 228 256 246 C208 228 88 184 56 162 C46 155 46 143 56 136 C88 114 208 70 256 52 Z"/><path transform="scale(0.001953125)" d="M150 185 C158 265 200 296 256 296 C312 296 354 265 362 185 C330 168 292 158 256 158 C220 158 182 168 150 185 Z"/><path transform="scale(0.001953125)" d="M444 148 C438 190 438 224 442 246 C428 254 422 282 428 300 C432 314 462 314 466 300 C472 282 466 254 452 246 C456 224 456 190 450 148 Z"/></clipPath>
+                <clipPath id="hat-winter" clipPathUnits="objectBoundingBox"><path transform="scale(0.001953125)" d="M100 286 C108 190 170 120 256 118 C342 120 404 190 412 286 C440 292 452 306 450 322 C448 344 384 358 256 358 C128 358 64 344 62 322 C60 306 72 292 100 286 Z"/><path transform="scale(0.001953125)" d="M256 48 C282 48 302 68 302 94 C302 120 282 140 256 140 C230 140 210 120 210 94 C210 68 230 48 256 48 Z"/></clipPath>
+            </defs>
+        </svg>
+            <span class="decor__tophat cut"></span>
+            <span class="decor__dots-honey"></span>
+            <span class="decor__sombrero cut"></span>
+            <span class="decor__fedora cut"></span>
+            <span class="decor__dots-rose"></span>
+        </div>
+        <div class="wrap">
+            <h1 class="display hero__title">Объясняйте <em>слова</em> на&nbsp;время</h1>
+            <p class="lead hero__lead">
+                Шляпа — игра, в которой нужно за ограниченное время объяснить партнёру
+                как можно больше слов. Приложение засечёт время, посчитает, кто сколько
+                объяснил, и подберёт слова подходящей сложности.
+            </p>
+            <div class="btn-row btn-row--center hero__actions">
+                <a class="btn btn--primary" href="/play">Играть</a>
+                <a class="btn btn--ghost" href="/play#rules">Правила игры</a>
+            </div>
+            <div class="ws-row ws-row--center hero__slips" aria-hidden="true">
+                <span class="ws ws--lilac">телескоп</span>
+                <span class="ws ws--honey">варенье</span>
+                <span class="ws ws--sky">гравитация</span>
+                <span class="ws ws--rose">балалайка</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="about">
+        <div class="wrap">
+            <div class="split">
+                <div>
+                    <p class="eyebrow eyebrow--lilac"><span>Что такое Шляпа</span></p>
+                    <h2 class="section__title">Игра, для которой нужны только слова</h2>
+                    <div class="stack">
+                        <p>
+                            Один игрок объясняет слово, другой угадывает — и так, пока
+                            не кончится время. Она интересна людям всех возрастов:
+                            в неё можно играть вдвоём или большой компанией,
+                            устроить настоящее соревнование или просто отдохнуть.
+                        </p>
+                        <p>
+                            Сейчас Шляпа доступна прямо в браузере. Она работает
+                            на компьютере, iOS и Android, в том числе без интернета.
+                        </p>
+                        <div class="btn-row">
+                            <a class="btn btn--primary" href="/play">Играть</a>
+                        </div>
                     </div>
                 </div>
+                <figure class="split__media split__media--slip split__media--photo">
+                    <img src="/assets/people_playing_hat.jpg"
+                         alt="Компания играет в Шляпу за столом">
+                    <figcaption class="credit">
+                        Рисунок — Марина Линдина,
+                        <a rel="license"
+                           href="https://creativecommons.org/licenses/by-sa/3.0/deed.ru">CC BY-SA 3.0</a>
+                    </figcaption>
+                </figure>
             </div>
-
         </div>
-        <!-- /.container -->
+    </section>
 
-    </div>
-    <!-- /.intro-header -->
-
-    <!-- Page Content -->
-
-    <div class="content-section-a">
-
-        <div class="container">
-
-            <div class="row">
-                <div class="col-md-7 col-sm-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Шляпа?!</h2>
-                    <p class="lead">Не знаете, что такое Шляпа? Это увлекательнейшая игра, в которой нужно за ограниченное время объяснить партнеру как можно больше слов. Она интересна людям всех возрастов. В неё можно играть вдвоем, или большой компанией. Можно устроить настоящее соревнование, а можно просто отдохнуть. <br/>Подробные правила можно прочесть  <a href=http://thehat.ru/rules/>здесь</a></p>
+    <section class="section" id="sombrero">
+        <div class="wrap">
+            <div class="split split--flip">
+                <div>
+                    <p class="eyebrow eyebrow--honey"><span>Сервер Sombrero</span></p>
+                    <h2 class="section__title">Сложность слова <em>измеряется</em>, а не угадывается</h2>
+                    <div class="stack">
+                        <p>
+                            В большинстве приложений для Шляпы считается, что слово тем сложнее,
+                            чем реже оно встречается в речи. Это очень неточная мерка.
+                        </p>
+                        <p>
+                            У нас есть сервер Sombrero, который собирает
+                            <a href="/statistics/total_statistics">статистику игр</a> и по ней
+                            <a href="/statistics/word_statistics">сравнивает слова</a> по тому,
+                            насколько трудно их объяснить на самом деле. Это позволяет подбирать
+                            слова примерно одной сложности — и собирать
+                            <a href="https://huggingface.co/datasets/nzinov/the-hat-games">датасет</a>,
+                            который может быть полезен для изучения того, как люди
+                            объясняют друг другу слова.
+                        </p>
+                        <div class="figures">
+                            <p class="figure">
+                                <span class="figure__value">{{ total_games }}</span>
+                                <span class="figure__label">партий сыграно</span>
+                            </p>
+                            <p class="figure">
+                                <span class="figure__value">{{ total_explanations }}</span>
+                                <span class="figure__label">объяснений слов</span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-5 col-sm-6">
-                    <a title="By Марина Линдина (Own work) [CC-BY-SA-3.0 (http://creativecommons.org/licenses/by-sa/3.0)]"><img class="img-responsive" alt="Hat game" src="/assets/people_playing_hat.jpg"/></a>
-                </div>
+                <figure class="split__media split__media--slip">
+                    <img src="/assets/sombrero.png" width="449" height="449" alt="">
+                </figure>
             </div>
-
         </div>
-        <!-- /.container -->
+    </section>
 
-    </div>
-    <!-- /.content-section-a -->
+    <section class="section section--sunk" id="history">
+        <div class="wrap">
+            <p class="eyebrow eyebrow--sky"><span>История</span></p>
+            <h2 class="section__title">Тринадцать лет одного&nbsp;<em>проекта</em></h2>
+            <p class="lead" style="margin-bottom: var(--s7);">
+                Шляпу написали школьники на летней смене — и приложение,
+                и сервер к нему. С тех пор клиенты сменяли друг друга,
+                а сервер и его словарь оставались.
+            </p>
 
-    <div class="content-section-b">
-
-        <div class="container">
-
-            <div class="row">
-                <div class="col-md-7 col-md-push-5 col-sm-6 col-sm-push-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Шляпа. ЛКШ.Шляпа</h2>
-                    <p class="lead"><a href=http://lksh.ru>Летняя компьютерная школа</a> (ЛКШ) - это лагерь для школьников, увлекающихся программированием. Они любят не только программировать, но и играть в Шляпу. Поэтому мы в параллели P ЛКШ 2013 начали делать мобильное приложение для игры в Шляпу. Теперь вам не нужно резать бумажки и придумывать слова. Вы можете сразу приступить к самой увлекательной части: объяснению слов. В придачу приложение еще и время засечет, и посчитает, кто сколько слов объяснил.</p>
-                </div>
-                <div class="col-md-5 col-md-pull-7 col-sm-6 col-sm-pull-6">
-                    <img class="img-responsive" src="/assets/hat.png" alt="">
-                </div>
-            </div>
-
+            <ol class="timeline">
+                <li class="timeline__entry">
+                    <p class="timeline__when">август 2013</p>
+                    <p class="timeline__what">
+                        <a href="http://lksh.ru">Летняя компьютерная школа</a> — лагерь,
+                        где школьники месяц занимаются программированием. Играть в Шляпу
+                        они любят не меньше, чем программировать, и на летней смене
+                        параллель П села писать приложение: чтобы не резать бумажки и не
+                        придумывать слова, а сразу переходить к самому интересному —
+                        объяснять. Тогда же, на той же смене, написали и сервер: он
+                        собирал сыгранные партии и по ним сравнивал слова между собой.
+                        Учили Виталий Гольдштейн, Вадим Дробин, Денис Кузнецов, Сергей
+                        Назаров и Андрей Шестимеров; писали Николай Зинов, Николай
+                        Калинин, Даниил Карпенко, Константин Козловцев, Дмитрий
+                        Кравченко, Игорь Лабутин, Даниил Лиференко, Иван Павлов,
+                        Иван Сергеев и Дмитрий Торба.
+                    </p>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">декабрь 2013</p>
+                    <p class="timeline__what">
+                        Зимой та же параллель собралась снова — и взялась за сервер
+                        всерьёз. Писали Николай Калинин, Константин Козловцев, Игорь
+                        Лабутин, Иван Павлов и Дмитрий Торба под руководством Вадима
+                        Дробина и Дениса Кузнецова. Тогда же Денис Кузнецов написал
+                        новое приложение для Android.
+                    </p>
+                    <span class="app">
+                        <img src="/assets/hat.png" width="265" height="265" alt="Значок приложения ЛКШ.Шляпа">
+                    </span>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">следующие годы</p>
+                    <p class="timeline__what">
+                        Дальше сервер вели Николай Зинов и Иван Павлов — под руководством
+                        Виталия Гольдштейна и Дениса Кузнецова.
+                    </p>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">ноябрь 2019</p>
+                    <p class="timeline__what">
+                        Александр Зинов под руководством Николая Зинова написал Beret —
+                        новое кроссплатформенное приложение для Android и iOS. В нём
+                        впервые появился режим игры на выживание.
+                    </p>
+                    <a class="app" href="https://github.com/sashkent3/beret">
+                        <img src="/assets/new_hat.png" width="300" height="300" alt="Значок приложения Beret">
+                    </a>
+                </li>
+                <li class="timeline__entry timeline__entry--now">
+                    <p class="timeline__when">август 2026</p>
+                    <p class="timeline__what">
+                        Благодаря ИИ модернизация сервера — с дремучего Python 2.7 на 3.12
+                        и новые технологии Google Cloud — стала проектом на один выходной.
+                        А сама игра переехала в браузер. Приложение больше не нужно:
+                        Шляпа <a href="/play">открывается по ссылке</a> и работает
+                        без интернета.
+                    </p>
+                </li>
+            </ol>
         </div>
-        <!-- /.container -->
+    </section>
 
-    </div>
-    <!-- /.content-section-b -->
-
-    <div class="content-section-a">
-
-        <div class="container">
-
-            <div class="row">
-                <div class="col-md-7 col-sm-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Sombrero</h2>
-                    <p class="lead">"Ну да, придумали они приложение сделать, - скажете вы. - Да таких приложений развелось, как слов в словаре!" <br> <strong>Таких</strong> приложений вообще больше нет. Все дело в том, что кроме приложения на вашем устройстве у нас есть сервер Sombrero, который собирает <a href="/statistics/total_statistics">статистику игр</a> и с ее помощью <a href="/statistics/word_statistics">сравнивает слова</a> по сложности объяснения. В обычных приложениях для игры в Шляпу считается, что слово сложнее объяснить, если оно реже встречатся в речи. Ясно, что это совсем не точная мерка. Наша статистика дает возможность выбирать слова примерно одной сложности для игры, а еще она очень интересует лингвистов, которые изучают, как люди объясняют значения слов. Когда вы играете на нашем приложении, вы помогаете двигать науку!</p>
-                </div>
-                <div class="col-md-5 col-sm-6">
-                    <img class="img-responsive" src="/assets/sombrero.png" alt="">
-                </div>
-            </div>
-
-        </div>
-        <!-- /.container -->
-
-    </div>
-    <!-- /.content-section-a -->
-
-    <div class="content-section-b">
-
-        <div class="container">
-
-            <div class="row">
-                <div class="col-md-7 col-md-push-5 col-sm-6 col-sm-push-6">
-                    <hr class="section-heading-spacer">
-                    <div class="clearfix"></div>
-                    <h2 class="section-heading">Новое приложение</h2>
-                    <p class="lead">И вот мы сделали новое кроссплатформенное приложение! Вы все правильно поняли, в скором времени шляпа приходит на iOS! В старом приложении сложность слов не изменялась, а в новом наконец-то словарь обновляется в соответствии со статистикой на сервере. Обновленный дизайн и новый увлекательный режим "на выживание" для двух игроков готовы уже сейчас. Но поддержка приложения на этом не заканчивается. Обновляйтесь и играйте с друзьями!<br><i>&#8212;После стольких лет?..<br>&#8212;Всегда.<br>Северус Снейп</i></p>
-                </div>
-                <div class="col-md-5 col-md-pull-7 col-sm-6 col-sm-pull-6">
-                    <img class="img-responsive" src="/assets/new_hat.png" alt="">
-                </div>
-            </div>
-
-        </div>
-        <!-- /.container -->
-
-    </div>
-    <!-- /.content-section-b -->
+</main>
 
 
+</div>
 </body>
-
 </html>

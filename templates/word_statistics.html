@@ -1,0 +1,341 @@
+{% extends "stats_base.html" %}
+
+{% block title %}Слова{% endblock %}
+{% block nav_words %}aria-current="page"{% endblock %}
+{% block header %}{% if word_entity %}{{ word_entity.word }}{% else %}Слова{% endif %}{% endblock %}
+
+{% block subhead %}
+<p class="lead hero__lead">
+    {% if word_entity %}
+        Сложность считается по тому, как быстро слово объясняют в настоящих играх,
+        а не по тому, как часто оно встречается в речи.
+    {% else %}
+        Найдите слово, чтобы посмотреть, насколько трудно его объяснить.
+    {% endif %}
+</p>
+<form class="search hero__actions" method="get" action="/statistics/word_statistics" role="search">
+    <label class="visually-hidden" for="word-search">Слово</label>
+    <input type="search" id="word-search" name="word" placeholder="Например, ковчег"
+           value="{{ word or '' }}" autocomplete="off">
+    <button class="btn btn--primary" type="submit">Найти</button>
+</form>
+{% endblock %}
+
+{# The two leaderboards are ordered by the conservative end of each word's
+   interval, not by E, so they show that end and say so in the header — a
+   column of E would read as mis-sorted. `bound` is 'low' or 'high'. #}
+{% macro word_table(caption, rows, bound=none) %}
+<div class="table-scroll">
+    <table class="table">
+        <caption>{{ caption }}</caption>
+        <thead>
+            <tr>
+                <th class="rank" scope="col">#</th>
+                <th scope="col">Слово</th>
+                <th class="num" scope="col">
+                    {%- if bound == 'low' %}Сложность &gt;
+                    {%- elif bound == 'high' %}Сложность &lt;
+                    {%- else %}Сложность{% endif -%}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in rows %}
+            <tr>
+                <td class="rank">{{ loop.index }}</td>
+                <td class="word">
+                    <a href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+                </td>
+                {% if bound == 'low' %}
+                <td class="num">{{ '%.1f'|format(w.E - 2 * w.D) }}</td>
+                {% elif bound == 'high' %}
+                <td class="num">{{ '%.1f'|format(w.E + 2 * w.D) }}</td>
+                {% else %}
+                <td class="num">{{ '%.1f'|format(w.E) }}</td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr><td colspan="3" class="empty">Пока нет данных</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
+{% block content %}
+
+{% if word_entity %}
+    {% set not_explained = word_entity.used_times - word_entity.guessed_times - word_entity.failed_times %}
+    {% set outcomes = [
+        ('Отгадано', word_entity.guessed_times),
+        ('Объяснено с ошибкой', word_entity.failed_times),
+        ('Не отгадано', not_explained)
+    ] %}
+
+    <div class="figures">
+        <div class="figure">
+            <span class="figure__value">{{ '%.1f'|format(word_entity.E) }}</span>
+            <span class="figure__label">сложность, ± {{ '%.1f'|format(word_entity.D * 2) }}</span>
+        </div>
+        <div class="figure">
+            <span class="figure__value">{{ word_entity.used_times }}</span>
+            <span class="figure__label">попыток объяснить, из них отгадано {{ word_entity.guessed_times }}</span>
+        </div>
+        <div class="figure">
+            <span class="figure__value">{{ word_entity.total_explanation_time }}<span class="figure__unit"> сек</span></span>
+            <span class="figure__label">
+                суммарное время{% if word_entity.guessed_times > 0 %},
+                в среднем {{ word_entity.total_explanation_time // word_entity.guessed_times }} сек на отгадывание{% endif %}
+            </span>
+        </div>
+    </div>
+
+    {# The old difficulty gauge, laid flat: the confidence band E ± 2D, the
+       measured value as the marker. The rating is a TrueSkill mu and is not
+       bounded by 100 — a handful of words sit above it — so the axis grows
+       to fit rather than claiming a range the number can exceed. #}
+    {% set band_lo = [0.0, word_entity.E - 2 * word_entity.D]|max %}
+    {% set band_hi = word_entity.E + 2 * word_entity.D %}
+    {% set scale_max = [100.0, ((band_hi / 10)|round(0, 'ceil')) * 10]|max %}
+    <div class="scale" style="max-width: 34rem; margin-top: var(--s6);">
+        <div class="scale__track">
+            <span class="scale__band"
+                  style="left: {{ (100.0 * band_lo / scale_max)|round(1) }}%; width: {{ (100.0 * (band_hi - band_lo) / scale_max)|round(1) }}%"></span>
+            <span class="scale__marker" style="left: {{ (100.0 * word_entity.E / scale_max)|round(1) }}%"></span>
+        </div>
+        <div class="scale__labels">
+            <span>0 · легко</span>
+            <span>{{ scale_max|int }} · трудно</span>
+        </div>
+        <p class="tile__note">светлая полоса — доверительный интервал</p>
+    </div>
+
+    {% if word_entity.used_times > 0 %}
+    <div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
+        <p class="chart__caption">Чем закончились попытки</p>
+        <div class="bars">
+            {% for label, count in outcomes %}
+            <div class="bar{% if not count %} bar--empty{% endif %}">
+                <span class="bar__label">{{ label }}</span>
+                <span class="bar__track">
+                    <span class="bar__fill"
+                          style="width: {{ (100.0 * count / word_entity.used_times)|round(1) }}%"></span>
+                </span>
+                <span class="bar__value">{{ count }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if word_entity.counts_by_expl_time %}
+        {% set buckets = word_entity.counts_by_expl_time %}
+        {% set peak = buckets|max %}
+        {% if peak > 0 %}
+        <div class="chart" style="margin-top: var(--s7);">
+            <p class="chart__caption">Сколько секунд уходило на объяснение</p>
+            <div class="columns" role="img"
+                 aria-label="Распределение времени объяснения по пятисекундным интервалам">
+                {% for count in buckets %}
+                <span class="column">
+                    <span class="column__fill" style="height: {{ (100.0 * count / peak)|round(1) }}%"></span>
+                </span>
+                {% endfor %}
+            </div>
+            <div class="column__labels">
+                {% for count in buckets %}
+                <span class="column__label{% if not loop.index0 % 3 == 0 %} column__label--hidden{% endif %}">{{ loop.index0 * 5 }}</span>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s2);">секунды · пик {{ peak }} раз</p>
+        </div>
+
+        <details style="margin-top: var(--s5);">
+            <summary class="disclosure">Показать таблицей</summary>
+            <div class="table-scroll" style="margin-top: var(--s3); max-width: 24rem;">
+                <table class="table">
+                    <thead>
+                        <tr><th scope="col">Интервал</th><th class="num" scope="col">Раз</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for count in buckets %}
+                        <tr>
+                            <td>{{ loop.index0 * 5 }}–{{ loop.index * 5 }} сек</td>
+                            <td class="num">{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+        {% endif %}
+    {% endif %}
+
+    <hr class="rule">
+    <p><a href="/statistics/word_statistics">← Ко всем словам</a></p>
+
+{% else %}
+
+    {% if word %}
+    <div class="slip" style="max-width: var(--measure); margin-bottom: var(--s7);">
+        <p style="margin: 0;">В нашем словаре нет слова «{{ word }}».</p>
+    </div>
+    {% endif %}
+
+    {% if top %}
+    <div style="margin-bottom: var(--s7);">
+        <p class="chart__caption">Прямо сейчас труднее всего объяснить</p>
+        {% set slip_colours = ['honey', 'rose', 'sky'] %}
+        <div class="ws-row" style="margin-top: var(--s3);">
+            {% for w in top[:3] %}
+            <a class="ws ws--{{ slip_colours[loop.index0] }}" style="text-decoration: none;"
+               href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# 18rem, not 15: a column narrow enough to fit three of them at 51rem
+       leaves the word column too narrow for a long Russian one, and the word
+       no longer wraps out of the way. .split's own column gap is 4.5rem —
+       the air between a paragraph and a picture — and three tables cannot
+       spare it: at that gap the longest words push the scroller. #}
+    <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: var(--s6); align-items: start;">
+        <div>{{ word_table('Самые сложные', top, 'low') }}</div>
+        <div>{{ word_table('Самые простые', bottom, 'high') }}</div>
+        <div>{{ word_table('Случайные', rand) }}</div>
+    </div>
+    <p class="tile__note" style="margin-top: var(--s3); max-width: var(--measure);">
+        В первых двух таблицах показана не сама сложность, а её гарантированная
+        часть — оценка за вычетом погрешности. Слово, сыгранное пару раз, может
+        показать высокую сложность случайно, поэтому наверх попадают слова,
+        про которые уже точно известно, что они трудные, а не те, про которые
+        известно мало. Саму оценку видно на странице слова.
+    </p>
+
+    {# ------------------------------------------------------------------
+       The claim the whole project rests on, and the evidence for it. The
+       rating is abstract, so first read it back in seconds; then show what
+       it can tell apart that word frequency cannot.
+       ------------------------------------------------------------------ #}
+    {% if analytics.by_seconds %}
+    <hr class="rule">
+    <p class="eyebrow eyebrow--sky"><span>Сколько это в секундах</span></p>
+    <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
+        Сложность считается как раз по секундомеру — но не по самим секундам.
+        Внутри партии слова выстраиваются по времени объяснения, и в зачёт
+        идёт только этот порядок: какое слово далось дольше соседнего по той
+        же игре. Так и должно быть: одна пара играет быстро, другая медленно,
+        у кого-то раунд короче, — сравнивать абсолютные секунды разных игр
+        нельзя, а сравнивать слова между собой внутри одной можно. Поэтому
+        сама шкала безразмерная; вот во что она переводится в среднем.
+    </p>
+    {% set sec_peak = analytics.by_seconds|map(attribute='avg')|max %}
+    <div class="chart" style="max-width: 34rem; margin-top: 0;">
+        <p class="chart__caption">Сколько секунд уходит на слово</p>
+        <div class="bars bars--sky">
+            {% for row in analytics.by_seconds %}
+            <div class="bar">
+                <span class="bar__label">{{ row.label }}</span>
+                <span class="bar__track">
+                    <span class="bar__fill" style="width: {{ (100.0 * row.avg / sec_peak)|round(1) }}%"></span>
+                </span>
+                <span class="bar__value">{{ row.avg|round(1) }} с</span>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="tile__note" style="margin-top: var(--s3);">
+            слева — сложность, справа — среднее время одной попытки по всем
+            играм; между крайними корзинами разница в несколько раз
+        </p>
+    </div>
+    {% endif %}
+
+    {% if analytics.by_length or analytics.by_freq %}
+    <hr class="rule">
+    <p class="eyebrow eyebrow--lilac"><span>Что ещё видно по словарю</span></p>
+    <div class="chart-grid chart-grid--2">
+        {% if analytics.by_freq %}
+        <div class="chart" style="margin-top: 0;">
+            <p class="chart__caption">Средняя сложность по частотности слова</p>
+            {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
+            <div class="bars">
+                {% for row in analytics.by_freq %}
+                <div class="bar">
+                    <span class="bar__label">{{ row.label }}</span>
+                    <span class="bar__track">
+                        <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
+                    </span>
+                    <span class="bar__value">{{ row.avg|round(1) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s3);">
+                в среднем редкие слова и правда труднее — но разброс внутри
+                каждой строки больше, чем разница между строками; слева —
+                употреблений на миллион слов корпуса
+            </p>
+        </div>
+        {% endif %}
+
+        {% if analytics.by_length %}
+        <div class="chart" style="margin-top: 0;">
+            <p class="chart__caption">Средняя сложность по длине слова</p>
+            {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
+            <div class="bars">
+                {% for row in analytics.by_length %}
+                <div class="bar">
+                    <span class="bar__label">{{ row.label }} букв</span>
+                    <span class="bar__track">
+                        <span class="bar__fill" style="width: {{ [row.avg, 100.0]|min|round(1) }}%"></span>
+                    </span>
+                    <span class="bar__value">{{ row.avg|round(1) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <p class="tile__note" style="margin-top: var(--s3);">
+                длины, где есть хотя бы 5 использованных слов
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% endif %}
+
+    {% if analytics.danger_top %}
+    <hr class="rule">
+    <div>
+        <div class="table-scroll" style="max-width: 34rem;">
+            <table class="table">
+                <caption>Ошибкоопасные слова · где чаще всего нарушают правила</caption>
+                <thead>
+                    <tr>
+                        <th class="rank" scope="col">#</th>
+                        <th scope="col">Слово</th>
+                        <th class="num" scope="col">Сложность</th>
+                        <th class="num" scope="col">Ошибок</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for w in analytics.danger_top %}
+                    <tr>
+                        <td class="rank">{{ loop.index }}</td>
+                        <td class="word">
+                            <a href="/statistics/word_statistics?word={{ w.word|urlencode }}">{{ w.word }}</a>
+                        </td>
+                        <td class="num">{{ '%.1f'|format(w.E) }}</td>
+                        <td class="num">{{ w.share|round|int }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="tile__note" style="margin-top: var(--s2);">
+            доля объяснений с ошибкой; учитываются слова с десятью и более попытками
+        </p>
+    </div>
+    {% endif %}
+
+{% endif %}
+
+{% endblock %}
