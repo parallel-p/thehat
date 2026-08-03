@@ -304,6 +304,21 @@ def _word_analytics():
             "danger_top": danger, "hardest": hardest, "easiest": easiest}
 
 
+def _no_analytics():
+    """What the page gets when the projection is unavailable.
+
+    The same keys `_word_analytics` returns, all empty. Not `{}`: the page
+    reads `analytics.outliers.rare_easy`, and in Jinja an attribute of a
+    missing key is not a falsy test but an UndefinedError — which turned the
+    degraded page into exactly the 500 the degradation exists to avoid. Seen
+    on the first production deploy, where the composite index was still
+    building.
+    """
+    return {"by_length": [], "d_by_games": [], "by_freq": [], "by_seconds": [],
+            "outliers": {"rare_easy": [], "common_hard": []},
+            "danger_top": [], "hardest": [], "easiest": []}
+
+
 def _thousands(number):
     """35295 -> "35 295", with the space Russian typography wants."""
     return "{:,}".format(number).replace(",", "\u00a0")
@@ -357,7 +372,7 @@ def word_statistics(request: Request, word: str = None):
             # building right after a deploy. Render the page without the
             # dictionary-wide sections rather than 500, and do not cache that.
             logger.exception("word-shape projection unavailable; hiding analytics")
-            analytics = {}
+            analytics = _no_analytics()
         context["top"] = analytics.get("hardest", [])
         context["bottom"] = analytics.get("easiest", [])
         count = cached(

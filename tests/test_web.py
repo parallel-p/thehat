@@ -103,6 +103,34 @@ def test_word_statistics_survives_a_word_with_no_attempts(client, ndb_context):
     assert "новое" in response.text
 
 
+def test_word_statistics_survives_a_projection_that_is_not_ready(
+        client, ndb_context, monkeypatch):
+    """The dictionary-wide sections go; the page stays.
+
+    A composite index takes minutes to build over a real dictionary, and
+    queries against it fail until it is done — which is what the first
+    production deploy met. The page has always caught that; what it handed
+    the template was `{}`, and `analytics.outliers.rare_easy` on a missing
+    key raises in Jinja rather than reading as empty, so the page 500ed
+    anyway. Nothing may be cached either: the next request must try again.
+    """
+    from app import web
+
+    for index in range(3):
+        GlobalDictionaryWord(id="w{}".format(index), word="w{}".format(index),
+                             E=float(index), D=5.0, used_times=index + 1).put()
+    web._cache.pop("word_analytics", None)
+
+    def not_ready():
+        raise Exception("The index for this query is not ready to serve.")
+
+    monkeypatch.setattr(web, "_word_shape", not_ready)
+    response = client.get("/statistics/word_statistics")
+    assert response.status_code == 200
+    assert "Частота — не сложность" not in response.text
+    assert "word_analytics" not in web._cache
+
+
 def test_word_statistics_for_a_missing_word(client, ndb_context):
     response = client.get("/statistics/word_statistics", params={"word": "нетслова"})
     assert response.status_code == 200
