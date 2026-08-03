@@ -301,7 +301,10 @@ def _word_analytics():
     return {"by_length": length_rows, "d_by_games": d_rows,
             "by_freq": freq_rows, "by_seconds": seconds_rows,
             "outliers": _frequency_outliers(shape, frequencies),
-            "danger_top": danger, "hardest": hardest, "easiest": easiest}
+            "danger_top": danger, "hardest": hardest, "easiest": easiest,
+            # Every played word, so the page can draw a real random sample
+            # without a query of its own. See `word_statistics`.
+            "pool": ranked}
 
 
 def _no_analytics():
@@ -316,7 +319,7 @@ def _no_analytics():
     """
     return {"by_length": [], "d_by_games": [], "by_freq": [], "by_seconds": [],
             "outliers": {"rare_easy": [], "common_hard": []},
-            "danger_top": [], "hardest": [], "easiest": []}
+            "danger_top": [], "hardest": [], "easiest": [], "pool": []}
 
 
 def _thousands(number):
@@ -375,14 +378,15 @@ def word_statistics(request: Request, word: str = None):
             analytics = _no_analytics()
         context["top"] = analytics.get("hardest", [])
         context["bottom"] = analytics.get("easiest", [])
-        count = cached(
-            "used_words_count",
-            lambda: GlobalDictionaryWord.query(
-                GlobalDictionaryWord.used_times > 0).count())
-        if count >= 10:
-            context["rand"] = GlobalDictionaryWord.query(
-                GlobalDictionaryWord.used_times > 0).fetch(
-                    limit=10, offset=random.randint(0, count - 10))
+        # A real sample, not a window: an offset into an ordered query returns
+        # ten neighbours, which on this kind means ten words that happen to sit
+        # next to each other in the index — the same clump on every reload for
+        # the same offset, and never a spread across the dictionary. The
+        # analytics pass has already read every played word, so drawing from
+        # its cached list is both uniform and free of a datastore round-trip.
+        pool = analytics.get("pool", [])
+        if len(pool) >= 10:
+            context["rand"] = random.sample(pool, 10)
         # Everything the dictionary knows about itself lives on this page:
         # what a word's difficulty is worth in seconds, why frequency is not
         # difficulty, and what else moves the number. It used to hang off the

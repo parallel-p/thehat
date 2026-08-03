@@ -101,14 +101,13 @@
         <div class="scale__track">
             <span class="scale__band"
                   style="left: {{ (100.0 * band_lo / scale_max)|round(1) }}%; width: {{ (100.0 * (band_hi - band_lo) / scale_max)|round(1) }}%"></span>
-            <span class="scale__mid" style="left: {{ (5000.0 / scale_max)|round(1) }}%"></span>
             <span class="scale__marker" style="left: {{ (100.0 * word_entity.E / scale_max)|round(1) }}%"></span>
         </div>
         <div class="scale__labels">
             <span>0 · легко</span>
             <span>{{ scale_max|int }} · трудно</span>
         </div>
-        <p class="tile__note">светлая полоса — доверительный интервал, тик — 50, средняя сложность</p>
+        <p class="tile__note">светлая полоса — доверительный интервал</p>
     </div>
 
     {% if word_entity.used_times > 0 %}
@@ -117,7 +116,7 @@
         <div class="bars">
             {% for label, count in outcomes %}
             <div class="bar{% if not count %} bar--empty{% endif %}">
-                <span class="bar__label" style="min-width: 11rem;">{{ label }}</span>
+                <span class="bar__label">{{ label }}</span>
                 <span class="bar__track">
                     <span class="bar__fill"
                           style="width: {{ (100.0 * count / word_entity.used_times)|round(1) }}%"></span>
@@ -196,7 +195,12 @@
     </div>
     {% endif %}
 
-    <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); align-items: start;">
+    {# 18rem, not 15: a column narrow enough to fit three of them at 51rem
+       leaves the word column too narrow for a long Russian one, and the word
+       no longer wraps out of the way. .split's own column gap is 4.5rem —
+       the air between a paragraph and a picture — and three tables cannot
+       spare it: at that gap the longest words push the scroller. #}
+    <div class="split" style="grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: var(--s6); align-items: start;">
         <div>{{ word_table('Самые сложные', top, 'low') }}</div>
         <div>{{ word_table('Самые простые', bottom, 'high') }}</div>
         <div>{{ word_table('Случайные', rand) }}</div>
@@ -247,57 +251,15 @@
     </div>
     {% endif %}
 
-    {# One slip with its two numbers: how often the language uses the word,
-       and what it turned out to be worth in play. #}
-    {% macro pick(row, colour) %}
-    <li class="pick">
-        <a class="ws ws--{{ colour }}" style="text-decoration: none;"
-           href="/statistics/word_statistics?word={{ row.word|urlencode }}">{{ row.word }}</a>
-        <span class="pick__num">
-            {{ ('%.1f'|format(row.frequency))|replace('.', ',') }} на миллион ·
-            сложность {{ row.E|round|int }}
-        </span>
-    </li>
-    {% endmacro %}
-
-    {% if analytics.outliers.rare_easy or analytics.outliers.common_hard %}
-    <hr class="rule">
-    <p class="eyebrow eyebrow--honey"><span>Частота — не сложность</span></p>
-    <p class="muted" style="max-width: var(--measure); margin-bottom: var(--s6);">
-        Обычные приложения для Шляпы считают слово тем сложнее, чем реже оно
-        встречается в речи. В среднем это отчасти верно — и в отдельных словах
-        промахивается сильнее всего. Вот те, на которых частотность ошибается
-        в обе стороны.
-    </p>
-    <div class="chart-grid chart-grid--2">
-        <div>
-            <p class="chart__caption">Редкие, а объяснить легко</p>
-            <ul class="picks">
-                {% for row in analytics.outliers.rare_easy %}{{ pick(row, 'sky') }}{% endfor %}
-            </ul>
-        </div>
-        <div>
-            <p class="chart__caption">Частые, а объяснить трудно</p>
-            <ul class="picks">
-                {% for row in analytics.outliers.common_hard %}{{ pick(row, 'rose') }}{% endfor %}
-            </ul>
-        </div>
-    </div>
-    <p class="tile__note" style="margin-top: var(--s5); max-width: var(--measure);">
-        редкие и частые — крайние четверти словаря по частотности; слово
-        попадает в список, только если оно лёгкое (или трудное) даже с учётом
-        своей погрешности, так что двумя удачными раундами сюда не пробиться
-    </p>
-    {% endif %}
-
-    {% if analytics.by_length or analytics.by_freq or analytics.d_by_games %}
+    {% if analytics.by_length or analytics.by_freq %}
     <hr class="rule">
     <p class="eyebrow eyebrow--lilac"><span>Что ещё видно по словарю</span></p>
     <div class="chart-grid chart-grid--2">
         {% if analytics.by_freq %}
         <div class="chart" style="margin-top: 0;">
             <p class="chart__caption">Средняя сложность по частотности слова</p>
-            <div class="bars bars--difficulty">
+            {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
+            <div class="bars">
                 {% for row in analytics.by_freq %}
                 <div class="bar">
                     <span class="bar__label">{{ row.label }}</span>
@@ -311,7 +273,7 @@
             <p class="tile__note" style="margin-top: var(--s3);">
                 в среднем редкие слова и правда труднее — но разброс внутри
                 каждой строки больше, чем разница между строками; слева —
-                употреблений на миллион слов корпуса, тик — 50
+                употреблений на миллион слов корпуса
             </p>
         </div>
         {% endif %}
@@ -320,7 +282,7 @@
         <div class="chart" style="margin-top: 0;">
             <p class="chart__caption">Средняя сложность по длине слова</p>
             {# Drawn on the 0–100 difficulty scale, not against the longest bar. #}
-            <div class="bars bars--difficulty">
+            <div class="bars">
                 {% for row in analytics.by_length %}
                 <div class="bar">
                     <span class="bar__label">{{ row.label }} букв</span>
@@ -332,35 +294,12 @@
                 {% endfor %}
             </div>
             <p class="tile__note" style="margin-top: var(--s3);">
-                тик — 50, средняя сложность; длины, где есть хотя бы 5 использованных слов
+                длины, где есть хотя бы 5 использованных слов
             </p>
         </div>
         {% endif %}
     </div>
 
-    {% if analytics.d_by_games %}
-    <div class="chart" style="margin-top: var(--s7); max-width: 34rem;">
-        <p class="chart__caption">Насколько точно мы это знаем</p>
-        {# Measured against 50/3 — the погрешность of a word nobody has
-           played yet — so a bar reads as "столько неизвестности осталось". #}
-        <div class="bars">
-            {% for row in analytics.d_by_games %}
-            <div class="bar">
-                <span class="bar__label">{{ row.label }} парт.</span>
-                <span class="bar__track">
-                    <span class="bar__fill" style="width: {{ [3.0 * row.avg, 100.0]|min|round(1) }}%"></span>
-                </span>
-                <span class="bar__value">{{ row.avg|round(1) }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        <p class="tile__note" style="margin-top: var(--s3);">
-            во всю ширину — 16,7, погрешность слова, которое ещё никто не играл;
-            каждая партия сужает её, и именно поэтому таблицы выше отсортированы
-            по оценке за вычетом погрешности
-        </p>
-    </div>
-    {% endif %}
     {% endif %}
 
     {% if analytics.danger_top %}

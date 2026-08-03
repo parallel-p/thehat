@@ -264,10 +264,11 @@ def test_word_statistics_carries_the_analytics(client, ndb_context):
     response = client.get("/statistics/word_statistics")
     assert response.status_code == 200
     assert "по длине слова" in response.text
-    assert "Насколько точно мы это знаем" in response.text
     assert "частотности" in response.text
     # Difficulty read back in seconds, from a quantity the rating never saw.
     assert "Сколько секунд уходит на слово" in response.text
+    # The sigma-by-games chart is computed but no longer drawn.
+    assert "Насколько точно мы это знаем" not in response.text
 
 
 def test_word_statistics_hides_frequency_without_corpus_data(client, ndb_context):
@@ -278,12 +279,40 @@ def test_word_statistics_hides_frequency_without_corpus_data(client, ndb_context
     assert "Частота — не сложность" not in response.text
 
 
+def test_random_words_are_drawn_from_the_whole_dictionary(client, ndb_context):
+    """The "Случайные" table used to be an offset into an ordered query, which
+    returns ten *neighbours* — always the same clump for a given offset, never
+    a spread. Over enough draws a real sample has to reach both ends."""
+    import re
+
+    for index in range(60):
+        word = "слово{:02d}".format(index)
+        GlobalDictionaryWord(id=word, word=word, E=40.0, D=6.0, used_times=3,
+                             total_explanation_time=100).put()
+
+    seen = set()
+    for _ in range(12):
+        # No cache clearing between draws on purpose: the pool is cached, the
+        # sample is not, so every request has to draw again.
+        text = client.get("/statistics/word_statistics").text
+        block = text[text.index("Случайные"):]
+        seen.update(re.findall(r"слово\d\d", block))
+    # Ten of sixty per draw: a contiguous window can only ever show ten of
+    # these, and after twelve draws a uniform sample has all but a handful.
+    assert len(seen) > 40, sorted(seen)
+
+
 def test_frequency_outliers_pick_the_words_frequency_gets_wrong(client,
                                                                 ndb_context):
     """Rare words that turned out easy, common words that turned out hard —
     the counter-examples to rating a word by how often the language uses it.
+
+    Read off the analytics pass rather than the page: the section that drew
+    these two lists is no longer on it, but the selection is what the claim
+    rests on and is still computed.
     """
     from app.models import WordFrequency
+    from app.web import _word_analytics
 
     # Twenty words spread across the frequency range, difficulty rising with
     # frequency, so the plain rule "rare = hard" holds for all of them...
@@ -302,18 +331,11 @@ def test_frequency_outliers_pick_the_words_frequency_gets_wrong(client,
                          total_explanation_time=600).put()
     WordFrequency(id="совесть", word="совесть", frequency=40.0).put()
 
-    response = client.get("/statistics/word_statistics")
-    assert response.status_code == 200
-    assert "Редкие, а объяснить легко" in response.text
-    assert "Частые, а объяснить трудно" in response.text
-    # Both words also appear in the leaderboards above, so read the two
-    # lists themselves rather than the first mention on the page.
-    rare = response.text.index("Редкие, а объяснить легко")
-    common = response.text.index("Частые, а объяснить трудно")
-    rare_block = response.text[rare:common]
-    common_block = response.text[common:response.text.index("Что ещё видно")]
-    assert "зыбь" in rare_block and "совесть" not in rare_block
-    assert "совесть" in common_block and "зыбь" not in common_block
+    outliers = _word_analytics()["outliers"]
+    rare_easy = [row["word"] for row in outliers["rare_easy"]]
+    common_hard = [row["word"] for row in outliers["common_hard"]]
+    assert "зыбь" in rare_easy and "совесть" not in rare_easy
+    assert "совесть" in common_hard and "зыбь" not in common_hard
 
 
 def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
@@ -321,6 +343,7 @@ def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
     """A barely-played word must not make the easy list on two lucky rounds:
     selection is on E + 2D, so a wide interval keeps it out."""
     from app.models import WordFrequency
+    from app.web import _word_analytics
 
     for index in range(20):
         word = "слово{:02d}".format(index)
@@ -334,8 +357,5 @@ def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
                          total_explanation_time=40).put()
     WordFrequency(id="новичок", word="новичок", frequency=0.05).put()
 
-    response = client.get("/statistics/word_statistics")
-    assert response.status_code == 200
-    rare = response.text.index("Редкие, а объяснить легко")
-    common = response.text.index("Частые, а объяснить трудно")
-    assert "новичок" not in response.text[rare:common]
+    outliers = _word_analytics()["outliers"]
+    assert "новичок" not in [row["word"] for row in outliers["rare_easy"]]

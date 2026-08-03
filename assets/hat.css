@@ -868,14 +868,24 @@ a:hover {
   font-size: var(--t-micro);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: var(--s2) var(--s3);
+  padding: var(--s2);
   border-bottom: 1px solid var(--rule);
   white-space: nowrap;
 }
+/* Tighter across than down. Three of these tables share one sheet, and the
+   column a word needs is the column a word needs — the give has to come from
+   the gutters. The rows still breathe; the cells no longer pay 0.75rem twice
+   for a four-character number. */
 .table td {
-  padding: var(--s3);
+  padding: var(--s3) var(--s2);
   border-bottom: 1px solid var(--rule);
   vertical-align: baseline;
+}
+/* A phone has room for the columns or for the gutters, not both — and now
+   that a word holds its line, the four-column table would otherwise hand the
+   reader a scrollbar for the last 19px of it. */
+@media (max-width: 30rem) {
+  .table th, .table td { padding-inline: var(--s1); }
 }
 .table tbody tr:last-child td { border-bottom: 0; }
 .table tbody tr:hover { background: var(--paper-sunk); }
@@ -886,13 +896,14 @@ a:hover {
   white-space: nowrap;
 }
 .table .rank { color: var(--ink-muted); width: 1%; font-variant-numeric: tabular-nums; }
-/* A 14-letter Russian word must not be able to widen the column past its
-   track and push the number out of the scroller. */
+/* A word is read, not measured, and a word broken across two lines reads as
+   two words. It keeps its line; the enclosing .table-scroll is what gives way
+   on a narrow sheet. */
 .table .word {
   font-family: var(--serif);
   font-style: italic;
   font-size: 1rem;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 /* -- headline figures ----------------------------------------------------
@@ -964,18 +975,21 @@ a:hover {
   margin-bottom: var(--s4);
 }
 
+/* The three columns live on the group, not on the row, so that every track
+   starts at the same x whatever the labels say. Sized per row, a long label
+   stepped its own bar to the right and the chart lost its baseline — the one
+   line a reader compares the bars against. */
 .bars {
-  display: grid;
-  gap: 2px;                        /* the surface gap; not a stroke */
-  font-family: var(--sans);
-  font-size: var(--t-small);
-}
-.bar {
   display: grid;
   grid-template-columns: minmax(2.5rem, max-content) 1fr auto;
   align-items: center;
-  gap: var(--s3);
+  gap: 2px var(--s3);              /* the surface gap; not a stroke */
+  font-family: var(--sans);
+  font-size: var(--t-small);
 }
+/* Scoped to the group: /play calls its back-button row a .bar too, and that
+   one is a box with a margin, not three cells of a chart. */
+.bars > .bar { display: contents; }
 .bar__label {
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
@@ -1010,24 +1024,6 @@ a:hover {
    sky for time, lilac for people. */
 .bars--sky .bar__fill { background: var(--mark-sky); }
 .bars--lilac .bar__fill { background: var(--mark-lilac); }
-
-/* Difficulty is an absolute scale, so its bars are measured against it and
-   not against the tallest bar in the group: peak-normalising a 46-to-58
-   range would draw a small real difference as a dramatic one. The tick is
-   50 — the average word — so every bar is read against it. */
-.bars--difficulty .bar__track::after {
-  content: "";
-  position: absolute;
-  top: -4px;
-  bottom: -4px;
-  left: 50%;
-  width: 1px;
-  /* Only the ends of the mark are drawn, so it reads whether the bar has
-     reached 50 or not — a line laid over the fill would be lost in it. */
-  background: linear-gradient(var(--ink-muted) 0 4px,
-                              transparent 4px calc(100% - 4px),
-                              var(--ink-muted) calc(100% - 4px) 100%);
-}
 
 /* Two charts side by side on a wide sheet. */
 .chart-grid { display: grid; gap: var(--s6); align-items: start; }
@@ -1110,8 +1106,6 @@ a:hover {
 .scale__track { position: relative; height: 14px; background: var(--mark-track); border-radius: 7px; }
 .scale__band { position: absolute; top: 0; bottom: 0; background: var(--mark-honey); opacity: 0.35; border-radius: 7px; }
 .scale__marker { position: absolute; top: -3px; bottom: -3px; width: 4px; border-radius: 2px; background: var(--mark-honey); }
-/* 50: the average word, so the reading has something to be read against. */
-.scale__mid { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--ink-muted); opacity: 0.5; }
 .scale__labels {
   display: flex;
   justify-content: space-between;
