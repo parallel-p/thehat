@@ -6,6 +6,8 @@ statistics pages exist because they are linked from elsewhere, and they are now
 excluded from crawling by /robots.txt (bots were 3.8k of ~4k monthly hits).
 """
 
+import datetime
+import json
 import logging
 import os
 import random
@@ -17,8 +19,11 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from google.cloud import ndb
+
 from app.models import (DailyStatistics, GamesForPlayerCount,
-                        GlobalDictionaryWord, TotalStatistics, WordFrequency)
+                        GlobalDictionaryWord, StatsCache, TotalStatistics,
+                        WordFrequency)
 
 logger = logging.getLogger(__name__)
 
@@ -33,21 +38,118 @@ _cache = {}
 _cache_lock = threading.Lock()
 
 
-def cached(key, producer):
-    """Per-instance TTL cache. Good enough for pages nobody but bots reads."""
+# How stale a stored blob may be before a page recomputes it rather than serve
+# it. The cron runs daily, so anything past two days means the cron has not
+# been running -- at which point one visitor waits and the cache heals itself,
+# which is better than serving numbers that quietly stop moving.
+STALE_AFTER = datetime.timedelta(days=2)
+
+# key -> the function that computes it. The daily refresh iterates this, so a
+# value added here is refreshed by the cron the day it is written; there is no
+# second list to keep in step.
+_PRODUCERS = {}
+
+_MISSING = object()
+
+
+def producer(key):
+    """Register the function that computes one cached value."""
+    def register(function):
+        _PRODUCERS[key] = function
+        return function
+    return register
+
+
+def _normalise(value):
+    """Round-trip through JSON the way the stored copy will be.
+
+    Both paths then hand the templates the same shapes -- tuples come back as
+    lists, ints keyed by name stay ints -- so a page cannot behave one way on
+    the instance that computed a value and another way everywhere else. That
+    difference is exactly the kind that shows up only in production.
+    """
+    return json.loads(json.dumps(value))
+
+
+def _utcnow():
+    """Naive UTC, which is what ndb stores DateTimeProperty as."""
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
+
+def _read_shared(key):
+    """The stored blob, or `_MISSING` if absent, stale, or unreadable."""
+    try:
+        entity = ndb.Key(StatsCache, key).get()
+    except Exception:  # noqa: BLE001 -- the cache is an optimisation; if
+        # Datastore cannot answer, the page computes its own numbers.
+        logger.exception("StatsCache unreadable for %s", key)
+        return _MISSING
+    if entity is None or entity.payload is None or entity.computed is None:
+        return _MISSING
+    age = _utcnow() - entity.computed
+    if age > STALE_AFTER:
+        logger.warning("StatsCache %s is %s old; recomputing. Is the daily "
+                       "refresh cron running?", key, age)
+        return _MISSING
+    return entity.payload
+
+
+def _write_shared(key, value):
+    try:
+        StatsCache(id=key, payload=value, computed=_utcnow()).put()
+    except Exception:  # noqa: BLE001 -- see above; failing to *store* the
+        # answer must not stop us returning it.
+        logger.exception("could not store StatsCache %s", key)
+
+
+def cached(key):
+    """The value for `key`: this instance's copy, the shared one, or fresh.
+
+    Three levels, cheapest first. The in-process dict saves a Datastore read
+    per request; the StatsCache entity saves the recomputation, and is what
+    the daily cron keeps warm; computing inline is the fallback that makes
+    the other two optional.
+    """
     now = time.time()
     with _cache_lock:
         entry = _cache.get(key)
         if entry and entry[0] > now:
             return entry[1]
-    value = producer()
-    # min_instances is 0, so a miss is what most real visits get: the cache is
-    # per instance and the instance is usually new. Timing each one is how the
-    # slow part of a slow page stays findable from the logs.
-    logger.info("cache miss %s took %.2fs", key, time.time() - now)
+    value = _read_shared(key)
+    if value is _MISSING:
+        value = _normalise(_PRODUCERS[key]())
+        # Worth a line: this is the slow path, and after the cron has run once
+        # it should only ever be a new key or a genuinely empty cache.
+        logger.info("computed %s inline in %.2fs", key, time.time() - now)
+        _write_shared(key, value)
     with _cache_lock:
         _cache[key] = (now + CACHE_TTL, value)
     return value
+
+
+def refresh_all():
+    """Recompute every cached value and store it. What the daily cron calls.
+
+    One failure does not stop the others: a page whose numbers are missing
+    degrades on its own, and there is no reason to let it take the rest of
+    the refresh down with it.
+    """
+    done, failed = [], []
+    for key in list(_PRODUCERS):
+        started = time.time()
+        try:
+            _write_shared(key, _normalise(_PRODUCERS[key]()))
+        except Exception:  # noqa: BLE001
+            logger.exception("refresh of %s failed", key)
+            failed.append(key)
+            continue
+        done.append("{}={:.2f}s".format(key, time.time() - started))
+    with _cache_lock:
+        # This instance is serving too, and has just been told the answers.
+        _cache.clear()
+    logger.info("statistics refresh: %s%s", " ".join(done),
+                "; failed: " + " ".join(failed) if failed else "")
+    return {"refreshed": len(done), "failed": failed}
 
 
 # --------------------------------------------------------------------------
@@ -314,11 +416,17 @@ def _seconds_curve(shape):
     return rows if any(row["avg"] for row in rows) else []
 
 
+@producer("word_seconds")
+def _word_seconds_curve():
+    return _seconds_curve(_word_shape())
+
+
 def word_seconds():
     """The curve on its own, cached like the pages that draw the buckets."""
-    return cached("word_seconds", lambda: _seconds_curve(_word_shape()))
+    return cached("word_seconds")
 
 
+@producer("word_analytics")
 def _word_analytics():
     """The analytical stats the old site drew as matplotlib PNGs, plus the
     error-prone-words table, all from one projection pass.
@@ -389,8 +497,10 @@ def _word_analytics():
             "outliers": _frequency_outliers(shape, frequencies),
             "danger_top": danger, "hardest": hardest, "easiest": easiest,
             # Every played word, so the page can draw a real random sample
-            # without a query of its own. See `word_statistics`.
-            "pool": ranked}
+            # without a query of its own. See `word_statistics`. Pairs rather
+            # than the four-key rows above: this is the whole dictionary and
+            # it is stored, and the sample shows a word and its difficulty.
+            "pool": [[row.word, row.E] for row in shape]}
 
 
 def _no_analytics():
@@ -413,6 +523,7 @@ def _thousands(number):
     return "{:,}".format(number).replace(",", "\u00a0")
 
 
+@producer("landing_numbers")
 def _landing_numbers():
     """The two figures the landing page shows.
 
@@ -442,7 +553,7 @@ def index(request: Request):
     `/landing` is the same page: it used to be an app.yaml static handler,
     which would now serve the template's own braces to the reader.
     """
-    numbers = cached("landing_numbers", _landing_numbers)
+    numbers = cached("landing_numbers")
     return templates.TemplateResponse(request, "landing.html", dict(numbers))
 
 
@@ -456,7 +567,7 @@ def word_statistics(request: Request, word: str = None):
         # every played word: they need E and D together, and no datastore
         # ordering can express mu -+ k*sigma anyway.
         try:
-            analytics = cached("word_analytics", _word_analytics)
+            analytics = cached("word_analytics")
         except Exception:  # noqa: BLE001 -- e.g. the composite index still
             # building right after a deploy. Render the page without the
             # dictionary-wide sections rather than 500, and do not cache that.
@@ -472,7 +583,8 @@ def word_statistics(request: Request, word: str = None):
         # its cached list is both uniform and free of a datastore round-trip.
         pool = analytics.get("pool", [])
         if len(pool) >= 10:
-            context["rand"] = random.sample(pool, 10)
+            context["rand"] = [{"word": word, "E": difficulty}
+                               for word, difficulty in random.sample(pool, 10)]
         # Everything the dictionary knows about itself lives on this page:
         # what a word's difficulty is worth in seconds, why frequency is not
         # difficulty, and what else moves the number. It used to hang off the
@@ -481,6 +593,7 @@ def word_statistics(request: Request, word: str = None):
     return templates.TemplateResponse(request, "word_statistics.html", context)
 
 
+@producer("dict_word")
 def _dictionary_size():
     """How many words the dictionary holds."""
     counted = _aggregate("GlobalDictionaryWord", [("n", "count", None)])
@@ -489,6 +602,7 @@ def _dictionary_size():
     return GlobalDictionaryWord.query().count()
 
 
+@producer("used_words")
 def _played_words():
     """How many of them have ever come out of a hat."""
     counted = _aggregate("GlobalDictionaryWord", [("n", "count", None)],
@@ -504,6 +618,29 @@ def _played_words():
 _RECENT_DAYS = 84
 
 
+@producer("longest_explanation")
+def _longest_explanation():
+    """The word the server has spent the most seconds on, as plain data.
+
+    The entity itself cannot go in the cache -- it is stored as JSON, and it
+    carries a `used_games` list thousands of entries long that the page has
+    no use for.
+    """
+    word = GlobalDictionaryWord.query().order(
+        -GlobalDictionaryWord.total_explanation_time).get()
+    if word is None:
+        return None
+    return {"word": word.word, "seconds": word.total_explanation_time}
+
+
+@producer("for_player_count")
+def _games_by_player_count():
+    return [{"player_count": row.player_count, "games": row.games}
+            for row in GamesForPlayerCount.query().order(
+                GamesForPlayerCount.player_count).fetch()]
+
+
+@producer("daily_recent")
 def _recent_days():
     """(date, games) for the last `_RECENT_DAYS` days, oldest first."""
     rows = DailyStatistics.query().order(-DailyStatistics.date).fetch(
@@ -512,6 +649,7 @@ def _recent_days():
             for row in reversed(rows)]
 
 
+@producer("per_game")
 def _average_game():
     """What one game looks like, averaged over every day on record.
 
@@ -577,23 +715,16 @@ def total_statistics(request: Request):
         punchcard[(hour // 24 + 3) % 7][hour % 24] += games
     punch_peak = max(max(row) for row in punchcard)
 
-    daily_recent = cached("daily_recent", _recent_days)
-    per_game = cached("per_game", _average_game)
-
-    longest = cached(
-        "longest_explanation",
-        lambda: GlobalDictionaryWord.query().order(
-            -GlobalDictionaryWord.total_explanation_time).get())
+    daily_recent = cached("daily_recent")
+    per_game = cached("per_game")
+    longest = cached("longest_explanation")
 
     context = {
-        "words_in_dictionary": cached("dict_word", _dictionary_size),
-        "used_words": cached("used_words", _played_words),
+        "words_in_dictionary": cached("dict_word"),
+        "used_words": cached("used_words"),
         "total_words": total.words_used,
         "total_games": total.games,
-        "games_for_players": cached(
-            "for_player_count",
-            lambda: GamesForPlayerCount.query().order(
-                GamesForPlayerCount.player_count).fetch()),
+        "games_for_players": cached("for_player_count"),
         "daily_recent": daily_recent,
         "daily_recent_peak": max((games for _date, games in daily_recent),
                                  default=0),
@@ -601,8 +732,8 @@ def total_statistics(request: Request):
         "by_day": by_day,
         "punchcard": punchcard,
         "punch_peak": punch_peak,
-        "longest_word": longest.word if longest else None,
-        "longest_time": longest.total_explanation_time if longest else 0,
+        "longest_word": longest["word"] if longest else None,
+        "longest_time": longest["seconds"] if longest else 0,
         "per_game": per_game,
     }
     return templates.TemplateResponse(request, "total_statistics.html", context)

@@ -1,6 +1,21 @@
-# All three legacy cron jobs are dropped by the py3 migration:
-#   /cron/update_plots/start/        -> matplotlib plot rendering, removed
+# The three legacy cron jobs were dropped by the py3 migration:
+#   /cron/update_plots/start/         -> matplotlib plot rendering, removed
 #   /cron/statistics/functions/update -> exec() of Datastore-stored code, removed
-#   /cron/notifications/update       -> Channel API, removed by Google years ago
-# Deploying this file (only at WP8 cutover) removes them from the project.
-cron: []
+#   /cron/notifications/update        -> Channel API, removed by Google years ago
+# Deploying this file at the WP8 cutover removed them from the project.
+
+cron:
+# Recompute what the statistics pages show and store it in StatsCache, so that
+# no reader pays for it. The alternative is what used to happen: the in-process
+# cache is per instance and min_instances is 0, so whoever arrived at a cold
+# instance waited out the whole recomputation -- several seconds of it.
+#
+# Small hours UTC because it reads every played word, and that is when fewest
+# people are playing. The pages tolerate it being late: they serve a stored
+# answer up to two days old and only then compute their own, so a missed run
+# costs nothing and there is no retry configured.
+- description: recompute the cached statistics numbers
+  url: /internal/refresh_statistics
+  schedule: every day 03:20
+  timezone: Etc/UTC
+  target: default

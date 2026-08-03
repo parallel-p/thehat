@@ -4,6 +4,8 @@
 import datetime
 import re
 
+from google.cloud import ndb
+
 from app.models import (DailyStatistics, GamesForPlayerCount,
                         GlobalDictionaryWord, TotalStatistics)
 
@@ -213,6 +215,91 @@ def test_total_statistics_on_an_empty_database(client, ndb_context):
     response = client.get("/statistics/total_statistics")
     assert response.status_code == 200
     assert "Пока нет данных по дням" in response.text
+
+
+def test_the_shared_cache_outlives_the_instance(client, ndb_context):
+    """The point of StatsCache: the second cold instance does not recompute.
+
+    Dropping the in-process cache is what a new instance looks like, and
+    min_instances is 0, so it is what most real visits look like too.
+    """
+    from app import web
+    from app.models import StatsCache
+
+    DailyStatistics(id="1", date=datetime.datetime(2023, 11, 15), games=3,
+                    words_used=60, players_participated=12,
+                    total_game_duration=5400).put()
+
+    client.get("/statistics/total_statistics")
+    stored = ndb.Key(StatsCache, "per_game").get()
+    assert stored is not None
+    assert stored.payload["words"] == 20.0          # 60 words over 3 games
+
+    # A new instance: no in-process cache, and the producer must not run.
+    web._cache.clear()
+    original = dict(web._PRODUCERS)
+    web._PRODUCERS["per_game"] = _explode
+    try:
+        response = client.get("/statistics/total_statistics")
+    finally:
+        web._PRODUCERS.update(original)
+    assert response.status_code == 200
+
+
+def test_a_stale_blob_is_recomputed_rather_than_served(client, ndb_context):
+    """If the cron stops running the numbers must not freeze forever."""
+    from app import web
+    from app.models import StatsCache
+
+    GamesForPlayerCount(id="4", player_count=4, games=9).put()
+    client.get("/statistics/total_statistics")
+
+    entity = ndb.Key(StatsCache, "for_player_count").get()
+    entity.payload = [{"player_count": 4, "games": 1}]      # a stale answer
+    entity.computed = web._utcnow() - web.STALE_AFTER - datetime.timedelta(1)
+    entity.put()
+    web._cache.clear()
+
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+    # Recomputed from the real row, not served from the stale blob.
+    assert ndb.Key(StatsCache, "for_player_count").get().payload == [
+        {"player_count": 4, "games": 9}]
+
+
+def test_refresh_fills_the_cache_for_every_page(client, ndb_context):
+    """What the daily cron does, and that it covers every cached value."""
+    from app import web
+    from app.models import StatsCache
+
+    GlobalDictionaryWord(id="кот", word="кот", E=40.0, D=6.0, used_times=3,
+                         guessed_times=2, total_explanation_time=30).put()
+    DailyStatistics(id="1", date=datetime.datetime(2023, 11, 15), games=1,
+                    words_used=5, players_participated=4,
+                    total_game_duration=600).put()
+
+    response = client.get("/internal/refresh_statistics")
+    assert response.status_code == 200
+    assert response.json()["failed"] == []
+
+    stored = {entity.key.id() for entity in StatsCache.query().fetch()}
+    assert stored == set(web._PRODUCERS), "a producer the cron does not refresh"
+
+    # And the pages then serve without running a producer at all.
+    web._cache.clear()
+    original = dict(web._PRODUCERS)
+    try:
+        for key in original:
+            web._PRODUCERS[key] = _explode
+        assert client.get("/statistics/total_statistics").status_code == 200
+        assert client.get("/statistics/word_statistics").status_code == 200
+        assert client.get("/").status_code == 200
+    finally:
+        web._PRODUCERS.update(original)
+
+
+def _explode():
+    raise AssertionError("producer ran with a warm shared cache")
 
 
 def test_statistics_pages_are_not_indexable(client, ndb_context):

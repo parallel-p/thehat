@@ -25,6 +25,10 @@ KINDS = [
     "User", "Device", "UserDictionaryWord", "GlobalDictionaryWord", "WordLookup",
     "Dictionary", "GameLog", "UnknownWord", "DailyStatistics", "TotalStatistics",
     "GamesForPlayerCount", "GameLength", "StatisticVersion", "WordFrequency",
+    # The statistics pages' shared cache. Without it here one test's numbers
+    # are served to the next from Datastore, which the in-process cache being
+    # cleared below no longer prevents.
+    "StatsCache",
 ]
 
 

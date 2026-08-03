@@ -251,6 +251,27 @@ class GamesForPlayerCount(ndb.Model):
     player_count = ndb.IntegerProperty()
 
 
+class StatsCache(ndb.Model):
+    """One computed statistics blob, keyed by the name of what it holds.
+
+    New with the python3 app; the python27 version used memcache, which the
+    runtime no longer offers. The in-process cache this backs is per instance
+    and min_instances is 0, so nearly every real visit used to land on an
+    empty one and pay the full recomputation. Here the answer outlives the
+    instance that computed it.
+
+    Compressed because the largest of them -- the whole played dictionary,
+    for the random sample -- is ~800 KB of JSON and ~145 KB once zlib has had
+    it, against Datastore's 1 MB entity limit. `computed` is what the pages
+    read to decide whether the daily refresh is still running.
+    """
+    payload = ndb.JsonProperty(compressed=True)
+    # Set explicitly by whoever computed the payload, not auto_now: the field
+    # means "when these numbers were worked out", and auto_now would let any
+    # later put() for any reason re-date stale numbers as fresh.
+    computed = ndb.DateTimeProperty()
+
+
 # --------------------------------------------------------------------------
 # handlers/statistics/game_len_prediction.py
 # --------------------------------------------------------------------------
