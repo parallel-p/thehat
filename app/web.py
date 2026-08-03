@@ -41,9 +41,95 @@ def cached(key, producer):
         if entry and entry[0] > now:
             return entry[1]
     value = producer()
+    # min_instances is 0, so a miss is what most real visits get: the cache is
+    # per instance and the instance is usually new. Timing each one is how the
+    # slow part of a slow page stays findable from the logs.
+    logger.info("cache miss %s took %.2fs", key, time.time() - now)
     with _cache_lock:
         _cache[key] = (now + CACHE_TTL, value)
     return value
+
+
+# --------------------------------------------------------------------------
+# Counting and summing without reading the rows
+# --------------------------------------------------------------------------
+
+# Datastore has run COUNT/SUM server-side for years, but google-cloud-ndb 2.5
+# never grew an API for it: `Query.count()` still fetches every key and takes
+# len(), and its own docstring says so. Counting the dictionary that way cost
+# 1.8s of the statistics page's 4.9s, and summing five thousand daily rows to
+# print three averages cost 2.2s more. The aggregation API answers all of it
+# in one round trip each, so it is worth reaching past ndb to the datastore
+# client underneath -- which is already installed, being ndb's own dependency.
+#
+# The Datastore *emulator* does not implement RunAggregationQuery (501
+# MethodNotImplemented). That is what `_aggregate` returning None means, and
+# every caller keeps the scan it used to do as its fallback: under `make test`
+# the old path is what runs, and it is still the path being asserted on.
+_datastore_client = None
+_datastore_lock = threading.Lock()
+# Off against the emulator from the start: it answers RunAggregationQuery with
+# a 501, and building a client to hear that would shell out to `gcloud auth
+# print-access-token` first -- which is both slow and the one thing the test
+# fixtures promise never to do. Otherwise on, and latched off the first time a
+# backend does say it has no aggregation API. Only MethodNotImplemented
+# latches; anything else (a quota blip, a transient unavailable) falls back for
+# that one call and is tried again on the next.
+_aggregations_supported = not os.environ.get("DATASTORE_EMULATOR_HOST")
+
+
+def _raw_datastore():
+    global _datastore_client
+    with _datastore_lock:
+        if _datastore_client is None:
+            from google.cloud import datastore
+
+            from app import settings
+            from app.gcp_auth import credentials
+            _datastore_client = datastore.Client(project=settings.PROJECT_ID,
+                                                 credentials=credentials())
+    return _datastore_client
+
+
+def _aggregate(kind, aggregations, condition=None):
+    """Run server-side aggregations over `kind`; None if unsupported.
+
+    `aggregations` is a list of (alias, kind_of_aggregation, property), where
+    property is None for a count. `condition` is an optional
+    (property, operator, value) filter.
+    """
+    global _aggregations_supported
+    if not _aggregations_supported:
+        return None
+    try:
+        from google.cloud.datastore.query import PropertyFilter
+
+        client = _raw_datastore()
+        query = client.query(kind=kind)
+        if condition is not None:
+            query.add_filter(filter=PropertyFilter(*condition))
+        aggregation_query = client.aggregation_query(query)
+        for alias, how, prop in aggregations:
+            if how == "count":
+                aggregation_query.count(alias=alias)
+            else:
+                aggregation_query.sum(prop, alias=alias)
+        batches = list(aggregation_query.fetch())
+    except Exception as error:  # noqa: BLE001 -- an optimisation must never be
+        # the reason a page 500s. The emulator's 501 comes through here, and so
+        # would a permissions or quota problem; the caller scans instead.
+        from google.api_core.exceptions import MethodNotImplemented
+
+        if isinstance(error, MethodNotImplemented):
+            _aggregations_supported = False
+            logger.info("no aggregation API here; statistics will scan instead")
+        else:
+            logger.warning("aggregation over %s failed; scanning instead",
+                           kind, exc_info=True)
+        return None
+    if not batches:
+        return None
+    return {result.alias: result.value for result in batches[0]}
 
 
 
@@ -395,6 +481,79 @@ def word_statistics(request: Request, word: str = None):
     return templates.TemplateResponse(request, "word_statistics.html", context)
 
 
+def _dictionary_size():
+    """How many words the dictionary holds."""
+    counted = _aggregate("GlobalDictionaryWord", [("n", "count", None)])
+    if counted is not None:
+        return int(counted["n"])
+    return GlobalDictionaryWord.query().count()
+
+
+def _played_words():
+    """How many of them have ever come out of a hat."""
+    counted = _aggregate("GlobalDictionaryWord", [("n", "count", None)],
+                         condition=("used_times", ">", 0))
+    if counted is not None:
+        return int(counted["n"])
+    return GlobalDictionaryWord.query(
+        GlobalDictionaryWord.used_times > 0).count()
+
+
+# The daily chart's width. Fetching the tail is the whole point of the number:
+# the page used to read every day since 2014 and then slice off the last 84.
+_RECENT_DAYS = 84
+
+
+def _recent_days():
+    """(date, games) for the last `_RECENT_DAYS` days, oldest first."""
+    rows = DailyStatistics.query().order(-DailyStatistics.date).fetch(
+        _RECENT_DAYS)
+    return [(row.date.strftime("%Y-%m-%d"), row.games)
+            for row in reversed(rows)]
+
+
+def _average_game():
+    """What one game looks like, averaged over every day on record.
+
+    Four sums over the whole history, which is the one thing here that cannot
+    be answered from a tail -- and the reason this page used to read every
+    DailyStatistics entity it had. As an aggregation it is a single round
+    trip that never touches a row.
+    """
+    # One property per query, not one query summing four. Datastore serves a
+    # multi-property aggregation out of a composite index the way it serves a
+    # projection, and asking for four at once answers "400 no matching index
+    # found"; a sum over a single property is served by the automatic index
+    # that property already has. Four round trips instead of one, and no index
+    # to build -- which also means no window after a deploy where this quietly
+    # falls back to the scan it is here to replace.
+    wanted = {"games": "games", "words": "words_used",
+              "players": "players_participated",
+              "seconds": "total_game_duration"}
+    sums = {}
+    for alias, prop in wanted.items():
+        answer = _aggregate("DailyStatistics", [(alias, "sum", prop)])
+        if answer is None:
+            sums = None
+            break
+        sums[alias] = answer[alias]
+    if sums is None:
+        rows = DailyStatistics.query().fetch()
+        sums = {"games": sum(row.games for row in rows),
+                "words": sum(row.words_used for row in rows),
+                "players": sum(row.players_participated for row in rows),
+                "seconds": sum(row.total_game_duration for row in rows)}
+    games = sums["games"]
+    if not games:
+        return None
+    return {"words": sums["words"] / games,
+            "players": sums["players"] / games,
+            # Minutes were floored per day before being summed; over thousands
+            # of days that is up to a day's worth of rounding, so the division
+            # now happens once, at the end.
+            "minutes": sums["seconds"] / 60.0 / games}
+
+
 @router.get("/statistics/total_statistics", response_class=HTMLResponse)
 def total_statistics(request: Request):
     total = TotalStatistics.get()
@@ -418,21 +577,8 @@ def total_statistics(request: Request):
         punchcard[(hour // 24 + 3) % 7][hour % 24] += games
     punch_peak = max(max(row) for row in punchcard)
 
-    daily = cached(
-        "daily",
-        lambda: [(el.date.strftime("%Y-%m-%d"), el.games, el.words_used,
-                  el.players_participated, el.total_game_duration // 60)
-                 for el in DailyStatistics.query().order(
-                     DailyStatistics.date).fetch()])
-    daily_recent = [(row[0], row[1]) for row in daily[-84:]]
-
-    # What one game looks like, averaged over the days we have records for.
-    logged_games = sum(row[1] for row in daily)
-    per_game = {
-        "words": sum(row[2] for row in daily) / logged_games,
-        "minutes": sum(row[4] for row in daily) / logged_games,
-        "players": sum(row[3] for row in daily) / logged_games,
-    } if logged_games else None
+    daily_recent = cached("daily_recent", _recent_days)
+    per_game = cached("per_game", _average_game)
 
     longest = cached(
         "longest_explanation",
@@ -440,19 +586,14 @@ def total_statistics(request: Request):
             -GlobalDictionaryWord.total_explanation_time).get())
 
     context = {
-        "words_in_dictionary": cached(
-            "dict_word", lambda: GlobalDictionaryWord.query().count()),
-        "used_words": cached(
-            "used_words",
-            lambda: GlobalDictionaryWord.query(
-                GlobalDictionaryWord.used_times > 0).count()),
+        "words_in_dictionary": cached("dict_word", _dictionary_size),
+        "used_words": cached("used_words", _played_words),
         "total_words": total.words_used,
         "total_games": total.games,
         "games_for_players": cached(
             "for_player_count",
             lambda: GamesForPlayerCount.query().order(
                 GamesForPlayerCount.player_count).fetch()),
-        "daily": daily,
         "daily_recent": daily_recent,
         "daily_recent_peak": max((games for _date, games in daily_recent),
                                  default=0),

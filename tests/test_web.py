@@ -2,6 +2,7 @@
 """Contract 8: the web pages that survived the migration."""
 
 import datetime
+import re
 
 from app.models import (DailyStatistics, GamesForPlayerCount,
                         GlobalDictionaryWord, TotalStatistics)
@@ -161,6 +162,50 @@ def test_total_statistics(client, ndb_context):
     assert "height: 100.0%" in response.text
     # A single player-count row is also its own peak.
     assert "width: 100.0%" in response.text
+
+
+def test_average_game_divides_once_at_the_end(client, ndb_context):
+    """Two days of 100 seconds over one game each.
+
+    The page used to floor each day to whole minutes and sum those, which read
+    these two days as one minute a game instead of nearly two. Seconds are
+    summed and divided once now, so a day shorter than a minute stops
+    disappearing.
+    """
+    for index, (words, players) in enumerate([(20, 5), (10, 3)]):
+        DailyStatistics(id=str(index),
+                        date=datetime.datetime(2023, 11, 15 + index),
+                        games=1, words_used=words,
+                        players_participated=players,
+                        total_game_duration=100).put()
+
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+    assert "4 игрока" in response.text          # 8 players / 2 games
+    assert "15 слов" in response.text           # 30 words / 2 games
+    assert "2 минуты" in response.text          # 200s / 60 / 2, not 1
+
+
+def test_daily_chart_reads_only_the_recent_tail(client, ndb_context):
+    """The chart is 84 columns wide and the history is a decade long, so the
+    query is the tail — oldest of the tail first, newest last."""
+    from app.web import _RECENT_DAYS
+
+    for index in range(_RECENT_DAYS + 20):
+        DailyStatistics(id=str(index),
+                        date=datetime.datetime(2023, 1, 1) +
+                        datetime.timedelta(days=index),
+                        games=index + 1, words_used=1,
+                        players_participated=1, total_game_duration=60).put()
+
+    response = client.get("/statistics/total_statistics")
+    assert response.status_code == 200
+    labels = re.findall(r'column__label[^>]*>([\d-]+)<', response.text)
+    assert len(labels) == _RECENT_DAYS
+    assert labels == sorted(labels)
+    # The 20 oldest days are off the left edge, the newest is the last column.
+    assert labels[-1] == "04-14"                # 2023-01-01 + 103 days
+    assert "01-01" not in labels
 
 
 def test_total_statistics_on_an_empty_database(client, ndb_context):
