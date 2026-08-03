@@ -30,6 +30,7 @@ const SHELL = [
   '/play/js/deathmatch.js',
   '/play/icons/hat-192.png',
   '/play/icons/hat-512.png',
+  '/play/icons/hat-maskable-512.png',
   // The site's stylesheet and its fonts: the app borrows the whole design
   // language, so offline has to include it or the app loads unstyled.
   '/assets/hat.css',

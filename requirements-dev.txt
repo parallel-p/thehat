@@ -1,3 +1,8 @@
 -r requirements.txt
 pytest==9.1.1
 httpx==0.28.1
+
+# scripts/make_icons.py only — the icons are committed, so this is needed
+# just to regenerate them.
+pillow==12.3.0
+numpy==2.5.1

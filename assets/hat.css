@@ -546,7 +546,10 @@ a:hover {
   border-radius: 2px 8px 3px 7px;   /* fallback edge if clip-path is unsupported */
   clip-path: var(--tear, var(--tear-a));
   filter: var(--slip-filter);
-  transform: rotate(var(--rot, -2deg)) translateY(var(--ty, 0));
+  /* The tilt goes last, so it is the slip's own centre it turns about: with
+     the offset inside the rotation the slip would swing around a point off
+     the paper instead of pivoting where it lies. */
+  transform: translateY(var(--ty, 0px)) rotate(var(--rot, -2deg));
   transition: transform 180ms ease;
 }
 .ws::after {
@@ -559,7 +562,10 @@ a:hover {
     linear-gradient(165deg, rgba(255,255,255,0.26), rgba(255,255,255,0) 40%, rgba(50,40,36,0.07)),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-.ws:hover { transform: rotate(0deg) translateY(-2px); }
+/* Straightened and lifted, from wherever it was lying — the 2px is added to
+   the slip's own offset rather than replacing it, so every slip lifts by the
+   same 2px and none of them slides sideways on the way up. */
+.ws:hover { transform: translateY(calc(var(--ty, 0px) - 2px)) rotate(0deg); }
 .ws--rose  { background: var(--slip-rose); }
 .ws--lilac { background: var(--slip-lilac); }
 .ws--honey { background: var(--slip-honey); }
@@ -663,8 +669,16 @@ a:hover {
   grid-template-columns: 1fr;
   align-items: center;
 }
+/* Stacked on a phone, the picture goes first whichever side it takes on a
+   wide screen: a section opens with its picture rather than with the wall of
+   text that pushes the picture off the bottom of the screen. */
+.split__media { order: -1; }
 @media (min-width: 48rem) {
   .split { grid-template-columns: 1.15fr 0.85fr; gap: var(--s6) var(--s8); }
+  .split__media { order: 0; }
+  /* Flipped, the columns mirror too: the picture changes sides, it does not
+     take the text's width with it. */
+  .split--flip { grid-template-columns: 0.85fr 1.15fr; }
   .split--flip .split__media { order: -1; }
 }
 .split__media img { margin-inline: auto; }
@@ -677,10 +691,12 @@ a:hover {
   border: 1px solid var(--print-border);
   border-radius: 6px;
   padding: var(--print-pad);
-  transform: rotate(-1.5deg);
   box-shadow: var(--print-shadow);
 }
-.split--flip .split__media--slip img { transform: rotate(1.8deg); }
+/* The tilt is for the drawings. The photograph is a picture of a room with
+   its own horizon in it, and tilting that tilts the room. */
+.split__media--slip:not(.split__media--photo) img { transform: rotate(-1.5deg); }
+.split--flip .split__media--slip:not(.split__media--photo) img { transform: rotate(1.8deg); }
 /* A photograph is a physical print with white baked into its pixels —
    it keeps the card in both themes. */
 .split__media--photo img {
@@ -690,6 +706,20 @@ a:hover {
   box-shadow: var(--shadow-slip);
 }
 
+/* The credit under a print: the smallest voice on the page, and a quiet one,
+   but a printed one — it was a `title` attribute on the old site, which is to
+   say it was not readable at all. */
+.credit {
+  margin-top: var(--s3);
+  text-align: center;
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  color: var(--ink-muted);
+}
+/* The licence is one token; "CC BY-" on one line and "SA 3.0" on the next is
+   not the name of a licence. */
+.credit a { white-space: nowrap; }
+
 /* A note pinned to the page: raised card. */
 .slip {
   background: var(--paper-raised);
@@ -698,34 +728,97 @@ a:hover {
   padding: var(--s5);
 }
 
-/* -- chronology ----------------------------------------------------------
-   A dated list, set the way a printed chronology is: the date in the
-   counting face on the left, the entry in the reading face beside it, a rule
-   between them. Deliberately not a timeline with a spine and dots — that is
-   an infographic's idiom, and this is a sheet of paper. The last row is the
-   present, and its date is the one thing here allowed the brass. */
-.chrono { margin: 0; }
-.chrono__row {
-  display: grid;
-  grid-template-columns: 10rem 1fr;
-  gap: var(--s2) var(--s5);
-  padding-block: var(--s4);
-  border-top: 1px solid var(--rule);
+/* -- the history ----------------------------------------------------------
+   One thread down the page with a torn slip pinned at each moment. This was
+   a two-column chronology, dates ranged down the left, which sets a history
+   as a table of contents and reads as a list of releases however the entries
+   are written. The history is a story about people, so it takes the shape of
+   one: a single line, and each moment hung on it in turn. The last moment is
+   the present, and its date is the one thing here allowed the brass. */
+.timeline {
+  margin: 0;
+  padding-left: var(--s6);
+  list-style: none;
+  border-left: 1px solid var(--rule);
 }
-.chrono__row:last-child { border-bottom: 1px solid var(--rule); }
-.chrono__when {
+.timeline__entry { position: relative; }
+.timeline__entry + .timeline__entry { margin-top: var(--s7); }
+/* The slip pinned on the thread. Out by one gap plus half a slip, which puts
+   its middle on the line; no two are torn or laid down alike. */
+.timeline__entry::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--s6) - 9px);
+  top: 0.3em;
+  width: 18px;
+  height: 11px;
+  background: var(--slip, var(--slip-rose));
+  border-radius: 1px 4px 2px 3px;
+  clip-path: var(--tear, var(--tear-b));
+  transform: rotate(var(--rot, -5deg));
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+.timeline__entry:nth-child(4n+1) { --slip: var(--slip-rose);  --tear: var(--tear-a); --rot: -6deg; }
+.timeline__entry:nth-child(4n+2) { --slip: var(--slip-honey); --tear: var(--tear-b); --rot: 4deg; }
+.timeline__entry:nth-child(4n+3) { --slip: var(--slip-sky);   --tear: var(--tear-c); --rot: -3deg; }
+.timeline__entry:nth-child(4n)   { --slip: var(--slip-lilac); --tear: var(--tear-b); --rot: 5deg; }
+.timeline__when {
   font-family: var(--sans);
   font-size: var(--t-small);
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
+  margin: 0 0 var(--s2);
 }
-.chrono__what { margin: 0; max-width: var(--measure); }
-.chrono__row--now .chrono__when { color: var(--brass-text); font-weight: 600; }
+.timeline__what { margin: 0; max-width: var(--measure); }
+.timeline__entry--now .timeline__when { color: var(--brass-text); font-weight: 600; }
 
+/* The icon of an app the story names. It stands to the left of the entry it
+   belongs to and is centred on it, the way a stamp sits beside a paragraph:
+   an app icon is a thing shown, not a thing read, and in the column it read
+   as another paragraph. Named only in `alt` — big enough to recognise, the
+   name under it was a caption for something that does not need one.
 
-/* Narrow: the date becomes a line above its entry rather than a column. */
+   The card is stated here rather than taken from the --print-* tokens, which
+   drop it at night. Both icons are transparent PNGs drawn for a light home
+   screen — the older one is inked in black outlines — so on the felt they
+   would come apart. Like the photograph, an app icon is an object with its
+   own frame, and it keeps it in both themes. */
+.timeline__entry { display: grid; grid-template-columns: auto minmax(0, 1fr); }
+/* The date keeps the entry's left edge, level with its slip on the thread;
+   the icon hangs off the entry below it. On entries with no icon the first
+   column has nothing in it and collapses, so those dates and entries sit
+   where they always did. */
+.timeline__when { grid-column: 1 / -1; }
+.timeline__what { grid-column: 2; grid-row: 2; }
+.app {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: center;
+  margin-right: var(--s5);
+  width: 88px;
+  background: #FBFCF9;
+  border: 1px solid var(--rule);
+  border-radius: 19px;
+  padding: 7px;
+  box-shadow: var(--shadow-slip);
+  line-height: 0;            /* no descender gap under the picture */
+}
+.app img { width: 100%; height: auto; }
+
+/* On a phone there is no room beside a paragraph, so the icon goes above it
+   instead — still the entry's mark, just stacked. */
 @media (max-width: 40rem) {
-  .chrono__row { grid-template-columns: 1fr; }
+  .app {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    align-self: start;
+    margin: var(--s1) 0 var(--s4);
+    width: 64px;
+    border-radius: 14px;
+    padding: 5px;
+  }
+  .timeline__what { grid-column: 1 / -1; grid-row: 3; }
 }
 
 /* 10. Prose ============================================================== */

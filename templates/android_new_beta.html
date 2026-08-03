@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
     <title>Новое Android-приложение — Шляпа</title>
-    <link rel="icon" href="/favicon.ico">
+{% include "_icons.html" %}
     <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
@@ -17,7 +17,6 @@
     <div class="wrap masthead__inner">
         <a class="masthead__brand" href="/">Шляпа</a>
         <nav class="masthead__nav" aria-label="Основная навигация">
-            <a href="/">Об игре</a>
             <a href="/statistics/total_statistics">Статистика</a>
             <a href="/play">Играть</a>
         </nav>
@@ -57,7 +56,7 @@
                 </ol>
                 <p class="muted">
                     Старый APK всё ещё лежит
-                    <a href="https://github.com/nzinov/beret/releases/download/v0.3-beta/the_hat.apk">в релизах</a>
+                    <a href="https://github.com/sashkent3/beret/releases/download/v0.3-beta/the_hat.apk">в релизах</a>
                     и на F-Droid, но он больше не развивается: сыгранные им партии
                     попадают на сервер дважды.
                 </p>
@@ -72,21 +71,13 @@
                 </p>
                 <p>
                     Сообщения об ошибках и предложения улучшений оставляйте в
-                    <a href="https://github.com/nzinov/beret/issues">issue tracker</a>.
+                    <a href="https://github.com/sashkent3/beret/issues">issue tracker</a>.
                 </p>
             </div>
         </div>
     </section>
 </main>
 
-<footer class="footer">
-    <div class="wrap footer__inner">
-        <span>ЛКШ.Шляпа · параллель P</span>
-        <a href="/">На главную</a>
-        <a href="/tos/the-hat.html">Шляпа — политика</a>
-        <span class="footer__spacer"><a href="http://lksh.ru">lksh.ru</a></span>
-    </div>
-</footer>
 
 </div>
 </body>

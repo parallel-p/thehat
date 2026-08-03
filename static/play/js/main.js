@@ -1074,6 +1074,14 @@ async function start() {
   logs.flush().then(refreshOutbox);
   setupInstall();
   show('home');
+  // A link may name the screen to open on: /play#rules is how the site sends
+  // a reader to the rules, which have no page of their own since thehat.ru
+  // went. render, not show — show would arm, and a pushState here would be
+  // one made without a gesture, which is the thing the note at the top of
+  // this file is about. Nothing is armed, so Back goes where the reader
+  // actually came from: the page that linked here. «← Назад» still reaches
+  // the home screen. The hash is left alone, so a reload lands here again.
+  if (location.hash === '#rules') render('rules');
 }
 
 if ('serviceWorker' in navigator) {

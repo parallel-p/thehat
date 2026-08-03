@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
     <title>Шляпа</title>
-    <link rel="icon" href="/favicon.ico">
+{% include "_icons.html" %}
     <link rel="stylesheet" href="/assets/hat.css">
 </head>
 <body>
@@ -17,9 +17,7 @@
     <div class="wrap masthead__inner">
         <a class="masthead__brand" href="/">Шляпа</a>
         <nav class="masthead__nav" aria-label="Основная навигация">
-            <a href="#about">Об игре</a>
-            <a href="#sombrero">Сложность слов</a>
-            <a href="#history">История</a>
+            <a href="/statistics/word_statistics">Сложность слов</a>
             <a href="/statistics/total_statistics">Статистика</a>
             <a href="/play">Играть</a>
         </nav>
@@ -56,7 +54,7 @@
             </p>
             <div class="btn-row btn-row--center hero__actions">
                 <a class="btn btn--primary" href="/play">Играть</a>
-                <a class="btn btn--ghost" href="http://thehat.ru/rules/">Правила игры</a>
+                <a class="btn btn--ghost" href="/play#rules">Правила игры</a>
             </div>
             <div class="ws-row ws-row--center hero__slips" aria-hidden="true">
                 <span class="ws ws--lilac">телескоп</span>
@@ -81,15 +79,8 @@
                             устроить настоящее соревнование или просто отдохнуть.
                         </p>
                         <p>
-                            Сейчас Шляпа живёт в браузере. Она открывается на любом
-                            телефоне, ставится на домашний экран, занимает меньше
-                            мегабайта и играет без интернета: словарь и счёт остаются
-                            на телефоне, а сыгранные партии уходят на сервер, когда
-                            сеть вернётся.
-                        </p>
-                        <p>
-                            Правила лежат <a href="/play">в самой игре</a>, а подробные —
-                            <a href="http://thehat.ru/rules/">на thehat.ru</a>.
+                            Сейчас Шляпа доступна прямо в браузере. Она работает
+                            на компьютере, iOS и Android, в том числе без интернета.
                         </p>
                         <div class="btn-row">
                             <a class="btn btn--primary" href="/play">Играть</a>
@@ -99,6 +90,11 @@
                 <figure class="split__media split__media--slip split__media--photo">
                     <img src="/assets/people_playing_hat.jpg"
                          alt="Компания играет в Шляпу за столом">
+                    <figcaption class="credit">
+                        Рисунок — Марина Линдина,
+                        <a rel="license"
+                           href="https://creativecommons.org/licenses/by-sa/3.0/deed.ru">CC BY-SA 3.0</a>
+                    </figcaption>
                 </figure>
             </div>
         </div>
@@ -106,13 +102,13 @@
 
     <section class="section" id="sombrero">
         <div class="wrap">
-            <div class="split">
+            <div class="split split--flip">
                 <div>
                     <p class="eyebrow eyebrow--honey"><span>Сервер Sombrero</span></p>
                     <h2 class="section__title">Сложность слова <em>измеряется</em>, а не угадывается</h2>
                     <div class="stack">
                         <p>
-                            В обычных приложениях для Шляпы считается, что слово тем сложнее,
+                            В большинстве приложений для Шляпы считается, что слово тем сложнее,
                             чем реже оно встречается в речи. Это очень неточная мерка.
                         </p>
                         <p>
@@ -120,18 +116,19 @@
                             <a href="/statistics/total_statistics">статистику игр</a> и по ней
                             <a href="/statistics/word_statistics">сравнивает слова</a> по тому,
                             насколько трудно их объяснить на самом деле. Это позволяет подбирать
-                            слова примерно одной сложности — и заодно очень интересует лингвистов,
-                            которые изучают, как люди объясняют значения слов.
+                            слова примерно одной сложности — и собирать
+                            <a href="https://huggingface.co/datasets/nzinov/the-hat-games">датасет</a>,
+                            который может быть полезен для изучения того, как люди
+                            объясняют друг другу слова.
                         </p>
-                        <p class="muted">Когда вы играете, вы помогаете двигать науку.</p>
                         <div class="figures">
                             <p class="figure">
                                 <span class="figure__value">{{ total_games }}</span>
-                                <span class="figure__label">партий сыграно и записано</span>
+                                <span class="figure__label">партий сыграно</span>
                             </p>
                             <p class="figure">
-                                <span class="figure__value">{{ total_words }}</span>
-                                <span class="figure__label">слов в словаре, у каждого своя измеренная сложность</span>
+                                <span class="figure__value">{{ total_explanations }}</span>
+                                <span class="figure__label">объяснений слов</span>
                             </p>
                         </div>
                     </div>
@@ -146,91 +143,78 @@
     <section class="section section--sunk" id="history">
         <div class="wrap">
             <p class="eyebrow eyebrow--sky"><span>История</span></p>
-            <h2 class="section__title">Тринадцать лет <em>одной</em> игры</h2>
+            <h2 class="section__title">Тринадцать лет одного&nbsp;<em>проекта</em></h2>
             <p class="lead" style="margin-bottom: var(--s7);">
-                Шляпу написали школьники на летней смене, сервер к ней —
-                они же следующей зимой. С тех пор клиенты сменяли друг друга,
+                Шляпу написали школьники на летней смене — и приложение,
+                и сервер к нему. С тех пор клиенты сменяли друг друга,
                 а сервер и его словарь оставались.
             </p>
 
-            <dl class="chrono">
-                <div class="chrono__row">
-                    <dt class="chrono__when">август 2013</dt>
-                    <dd class="chrono__what">
-                        Первое приложение — параллель П <a href="http://lksh.ru">Летней
-                        компьютерной школы</a>. Преподаватели: Виталий Борисович
-                        Гольдштейн, Вадим Дмитриевич Дробин, Денис Васильевич Кузнецов,
-                        Сергей Игоревич Назаров, Андрей Алексеевич Шестимеров.
-                        Школьники: Николай Зинов, Николай Калинин, Даниил Карпенко,
-                        Константин Козловцев, Дмитрий Кравченко, Игорь Лабутин,
-                        Даниил Лиференко, Иван Павлов, Иван Сергеев, Дмитрий Торба.
-                    </dd>
-                </div>
-                <div class="chrono__row">
-                    <dt class="chrono__when">декабрь 2013</dt>
-                    <dd class="chrono__what">
-                        Зимняя смена, та же параллель — и сервер, который считает слова
-                        до сих пор: Николай Калинин, Константин Козловцев, Игорь
+            <ol class="timeline">
+                <li class="timeline__entry">
+                    <p class="timeline__when">август 2013</p>
+                    <p class="timeline__what">
+                        <a href="http://lksh.ru">Летняя компьютерная школа</a> — лагерь,
+                        где школьники месяц занимаются программированием. Играть в Шляпу
+                        они любят не меньше, чем программировать, и на летней смене
+                        параллель П села писать приложение: чтобы не резать бумажки и не
+                        придумывать слова, а сразу переходить к самому интересному —
+                        объяснять. Тогда же, на той же смене, написали и сервер: он
+                        собирал сыгранные партии и по ним сравнивал слова между собой.
+                        Учили Виталий Гольдштейн, Вадим Дробин, Денис Кузнецов, Сергей
+                        Назаров и Андрей Шестимеров; писали Николай Зинов, Николай
+                        Калинин, Даниил Карпенко, Константин Козловцев, Дмитрий
+                        Кравченко, Игорь Лабутин, Даниил Лиференко, Иван Павлов,
+                        Иван Сергеев и Дмитрий Торба.
+                    </p>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">декабрь 2013</p>
+                    <p class="timeline__what">
+                        Зимой та же параллель собралась снова — и взялась за сервер
+                        всерьёз. Писали Николай Калинин, Константин Козловцев, Игорь
                         Лабутин, Иван Павлов и Дмитрий Торба под руководством Вадима
-                        Дмитриевича Дробина и Дениса Васильевича Кузнецова. Первый
-                        коммит 30 декабря, за зиму и весну больше девятисот. Дальше
-                        сервер вели Николай Зинов и Иван Павлов — под руководством
-                        Виталия Борисовича Гольдштейна и Дениса Васильевича Кузнецова.
-                    </dd>
-                </div>
-                <div class="chrono__row">
-                    <dt class="chrono__when">ноябрь 2019</dt>
-                    <dd class="chrono__what">
-                        Второй формат лога: партия записывается по словам, со временем
-                        на каждое. Всё, что сервер знает о сложности, посчитано из этих
-                        записей — до них сравнивать слова было не с чем.
-                    </dd>
-                </div>
-                <div class="chrono__row">
-                    <dt class="chrono__when">17 ноября 2019</dt>
-                    <dd class="chrono__what">
-                        Первая сборка нового Android-приложения — Александр Зинов под
-                        руководством Николая Зинова, на смену прежнему клиенту Дениса
-                        Кузнецова.
-                    </dd>
-                </div>
-                <div class="chrono__row">
-                    <dt class="chrono__when">май 2020</dt>
-                    <dd class="chrono__what">
-                        Приложение подключено к живому серверу: партии с телефонов
-                        начинают попадать в общую статистику.
-                    </dd>
-                </div>
-                <div class="chrono__row">
-                    <dt class="chrono__when">март 2024</dt>
-                    <dd class="chrono__what">
-                        Последняя версия приложения для Android — 2.0.0, опубликована
-                        на F-Droid.
-                    </dd>
-                </div>
-                <div class="chrono__row chrono__row--now">
-                    <dt class="chrono__when">август 2026</dt>
-                    <dd class="chrono__what">
-                        Сервер переписан с Python 2.7 на 3.12 и переехал на новый
-                        рантайм App&nbsp;Engine, сайт пересобран, а игра переехала
-                        в браузер — <a href="/play">и заменила приложение</a>.
-                    </dd>
-                </div>
-            </dl>
+                        Дробина и Дениса Кузнецова. Тогда же Денис Кузнецов написал
+                        новое приложение для Android.
+                    </p>
+                    <span class="app">
+                        <img src="/assets/hat.png" width="265" height="265" alt="Значок приложения ЛКШ.Шляпа">
+                    </span>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">следующие годы</p>
+                    <p class="timeline__what">
+                        Дальше сервер вели Николай Зинов и Иван Павлов — под руководством
+                        Виталия Гольдштейна и Дениса Кузнецова.
+                    </p>
+                </li>
+                <li class="timeline__entry">
+                    <p class="timeline__when">ноябрь 2019</p>
+                    <p class="timeline__what">
+                        Александр Зинов под руководством Николая Зинова написал Beret —
+                        новое кроссплатформенное приложение для Android и iOS. В нём
+                        впервые появился режим игры на выживание.
+                    </p>
+                    <a class="app" href="https://github.com/sashkent3/beret">
+                        <img src="/assets/new_hat.png" width="300" height="300" alt="Значок приложения Beret">
+                    </a>
+                </li>
+                <li class="timeline__entry timeline__entry--now">
+                    <p class="timeline__when">август 2026</p>
+                    <p class="timeline__what">
+                        Благодаря ИИ модернизация сервера — с дремучего Python 2.7 на 3.12
+                        и новые технологии Google Cloud — стала проектом на один выходной.
+                        А сама игра переехала в браузер. Приложение больше не нужно:
+                        Шляпа <a href="/play">открывается по ссылке</a> и работает
+                        без интернета.
+                    </p>
+                </li>
+            </ol>
         </div>
     </section>
 
 </main>
 
-<footer class="footer">
-    <div class="wrap footer__inner">
-        <span>Шляпа · с 2013 года</span>
-        <a href="/statistics/total_statistics">Статистика</a>
-        <a href="/tos/the-hat.html">Шляпа — политика</a>
-        <a href="/tos/word-filtering.html">Вычитка слов — политика</a>
-        <span class="footer__spacer"><a href="http://lksh.ru">lksh.ru</a></span>
-    </div>
-</footer>
 
 </div>
 </body>

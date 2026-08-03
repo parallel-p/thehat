@@ -27,17 +27,16 @@ def test_index_states_what_the_server_has_collected(client, ndb_context):
     reader the template's own braces. Both paths render the same page.
     """
     from app import web
-    from app.models import GlobalDictionaryWord, TotalStatistics
+    from app.models import TotalStatistics
 
-    TotalStatistics(id="total_statistics", games=35295, by_hour=[0] * (24 * 7)).put()
-    for index in range(3):
-        GlobalDictionaryWord(id="w{}".format(index), word="w{}".format(index)).put()
+    TotalStatistics(id="total_statistics", games=35295, words_used=417002,
+                    by_hour=[0] * (24 * 7)).put()
     web._cache.pop("landing_numbers", None)
 
     body = client.get("/").text
     # A thousands separator a Russian typographer would accept, not a comma.
     assert "35\u00a0295" in body
-    assert ">3<" in body
+    assert "417\u00a0002" in body
     assert "{{" not in body and "{%" not in body
     assert client.get("/landing").text == body
 

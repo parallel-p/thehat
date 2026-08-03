@@ -309,25 +309,36 @@ def _thousands(number):
     return "{:,}".format(number).replace(",", "\u00a0")
 
 
+def _landing_numbers():
+    """The two figures the landing page shows.
+
+    words_used counts every word a game got through, so it is explanations —
+    the same word coming out of the hat in another game counts again. That is
+    the number the dataset is measured in, not the size of the dictionary.
+    """
+    total = TotalStatistics.get()
+    return {
+        "total_games": _thousands(total.games),
+        "total_explanations": _thousands(total.words_used),
+    }
+
+
 @router.get("/", response_class=HTMLResponse)
 @router.get("/landing", response_class=HTMLResponse)
 def index(request: Request):
     """The landing page.
 
     Rendered, not served as bytes. The page says how many games the server
-    has recorded and how many words it has a measured difficulty for, and
-    those are the whole of its argument for existing — a number kept true by
-    remembering to edit it is a number that is wrong. Both are cached for an
-    hour like everything else here, so the most-visited page on the site
-    costs at most one datastore read an hour.
+    has recorded and how many words those games explained, and those are the
+    whole of its argument for existing — a number kept true by remembering to
+    edit it is a number that is wrong. Both come off the one TotalStatistics
+    entity and are cached for an hour like everything else here, so the
+    most-visited page on the site costs at most one datastore read an hour.
 
     `/landing` is the same page: it used to be an app.yaml static handler,
     which would now serve the template's own braces to the reader.
     """
-    numbers = cached("landing_numbers", lambda: {
-        "total_games": _thousands(TotalStatistics.get().games),
-        "total_words": _thousands(GlobalDictionaryWord.query().count()),
-    })
+    numbers = cached("landing_numbers", _landing_numbers)
     return templates.TemplateResponse(request, "landing.html", dict(numbers))
 
 

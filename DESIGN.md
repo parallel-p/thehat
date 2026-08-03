@@ -132,11 +132,15 @@ pills, cards are `--r-card` (10px), word slips get an irregular torn cut.
   original blob composition had. Desktop only (`min-width: 60rem`), never
   under text; `--decor-o` dims it to 0.5 in the evening.
 - **Prints on the table** (`.split__media--slip`) — by day, images sit on
-  white paper cards, tilted −1.5°/+1.8° in alternating sections. At night the
-  card disappears (`--print-*` tokens) and the transparent drawings float
-  directly on the felt. The photograph (`.split__media--photo`) keeps its card
-  in both themes: it is a JPEG with white baked into its pixels, and a photo
-  print is a physical object anyway.
+  white paper cards; the drawings are tilted −1.5°/+1.8° in alternating
+  sections. At night the card disappears (`--print-*` tokens) and the
+  transparent drawings float directly on the felt. The photograph
+  (`.split__media--photo`) keeps its card in both themes — it is a JPEG with
+  white baked into its pixels — and it hangs square: it is a picture of a
+  room with its own horizon in it, and tilting that tilts the room. A
+  borrowed picture carries its credit (`.credit`) under the print: sans,
+  `--t-micro`, muted throughout. A licence that asks to be attributed is not
+  attributed by a `title` attribute.
 - **Motion** is three hover gestures: a slip straightens and lifts, a button
   tilts −1°, a link underline goes wavy. Nothing else moves;
   `prefers-reduced-motion` kills all of it.

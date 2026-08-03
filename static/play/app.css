@@ -312,6 +312,16 @@ body[data-screen="dm-score"] .screen[data-for="dm-score"] {
 }
 .rules__list li { margin-bottom: var(--s4); padding-left: var(--s1); }
 .rules__list li::marker { color: var(--brass-text); font-weight: 700; }
+/* Where the rules came from. Sans and quiet: it is a note about the text,
+   not part of it, and the rule above it says so before it is read. */
+.rules__source {
+  margin: var(--s6) 0 0;
+  padding-top: var(--s4);
+  border-top: 1px solid var(--rule);
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+}
 
 /* -- history --------------------------------------------------------------
    A list of evenings. Each quick game folds its scoreboard away, because the
