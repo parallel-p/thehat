@@ -194,33 +194,6 @@
     <p class="tile__note" style="margin-top: var(--s2);">пик {{ daily_recent_peak }} партий за день</p>
     {% endif %}
 
-    <details style="margin-top: var(--s5);">
-        <summary class="disclosure">Вся история таблицей</summary>
-        <div class="table-scroll" style="margin-top: var(--s3);">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Дата</th>
-                        <th class="num" scope="col">Партий</th>
-                        <th class="num" scope="col">Слов</th>
-                        <th class="num" scope="col">Игроков</th>
-                        <th class="num" scope="col">Минут</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for date, games, words, players, minutes in daily|reverse %}
-                    <tr>
-                        <td>{{ date }}</td>
-                        <td class="num">{{ games }}</td>
-                        <td class="num">{{ words }}</td>
-                        <td class="num">{{ players }}</td>
-                        <td class="num">{{ minutes }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </details>
 </div>
 {% else %}
 <p class="empty" style="margin-top: var(--s7);">Пока нет данных по дням.</p>

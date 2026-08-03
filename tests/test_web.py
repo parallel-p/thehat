@@ -153,7 +153,10 @@ def test_total_statistics(client, ndb_context):
     assert response.status_code == 200
     assert "42" in response.text
     assert "1234" in response.text
-    assert "2023-11-15" in response.text
+    # The day reaches the page as a column on the chart. It used to be read
+    # off the full-history table, which is gone; the chart labels its columns
+    # by month and day, the year being the same all the way across.
+    assert "11-15" in response.text
     # by_hour[5] is the only non-zero hour, so it is the peak column.
     assert "height: 100.0%" in response.text
     # A single player-count row is also its own peak.
