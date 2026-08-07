@@ -40,20 +40,9 @@ input, textarea { -webkit-user-select: text; user-select: text; }
    deserves !important: the whole point is to outrank the rules above. */
 [hidden] { display: none !important; }
 
-/* Torn edges for slips the size of a button. The site's three --tear-*
-   variants are cut for word-sized paper: their percentages are of the box,
-   so the same 5% that bites 3px out of a word slip cuts a 17px pennant out
-   of a 340px one. These are the same idea at this scale — many small bites,
-   and far less wander along the long sides than across the short ones. Five
-   of them, because five slips share the home screen and no two pieces of
-   paper are torn alike. */
-:root {
-  --rip-1: polygon(0% 2.2%, 11.1% 2%, 22.2% 4.2%, 33.3% 4.3%, 44.4% 3.6%, 55.6% 1.5%, 66.7% 1.8%, 77.8% 1.8%, 88.9% 4.5%, 100% 4.4%, 99.6% 33.3%, 99.4% 66.7%, 100% 96.2%, 88.9% 99.1%, 77.8% 99.2%, 66.7% 95.9%, 55.6% 97.2%, 44.4% 95.4%, 33.3% 99.1%, 22.2% 98%, 11.1% 96.3%, 0% 97.4%, 0.1% 66.7%, 0.1% 33.3%);
-  --rip-2: polygon(0% 2%, 12.5% 0.3%, 25% 3%, 37.5% 4.3%, 50% 2.5%, 62.5% 3.1%, 75% 1.6%, 87.5% 4.6%, 100% 4.4%, 98.3% 25%, 99.9% 50%, 98.7% 75%, 100% 97.6%, 87.5% 98.8%, 75% 98.5%, 62.5% 98.5%, 50% 99.7%, 37.5% 95.6%, 25% 97.2%, 12.5% 96.6%, 0% 97.2%, 0.5% 75%, 0.6% 50%, 1.2% 25%);
-  --rip-3: polygon(0% 1%, 9.1% 1.6%, 18.2% 1.5%, 27.3% 2.3%, 36.4% 1%, 45.5% 1.3%, 54.5% 0.8%, 63.6% 4.1%, 72.7% 4.1%, 81.8% 2.4%, 90.9% 4.3%, 100% 2.2%, 99.3% 33.3%, 99.1% 66.7%, 100% 99.9%, 90.9% 99.7%, 81.8% 99.5%, 72.7% 95.7%, 63.6% 96.5%, 54.5% 96.9%, 45.5% 96.8%, 36.4% 95.3%, 27.3% 97.6%, 18.2% 98.7%, 9.1% 99.1%, 0% 98.9%, 1.6% 66.7%, 0.1% 33.3%);
-  --rip-4: polygon(0% 4%, 14.3% 4.3%, 28.6% 2.5%, 42.9% 4%, 57.1% 0.1%, 71.4% 3.9%, 85.7% 3.2%, 100% 2.2%, 98.7% 33.3%, 99.5% 66.7%, 100% 98%, 85.7% 96%, 71.4% 95%, 57.1% 95.2%, 42.9% 96.3%, 28.6% 96.8%, 14.3% 99.2%, 0% 96.2%, 0% 66.7%, 0.4% 33.3%);
-  --rip-5: polygon(0% 2.2%, 10% 1.8%, 20% 3.5%, 30% 2.3%, 40% 1.1%, 50% 3.4%, 60% 3.8%, 70% 3.6%, 80% 3.1%, 90% 0.2%, 100% 1.4%, 98.3% 25%, 98.7% 50%, 98.5% 75%, 100% 97.7%, 90% 97.3%, 80% 97.1%, 70% 99.1%, 60% 98.3%, 50% 98%, 40% 95.3%, 30% 96.8%, 20% 96.9%, 10% 97%, 0% 96.2%, 1.8% 75%, 0.3% 50%, 0.2% 25%);
-}
+/* The torn edges these slips use — --rip-1 … --rip-5 — are in hat.css with
+   the rest of the tokens. They were defined here first, and moved when /duel
+   turned out to want button-sized torn paper too. */
 
 /* -- screens ------------------------------------------------------------- */
 
@@ -158,7 +147,14 @@ body[data-screen="dm-score"] .screen[data-for="dm-score"] {
 }
 
 .modes { display: grid; gap: var(--s5); margin-bottom: auto; }
-.modes__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s3); }
+/* Four small slips under the two game modes. Two by two rather than four
+   across: at four columns a phone gives each slip about seventy pixels, and
+   «Что сложнее?» does not fit in seventy pixels without breaking in half. */
+.modes__row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s3);
+}
 .mode {
   appearance: none;
   border: 0;
@@ -185,6 +181,7 @@ body[data-screen="dm-score"] .screen[data-for="dm-score"] {
 .mode--rules   { --rip: var(--rip-4); --rot: 1.1deg; }
 .mode--history { --rip: var(--rip-3); --rot: -0.9deg; }
 .mode--stats   { --rip: var(--rip-5); --rot: 1.4deg; }
+.mode--duel    { --rip: var(--rip-2); --rot: -1.3deg; }
 
 .app-status { font-family: var(--sans); font-size: var(--t-small); margin-top: var(--s5); }
 
@@ -747,11 +744,116 @@ body[data-phase="last"] .round__timer { visibility: hidden; }
   line-height: 1;
   margin: 0 0 var(--s6);
 }
-/* The number that just changed blinks, so a harder game is noticed. */
-.blinkable.blink { animation: blink 300ms steps(1) 6; }
-@keyframes blink { 50% { opacity: 0; } }
+/* Deathmatch slips carry their difficulty as slits cut into the edge — see
+   nick.js. The paper grows by about one slit's depth so the tears eat margin
+   instead of ink. A constant, and it can be: the level changes how MANY slits
+   there are, never how deep they go. */
+.screen[data-for="dm-round"] .word { padding: 0.64em 0.89em 0.70em; }
+
+/* -- the two clocks, drawn ------------------------------------------------
+   One bar on a fixed 70-second scale: 60 of main clock plus the 10 the bonus
+   starts at, which is the true maximum because the minute only ever falls.
+   The fixed scale is the point — it makes the brass segment's WIDTH the bonus
+   in seconds, so a cut from 10 to 9 is a visibly shorter refill rather than a
+   number in the corner nobody was reading.
+
+   Rounding lives on __fill and nowhere else. Rounded per segment, each got a
+   cap on BOTH ends, so the two met cap-to-cap and pinched the bar in at the
+   junction — a seam exactly where the design claims one continuous clock. One
+   rounded, overflow-hidden wrapper caps the outer ends and clips the join
+   flush, and needs no special case for the moment the bonus empties and the
+   ink becomes the right-hand end itself. */
+.clockbar {
+  --bar-h: 10px;
+  position: relative;
+  height: var(--bar-h);
+  border-radius: 999px;
+  background: var(--paper-sunk);
+}
+.clockbar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  display: flex;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.clockbar__main  { background: var(--ink-muted); }
+.clockbar__bonus { background: var(--brass); }
+
+/* The second just taken away. Drawn ON the bar, over its last second, and
+   held there while the bar still shows its old length — so the eye sees the
+   tip of the clock turn red and break off, rather than a lozenge appearing
+   beside a bar that had already got shorter.
+
+   Left square (the fresh break), right capped (the bar's own end, which this
+   piece is for as long as it is attached), and the cap is half the bar height
+   spelled out. 999px is right on __fill, where CSS scales the radii against
+   the height and lands on exactly half of it; on a piece one second wide —
+   some 4.5px of a 320px bar — it scales against the WIDTH instead and
+   collapses to nothing, turning the pill back into a rectangle at the one
+   size that mattered. */
+.clockbar__lost {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 0 calc(var(--bar-h) / 2) calc(var(--bar-h) / 2) 0;
+  background: var(--rose-deep);
+  opacity: 0;
+}
+.clockbar.cut .clockbar__lost { animation: lost 760ms ease-in; }
+/* ease-IN: a piece of paper coming loose starts slowly and accelerates. It
+   holds flush for the first 40%, which is the window main.js keeps the bar at
+   its old length. */
+@keyframes lost {
+  0%, 40% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100%    { opacity: 0; transform: translateY(18px) rotate(11deg); }
+}
+/* The bar reacts, but it does not go rose. Flashing the whole bonus segment
+   the colour of the piece breaking off made the two indistinguishable — the
+   eye saw one rose blob shorten and could not pick out the second that was
+   actually lost. Brass stays brass, so rose means one thing on this bar. */
+.clockbar.cut .clockbar__bonus { animation: barflash 760ms ease-out; }
+@keyframes barflash {
+  0%, 40% { filter: brightness(1.28); }
+  100%    { filter: brightness(1); }
+}
+
+/* The score, and now the only number on the screen. Under the bar rather than
+   beside a clock, because there is no longer a clock to sit beside. */
+.round__count {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  margin: var(--s2) 0 0;
+}
+.round__count b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* -- the halo -------------------------------------------------------------
+   Fired when the band moves up, alongside the extra slit in the next slip.
+   Light bleeding in from the edge and nothing else: a solid inset rule read
+   as a UI border, which is the one thing a screen made of paper on a table
+   should not grow. */
+.dm-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 2;
+  box-shadow: inset 0 0 90px 6px var(--rose-deep);
+}
+.screen.harder .dm-flash { animation: bloom 620ms ease-out; }
+@keyframes bloom {
+  0%   { opacity: 0; }
+  18%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .mode, .act, .install__btn { transition: none; }
-  .blinkable.blink { animation: none; color: var(--brass-text); }
+  /* The slit in the paper and the shorter brass are both still there without
+     any of this: every one of these animations announces a change that the
+     screen also holds still. */
+  .screen.harder .dm-flash,
+  .clockbar.cut .clockbar__lost,
+  .clockbar.cut .clockbar__bonus { animation: none; }
 }

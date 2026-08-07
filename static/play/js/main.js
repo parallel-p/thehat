@@ -7,6 +7,7 @@ import * as audio from './audio.js';
 import { ticker, keepAwake } from './clock.js';
 import { Game, DEFAULTS } from './game.js';
 import { Deathmatch, START as DM } from './deathmatch.js';
+import { nicked } from './nick.js';
 
 const $ = id => document.getElementById(id);
 const body = document.body;
@@ -339,14 +340,21 @@ function readSettingsForm() {
 // pipeline ranks the words of ONE game by explanation time and keeps only that
 // order, because absolute seconds are not comparable between one pair and
 // another. So the app cannot work this out — it asks /api/v2/word_seconds,
-// which is the same computation the statistics page draws («Сколько секунд
-// уходит на слово»), and keeps the answer so an evening with no signal still
-// has one. FALLBACK is what a first run offline shows: measured 2026-08-02,
-// and wrong only in the way any number is before it has been refreshed.
+// built from the same projection as the statistics page, and keeps the answer
+// so an evening with no signal still has one.
+//
+// Its `d` is the difficulty bucket this app draws on — the `diff` in the
+// dictionary blob, a rank out of 100 — and not E, which the curve was keyed on
+// until 2026-08-04 and which made every reading here answer about words other
+// than the ones being drawn.
+//
+// FALLBACK is what a first run offline shows: measured 2026-08-04, and wrong
+// only in the way any number is before it has been refreshed.
 const FALLBACK_SECONDS = [
-  { d: 20, avg: 4.0 }, { d: 30, avg: 4.5 }, { d: 40, avg: 6.6 },
-  { d: 50, avg: 9.1 }, { d: 60, avg: 13.9 }, { d: 70, avg: 20.0 },
-  { d: 80, avg: 27.1 },
+  { d: 0, avg: 5.8 }, { d: 10, avg: 8.0 }, { d: 20, avg: 9.3 },
+  { d: 30, avg: 10.6 }, { d: 40, avg: 11.9 }, { d: 50, avg: 13.1 },
+  { d: 60, avg: 14.4 }, { d: 70, avg: 15.7 }, { d: 80, avg: 17.6 },
+  { d: 90, avg: 19.5 }, { d: 100, avg: 24.1 },
 ];
 
 let secondsTable = FALLBACK_SECONDS;
@@ -463,13 +471,38 @@ let onScreen = null;        // the slip being read right now, for a refit
  * of a slip nobody can read across a table. It shrinks instead — and because
  * the slip's padding is in em, the whole piece of paper shrinks with it.
  */
-function showWord(slip, word) {
+function showWord(slip, word, nicks = 0) {
   const text = slip.firstElementChild;
   text.textContent = word;
   slip.className = `word torn word--${SLIPS[slipsDrawn % SLIPS.length]}`;
   slipsDrawn += 1;
+  // Kept on the element rather than in a variable, because a refit has to be
+  // able to cut the same slip the same way without knowing how it got there.
+  slip.dataset.nicks = nicks;
+  slip.dataset.seed = slipsDrawn;
   onScreen = slip;
   fitWord(slip);
+  cutNicks(slip);
+}
+
+/**
+ * The slits that carry a deathmatch word's difficulty, cut into the slip the
+ * app already draws — see nick.js. Nought of them is the ordinary paper, and
+ * the ordinary paper is then left exactly alone: no inline clip-path, so the
+ * stylesheet's --rip is what a level-1 slip wears, same as everywhere else.
+ */
+function cutNicks(slip) {
+  const nicks = Number(slip.dataset.nicks) || 0;
+  // Cleared first whatever happens, so the read below is the stylesheet's rip
+  // and not the last cut of this same slip — otherwise a refit nicks the
+  // nicks, and the paper dissolves a little more every time the phone turns.
+  slip.style.clipPath = '';
+  if (!nicks) return;
+  const box = slip.getBoundingClientRect();
+  if (box.width <= 0) return;
+  slip.style.clipPath = nicked(getComputedStyle(slip).clipPath,
+                               box.width, box.height, nicks,
+                               Number(slip.dataset.seed) || 1);
 }
 
 function fitWord(slip) {
@@ -491,7 +524,11 @@ function fitWord(slip) {
 }
 
 // A phone turned on its side mid-turn changes the room a word has.
-window.addEventListener('resize', () => { if (onScreen) fitWord(onScreen); });
+window.addEventListener('resize', () => {
+  if (!onScreen) return;
+  fitWord(onScreen);
+  cutNicks(onScreen);            // the tear is in px; the box just changed
+});
 
 function runTurn() {
   game.startTurn();
@@ -512,8 +549,12 @@ function runTurn() {
     // `time` is the time up to the bell, and the overshoot is `extra_time`.
     const time = phase === 'main' ? now - wordStart : bellAt - wordStart;
     const extra = phase === 'main' ? 0 : now - bellAt;
-    const next = game.record(outcome, Math.max(0, time), Math.max(0, extra));
-    if (next && phase === 'main') {
+    // After the bell there is one word and no more, so the turn does not go on
+    // however it ends — and the game must not draw the next one, or it leaves
+    // the hat unseen. One place decides this, and it is `record`.
+    const next = game.record(outcome, Math.max(0, time), Math.max(0, extra),
+                             phase === 'main');
+    if (next) {
       wordStart = now;
       showWord($('r-word'), next);
       $('r-left').textContent = `в шляпе ${game.hat.length + 1}`;
@@ -546,7 +587,7 @@ function runTurn() {
     // Out of time with the word still in hand: no outcome at all, which the
     // parser reads as "returned to the hat" rather than as a failure.
     const time = bellAt - wordStart;
-    game.record(null, Math.max(0, time), extraMs);
+    game.record(null, Math.max(0, time), extraMs, false);
     audio.play('over');
     endTurn();
   };
@@ -679,11 +720,16 @@ async function endGame() {
     score.textContent = row.score;
   });
 
-  await game.finish();
-  remember({ at: Date.now(), kind: 'game', rows: game.standings() });
-  $('score-note').textContent = navigator.onLine
-    ? 'Игра отправлена на сервер — из неё считается сложность слов.'
-    : 'Игра сохранена и уйдёт на сервер, когда появится сеть.';
+  // A game nobody played is not sent, not remembered, and does not claim to
+  // be either: backing out of the lobby by way of «Закончить игру» is a normal
+  // thing to do, and it should leave nothing behind it.
+  const sent = await game.finish();
+  if (sent) remember({ at: Date.now(), kind: 'game', rows: game.standings() });
+  $('score-note').textContent = !sent
+    ? 'В этой игре не сыграно ни одного слова — отправлять нечего.'
+    : navigator.onLine
+      ? 'Игра отправлена на сервер — из неё считается сложность слов.'
+      : 'Игра сохранена и уйдёт на сервер, когда появится сеть.';
   show('score');
   refreshOutbox();
 }
@@ -706,42 +752,96 @@ async function runDeathmatch() {
   let last = 0;
   let wordStart = 0;
 
-  const paintNumbers = () => {
+  // What the bar is drawn to: the minute plus the bonus at its starting
+  // length. The true maximum, because the minute only ever falls — so the bar
+  // can never overflow, and the brass segment's width is the bonus in
+  // seconds rather than a share of some total that keeps moving.
+  const SCALE = (DM.main + DM.bonus) * 1000;
+  const CAP = 5;                          // half the bar's height, in px
+
+  const screen = document.querySelector('.screen[data-for="dm-round"]');
+  const bar = $('d-bar');
+
+  const paintCount = () => {
     $('d-score').textContent = dm.score;
-    $('d-diff').textContent = dm.difficulty;
-    $('d-add').textContent = dm.bonus;
+    $('d-words').textContent = plural(dm.score, 'слово', 'слова', 'слов');
   };
 
-  paintNumbers();
+  const paintBar = () => {
+    $('d-fill').style.width = `${(mainLeft + bonusLeft) / SCALE * 100}%`;
+    // The two split the fill by flex-grow straight off the milliseconds, so
+    // their proportions are the clock itself and the join needs no arithmetic
+    // to stay put.
+    $('d-main').style.flex = `${mainLeft}`;
+    $('d-bonus').style.flex = `${bonusLeft}`;
+  };
+
+  paintCount();
+  paintBar();
   show('dm-round');               // on screen first: the slip measures itself
-  showWord($('d-word'), dm.word);
+  showWord($('d-word'), dm.word, dm.band);
 
   const paint = (elapsed) => {
     const step = elapsed - last;
     last = elapsed;
     if (bonusLeft > 0) bonusLeft = Math.max(0, bonusLeft - step);
     else mainLeft = Math.max(0, mainLeft - step);
-    $('d-timer').textContent = Math.ceil((mainLeft + bonusLeft) / 1000);
+    paintBar();
     if (mainLeft === 0 && bonusLeft === 0) finish();
   };
 
-  const blink = (which) => {
-    const el = which === 'bonus' ? $('d-add') : $('d-diff');
-    el.classList.remove('blink');
-    void el.offsetWidth;                 // restart the animation
-    el.classList.add('blink');
+  /** The band moved up: the edge of the screen lights, and the slip that has
+   *  already arrived is carrying one more slit than the last one did. */
+  const bloom = () => {
+    screen.classList.remove('harder');
+    void screen.offsetWidth;               // restart the animation
+    screen.classList.add('harder');
+  };
+
+  /**
+   * The bonus was cut. The second that is leaving is drawn over the last
+   * second of the bar and held there — `bonusLeft` keeps the old length for
+   * now — so what the eye sees is the tip of the clock turning red and
+   * breaking off. Shortening the bar first would leave the piece floating
+   * past the end with a gap where it broke from.
+   */
+  const cutSecond = () => {
+    $('d-lost').style.left =
+      `calc(${(mainLeft + bonusLeft - 1000) / SCALE * 100}% - ${CAP}px)`;
+    $('d-lost').style.width = `calc(${1000 / SCALE * 100}% + ${CAP}px)`;
+    bar.classList.remove('cut');
+    void bar.offsetWidth;
+    bar.classList.add('cut');
+    // 40% of the 760ms in app.css — the instant the keyframes let go of it.
+    // min(), because the ticker may already have drained past the new bonus
+    // while it was held, and a cut must never hand a second back.
+    setTimeout(() => {
+      bonusLeft = Math.min(bonusLeft, dm.bonus * 1000);
+      paintBar();
+    }, 304);
   };
 
   currentWordAction = async (outcome) => {
     if (outcome !== 'guessed') { finish(); return; }
+    // No word in hand means the previous tap has taken it and the next one is
+    // still being drawn. Checked here as well as in `guessed`, and checked
+    // synchronously, so that a tap which scores nothing also makes no sound:
+    // the click is what the sound is feedback for, and it has to be immediate.
+    if (!dm.word) return;
     audio.play('ok');
     const now = clock.elapsed();
-    await dm.guessed(now - wordStart);
+    const bonus = await dm.guessed(now - wordStart);
+    if (bonus === null) return;
     wordStart = now;
-    bonusLeft = dm.bonus * 1000;
-    showWord($('d-word'), dm.word);
-    paintNumbers();
-    if (dm.changed) blink(dm.changed);
+    // A cut refills to the old length and gives the second back a moment
+    // later, which is the whole gesture; anything else refills to what the
+    // word actually bought.
+    bonusLeft = (bonus + (dm.changed === 'bonus' ? 1 : 0)) * 1000;
+    showWord($('d-word'), dm.word, dm.band);
+    paintCount();
+    paintBar();
+    if (dm.changed === 'difficulty') bloom();
+    if (dm.changed === 'bonus') cutSecond();
   };
 
   const finish = async () => {

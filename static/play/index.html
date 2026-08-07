@@ -82,6 +82,10 @@
                    href="/statistics/word_statistics">
                     <span class="mode__name">Статистика</span>
                 </a>
+                <a class="mode mode--small torn torn--sky mode--duel"
+                   href="/duel">
+                    <span class="mode__name">Что сложнее?</span>
+                </a>
             </div>
         </div>
 
@@ -342,14 +346,23 @@
 </section>
 
 <section class="screen" data-for="dm-round">
+    <!-- The halo, which is how a harder band announces itself. Over the whole
+         screen and behind nothing: the eye is on the word in the middle, and
+         the edge is the one place that can be lit without covering it. -->
+    <span class="dm-flash"></span>
     <div class="round">
-        <div class="round__top">
-            <span class="round__timer" id="d-timer">60</span>
-            <span class="round__left">
-                <b id="d-score">0</b> ·
-                сложность <b id="d-diff" class="blinkable">15</b> ·
-                +<b id="d-add" class="blinkable">10</b>с
-            </span>
+        <!-- Both clocks, drawn. There is no digital reading of them any more:
+             a number counting down is what a player stares at instead of the
+             word, and it said nothing the length of the bar does not. -->
+        <div class="round__clock">
+            <div class="clockbar" id="d-bar">
+                <span class="clockbar__fill" id="d-fill">
+                    <span class="clockbar__main" id="d-main"></span>
+                    <span class="clockbar__bonus" id="d-bonus"></span>
+                </span>
+                <span class="clockbar__lost" id="d-lost"></span>
+            </div>
+            <p class="round__count"><b id="d-score">0</b> <span id="d-words">слов</span></p>
         </div>
         <div class="word-slot">
             <p class="word torn" id="d-word"><span></span></p>
