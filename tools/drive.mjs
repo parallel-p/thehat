@@ -86,12 +86,25 @@ await rpc(ws, 'Network.enable', {}, sessionId);
 await rpc(ws, 'Network.setBypassServiceWorker', { bypass: true }, sessionId);
 await rpc(ws, 'Network.setCacheDisabled', { cacheDisabled: true }, sessionId);
 
-// Wait for the app to boot — a real condition, not a guessed sleep.
+// Wait for the page to boot — a real condition, not a guessed sleep.
+//
+// /play is a screen app: it boots into one, and `data-screen` says which.
+// The site's other pages have no screens, and /duel is one of them — so
+// there the condition is the document's own, which is what a page with a
+// module on it is waiting for anyway.
+const READY = `(() => {
+  if (!document.body) return '';
+  const screen = document.body.dataset.screen;
+  return screen === undefined ? '#' + document.readyState : screen;
+})()`;
+
+const NOT_READY = ['', 'loading', '#loading', '#interactive'];
+
 const boot = async () => {
   const deadline = Date.now() + 20000;
   while (Date.now() < deadline) {
-    const screen = await evaluate('document.body.dataset.screen || ""').catch(() => '');
-    if (screen && screen !== 'loading') return;
+    const ready = await evaluate(READY).catch(() => '');
+    if (!NOT_READY.includes(ready)) return;
     await new Promise(r => setTimeout(r, 100));
   }
 };
@@ -104,6 +117,12 @@ await boot();
 // an instrument telling you about state nobody can observe is worse than no
 // instrument.
 const state = `(() => {
+  // A page that is not the screen app has no screen to name; what is worth
+  // printing after every step there is where you are. Ask for the rest with
+  // eval:, which is what it is for.
+  if (document.body.dataset.screen === undefined) {
+    return location.pathname + ' len=' + history.length;
+  }
   const on = document.querySelector('.screen[data-for="' + document.body.dataset.screen + '"]');
   const cd = on && [...on.querySelectorAll('.countdown')].some(e => !e.hidden);
   return document.body.dataset.screen + (cd ? ' [countdown]' : '')

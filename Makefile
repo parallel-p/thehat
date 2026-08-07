@@ -5,9 +5,9 @@ EMULATOR_HOST ?= localhost:8432
 STAGING ?= the-hat-staging
 PROD ?= the-hat
 
-.PHONY: help venv emulator test serve deploy-staging deploy-prod-noserve \
-        golden fixtures indexes-staging queue-staging queue-prod clean \
-        smoke-staging smoke-prod play browser
+.PHONY: help venv emulator test test-play serve deploy-staging \
+        deploy-prod-noserve golden fixtures indexes-staging queue-staging \
+        queue-prod clean smoke-staging smoke-prod play browser
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -22,8 +22,11 @@ emulator: ## Run the Datastore emulator in the foreground
 	gcloud beta emulators datastore start --project=the-hat-test \
 		--host-port=$(EMULATOR_HOST) --no-store-on-disk --consistency=1.0
 
-test: ## Run the test suite (needs `make emulator` in another shell)
+test: test-play ## Run the test suite (needs `make emulator` in another shell)
 	DATASTORE_EMULATOR_HOST=$(EMULATOR_HOST) $(PY) -m pytest tests -q
+
+test-play: ## The /play turn engine, in node — no emulator, no browser
+	node --test tests/play/*.test.mjs
 
 serve: ## Run the app locally against the emulator
 	DATASTORE_EMULATOR_HOST=$(EMULATOR_HOST) GOOGLE_CLOUD_PROJECT=the-hat-test \
