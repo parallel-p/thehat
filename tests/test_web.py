@@ -2,6 +2,7 @@
 """Contract 8: the web pages that survived the migration."""
 
 import datetime
+import json
 import re
 
 from google.cloud import ndb
@@ -444,7 +445,7 @@ def test_frequency_outliers_pick_the_words_frequency_gets_wrong(client,
     rests on and is still computed.
     """
     from app.models import WordFrequency
-    from app.web import _word_analytics
+    from app.web import _word_analytics, _word_shape
 
     # Twenty words spread across the frequency range, difficulty rising with
     # frequency, so the plain rule "rare = hard" holds for all of them...
@@ -463,7 +464,7 @@ def test_frequency_outliers_pick_the_words_frequency_gets_wrong(client,
                          total_explanation_time=600).put()
     WordFrequency(id="совесть", word="совесть", frequency=40.0).put()
 
-    outliers = _word_analytics()["outliers"]
+    outliers = _word_analytics(_word_shape())["outliers"]
     rare_easy = [row["word"] for row in outliers["rare_easy"]]
     common_hard = [row["word"] for row in outliers["common_hard"]]
     assert "зыбь" in rare_easy and "совесть" not in rare_easy
@@ -475,7 +476,7 @@ def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
     """A barely-played word must not make the easy list on two lucky rounds:
     selection is on E + 2D, so a wide interval keeps it out."""
     from app.models import WordFrequency
-    from app.web import _word_analytics
+    from app.web import _word_analytics, _word_shape
 
     for index in range(20):
         word = "слово{:02d}".format(index)
@@ -489,5 +490,39 @@ def test_frequency_outliers_need_the_bound_not_a_lucky_round(client,
                          total_explanation_time=40).put()
     WordFrequency(id="новичок", word="новичок", frequency=0.05).put()
 
-    outliers = _word_analytics()["outliers"]
+    outliers = _word_analytics(_word_shape())["outliers"]
     assert "новичок" not in [row["word"] for row in outliers["rare_easy"]]
+
+
+def test_the_seconds_curve_buckets_like_the_served_dictionary():
+    """The curve's `d` and the blob's `diff` must be the same number.
+
+    They are computed in two places -- `dictionary_gen.build_payload` writes
+    the blob the app draws words from, `web._seconds_curve` says what a
+    position on it costs -- and the settings screen at /play is where the two
+    meet. When they disagreed the slider read the cost of a *rating* of 20 at
+    the 20th percentile of the dictionary, which is a different set of words
+    entirely. Nothing in either module fails if they drift again, so this is
+    the thing that does.
+    """
+    from app.dictionary_gen import build_payload
+    from app.web import rank_bucket
+
+    class FakeWord:
+        def __init__(self, index):
+            self.word = "слово{:05d}".format(index)
+            self.used_times = 1
+            self.tags = ""
+
+    for total in (100, 137, 1000, 13799):
+        words = [FakeWord(index) for index in range(total)]
+        served = [entry["diff"] for entry in json.loads(build_payload(words))]
+        assert served == [rank_bucket(index, total) for index in range(total)]
+
+
+def test_rank_bucket_survives_a_dictionary_too_small_to_bucket():
+    """`dictionary_gen` refuses under 100 words; the curve must not crash on
+    a test fixture that small -- it just has fewer points to offer."""
+    from app.web import rank_bucket
+
+    assert [rank_bucket(index, 5) for index in range(5)] == [0, 1, 2, 3, 4]

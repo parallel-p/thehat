@@ -48,16 +48,51 @@ STALE_AFTER = datetime.timedelta(days=2)
 # value added here is refreshed by the cron the day it is written; there is no
 # second list to keep in step.
 _PRODUCERS = {}
+# The subset of them whose function takes the dictionary projection as its
+# argument instead of reading it itself. See `_lazy_shape`.
+_NEEDS_SHAPE = set()
 
 _MISSING = object()
 
 
-def producer(key):
-    """Register the function that computes one cached value."""
+def producer(key, needs_shape=False):
+    """Register the function that computes one cached value.
+
+    ``needs_shape`` declares that the function wants `_word_shape()` -- the
+    one projection pass over the dictionary -- handed to it. Three of the
+    values here are built out of that same pass, and it is the expensive part
+    of the whole refresh, so it is computed once per run and shared rather
+    than once per value.
+    """
     def register(function):
         _PRODUCERS[key] = function
+        if needs_shape:
+            _NEEDS_SHAPE.add(key)
         return function
     return register
+
+
+def _lazy_shape():
+    """A callable returning `_word_shape()`, computed at most once.
+
+    Lazy rather than eager because a refresh that only touches values which
+    do not want it must not pay for it, and because `cached()` builds one of
+    these for a single value.
+    """
+    held = []
+
+    def get():
+        if not held:
+            held.append(_word_shape())
+        return held[0]
+    return get
+
+
+def _produce(key, shape):
+    """Run one producer, giving it the shape if it asked for one."""
+    if key in _NEEDS_SHAPE:
+        return _PRODUCERS[key](shape())
+    return _PRODUCERS[key]()
 
 
 def _normalise(value):
@@ -117,7 +152,7 @@ def cached(key):
             return entry[1]
     value = _read_shared(key)
     if value is _MISSING:
-        value = _normalise(_PRODUCERS[key]())
+        value = _normalise(_produce(key, _lazy_shape()))
         # Worth a line: this is the slow path, and after the cron has run once
         # it should only ever be a new key or a genuinely empty cache.
         logger.info("computed %s inline in %.2fs", key, time.time() - now)
@@ -135,10 +170,14 @@ def refresh_all():
     the refresh down with it.
     """
     done, failed = [], []
+    # One projection pass for the whole run, shared by every value built out
+    # of it -- it is 20 of the refresh's 30 seconds, and reading it three
+    # times would be reading the same rows three times.
+    shape = _lazy_shape()
     for key in list(_PRODUCERS):
         started = time.time()
         try:
-            _write_shared(key, _normalise(_PRODUCERS[key]()))
+            _write_shared(key, _normalise(_produce(key, shape)))
         except Exception:  # noqa: BLE001
             logger.exception("refresh of %s failed", key)
             failed.append(key)
@@ -380,6 +419,22 @@ def _seconds_by_difficulty(shape):
     return rows if any(row["avg"] for row in rows) else []
 
 
+def rank_bucket(index, total):
+    """The difficulty bucket of the word at `index` of `total`, E-ascending.
+
+    The formula `dictionary_gen.build_payload` writes into the served blob,
+    kept here as one line both sides can be tested against -- the two agreeing
+    is the whole reason the number under the slider means anything. See
+    `_seconds_curve`, and `tests/test_web.py` for the test that pins them
+    together.
+
+    `max(1, ...)`: under 100 words there are no buckets to divide into, and
+    `dictionary_gen` refuses such a dictionary outright. Only a test fixture
+    ever gets here that small, and it should not see a ZeroDivisionError.
+    """
+    return min(index // max(1, total // 100), 100)
+
+
 def _seconds_curve(shape):
     """Average seconds per attempt at every difficulty from 0 to 100.
 
@@ -393,12 +448,31 @@ def _seconds_curve(shape):
 
     `count` travels with each point so that thinness stays visible rather
     than being smoothed into looking like data.
+
+    The point this is keyed on is the *rank* the app will see, not E. The
+    difficulty the slider at /play sets is a bucket out of 100, because that
+    is what `dictionary_gen` writes into the served blob: it sorts by E and
+    hands each word `i // (n // 100)`. E itself sits in a narrow band around
+    50, so keying this curve on E meant the slider looked up a rating that
+    had nothing to do with the words it was about to draw -- position 20 was
+    answered with the cost of an E of 20, when the 20th percentile of the
+    dictionary is around E 47. Ranking here the same way as there makes the
+    two agree by construction.
+
+    Ranking has a second effect worth having on its own. Every bucket now
+    holds n/100 words instead of however many happen to share a rating, so
+    the window below almost never widens; before, the sparse end of the E
+    range widened to ±25, averaged half the corpus, and produced a curve that
+    *fell* between 70 and 80 -- a slider that got cheaper as it got harder.
     """
+    # `shape` drops words that were never played and does not filter on lang,
+    # so this ranks over a population a few dozen words different from the one
+    # `dictionary_gen` ranks. At n ≈ 14 000 that moves nothing by a whole
+    # bucket; matching the *formula* is what matters.
+    ranked = sorted(shape, key=lambda row: row.E)
     at_point = [[] for _ in range(101)]
-    for row in shape:
-        point = int(round(row.E))
-        if 0 <= point <= 100:
-            at_point[point].append(row.per_attempt)
+    for index, row in enumerate(ranked):
+        at_point[rank_bucket(index, len(ranked))].append(row.per_attempt)
 
     rows = []
     for point in range(101):
@@ -416,18 +490,24 @@ def _seconds_curve(shape):
     return rows if any(row["avg"] for row in rows) else []
 
 
-@producer("word_seconds")
-def _word_seconds_curve():
-    return _seconds_curve(_word_shape())
+# Keyed `word_seconds_rank`, not `word_seconds`: the stored blob under the old
+# name holds a curve in E, and the reader now reads it as ranks. A stored value
+# whose *meaning* changes needs a new name, or every instance keeps serving the
+# old meaning until the daily cron gets round to it -- which here would be a day
+# of the very bug this changed. The first reader after a deploy computes it
+# inline instead, which is what `cached` is built to do.
+@producer("word_seconds_rank", needs_shape=True)
+def _word_seconds_curve(shape):
+    return _seconds_curve(shape)
 
 
 def word_seconds():
     """The curve on its own, cached like the pages that draw the buckets."""
-    return cached("word_seconds")
+    return cached("word_seconds_rank")
 
 
-@producer("word_analytics")
-def _word_analytics():
+@producer("word_analytics", needs_shape=True)
+def _word_analytics(shape):
     """The analytical stats the old site drew as matplotlib PNGs, plus the
     error-prone-words table, all from one projection pass.
 
@@ -441,8 +521,6 @@ def _word_analytics():
     it here would pin an empty page in the cache for the full hour every
     time a composite index is rebuilt.
     """
-    shape = _word_shape()
-
     by_length = {}
     for row in shape:
         length = min(len(row.word), 13)
@@ -501,6 +579,41 @@ def _word_analytics():
             # than the four-key rows above: this is the whole dictionary and
             # it is stored, and the sample shows a word and its difficulty.
             "pool": [[row.word, row.E] for row in shape]}
+
+
+# How many times a word must have come out of a hat before the daily duel
+# (app/duel.py) will put it in front of anyone. The confidence test there does
+# most of this work already -- a word played twice still sits near the prior
+# sigma and loses almost every comparison it is offered for -- but "almost"
+# is not "never", and a word nobody has really played is not evidence of
+# anything. Lives here, next to the producer, because it decides what goes
+# into the stored pool rather than what is done with it.
+_DUEL_MIN_GAMES = 8
+
+
+@producer("duel_pool", needs_shape=True)
+def _duel_pool(shape):
+    """Every word the daily duel may draw on: rating, spread and frequency.
+
+    A third view of the same projection pass, kept apart from `pool` above
+    because it answers a different question: that one is "a word and how hard
+    it is", for the random sample, and this one is "a word we know the
+    difficulty of well enough to bet on", which needs D as well.
+
+    Corpus frequency rides along because the duel uses it to take a cue away
+    rather than to give one: two words a reader hears about equally often are
+    two words where "which do I hear more?" answers nothing, and the harder
+    end of the ramp is built out of those. `None` where the legacy
+    WordFrequency kind has no row -- about 5% of the dictionary, which simply
+    cannot be used where a frequency is required.
+
+    Rounded, because three decimals is far past what any comparison here can
+    tell apart and the difference is tens of kilobytes in a stored blob.
+    """
+    frequencies = _frequency_map()
+    return [[row.word, round(row.E, 3), round(row.D, 3),
+             frequencies.get(row.word)]
+            for row in shape if row.used >= _DUEL_MIN_GAMES]
 
 
 def _no_analytics():

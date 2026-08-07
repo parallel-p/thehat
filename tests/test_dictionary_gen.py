@@ -58,3 +58,18 @@ def test_build_payload_escapes_non_ascii_like_python2():
     payload = build_payload([FakeWord("шляпа", 1, "")] * 100)
     assert b"\\u0448" in payload
     assert "шляпа".encode("utf-8") not in payload
+
+
+def test_diff_never_runs_past_the_last_bucket():
+    """The tail chunk takes the remainder, and the format stops at 100.
+
+    Under about 10 000 words the remainder is bigger than a chunk, so the
+    unclamped `i // chunk_size` ran off the end -- and the app keeps 101
+    buckets and quietly drops the rest, so those words could never be dealt.
+    """
+    for total in (100, 137, 250, 999, 1099, 9001, 13799):
+        words = [FakeWord("w{}".format(i), i, "") for i in range(total)]
+        diffs = [record["diff"] for record in json.loads(build_payload(words))]
+        assert max(diffs) == 100 or max(diffs) == 99, (total, max(diffs))
+        assert min(diffs) == 0
+        assert diffs == sorted(diffs)

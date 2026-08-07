@@ -44,7 +44,14 @@ def build_payload(words):
     data_object = []
     for i, word in enumerate(words):
         data_object.append({
-            "diff": i // chunk_size,
+            # min(): the last chunk holds the remainder as well, so without a
+            # clamp the tail runs past 100 whenever the remainder is larger
+            # than the chunk -- which is every dictionary under about 10 000
+            # words. The app indexes 0..100 and silently drops anything else
+            # (`toBuckets` in play/js/dictionary.js), so those words would
+            # never be dealt. Production at 13 799 words has never been in
+            # that range, and this changes nothing for it.
+            "diff": min(i // chunk_size, 100),
             "used": word.used_times,
             "word": word.word,
             "tags": word.tags,

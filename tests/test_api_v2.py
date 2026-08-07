@@ -186,21 +186,26 @@ def test_word_seconds_serves_a_reading_at_every_difficulty(client, monkeypatch):
     that there is one computation, from the same projection the statistics page
     uses, so the two cannot drift apart. Fed a fake dictionary here, since the
     shape of the answer is what the app depends on, not the corpus.
+
+    `d` is a difficulty *bucket* — the `diff` of the served dictionary, a rank
+    out of 100 — so the ratings below are only there to put the words in an
+    order. What each reading is worth is decided by rank, not by E.
     """
     from app import web
 
     def fake_shape():
         rows = []
-        # Forty words at each of five difficulties, taking longer as they get
-        # harder — enough for the window to fill at every point between them.
-        for difficulty, seconds in ((20, 4), (35, 7), (50, 9), (65, 14), (80, 30)):
+        # Forty words at each of five ratings, taking longer as they get
+        # harder. 200 words is two per bucket, so the window has to reach
+        # either side at every point — which is the case the reading is for.
+        for rating, seconds in ((20, 4), (35, 7), (50, 9), (65, 14), (80, 30)):
             for index in range(40):
-                rows.append(web.Word("w%d%d" % (difficulty, index), difficulty,
+                rows.append(web.Word("w%d%d" % (rating, index), rating,
                                      1.0, 2, 0, 2, seconds * 2))
         return rows
 
     monkeypatch.setattr(web, "_word_shape", fake_shape)
-    web._cache.pop("word_seconds", None)
+    web._cache.pop("word_seconds_rank", None)
 
     response = client.get("/api/v2/word_seconds")
 
@@ -211,14 +216,20 @@ def test_word_seconds_serves_a_reading_at_every_difficulty(client, monkeypatch):
     assert b"Infinity" not in response.content and b"NaN" not in response.content
     rows = json.loads(response.content)
 
-    # A reading at every difficulty the corpus reaches, in order, and each one
-    # says how many words it was taken over.
+    # A reading at every one of the 101 buckets, in order, and each one says
+    # how many words it was taken over. Every bucket, not just the ones the
+    # ratings cluster at: ranking fills all of them by construction, which is
+    # what the slider needs — it can stand anywhere.
     points = [row["d"] for row in rows]
-    assert points == sorted(points)
-    assert set(points) >= set(range(20, 81))
+    assert points == list(range(101))
     assert all(row["count"] >= 20 for row in rows)
-    # Harder words take longer: the curve rises across the range.
+    # Harder words take longer, and the curve never turns back on itself: a
+    # slider that gets cheaper as it is dragged right is the bug this keying
+    # was changed to fix.
     readings = {row["d"]: row["avg"] for row in rows}
-    assert readings[20] < readings[50] < readings[80]
-    assert 3.5 < readings[20] < 6 and 25 < readings[80] < 31
+    assert readings[0] < readings[50] < readings[100]
+    assert all(readings[d] <= readings[d + 1] + 1e-9 for d in range(100))
+    # The easiest bucket is the 4-second words and the hardest the 30-second
+    # ones, give or take what the window pulls in from next door.
+    assert 3.5 < readings[0] < 6 and 25 < readings[100] < 31
     assert response.headers["cache-control"].startswith("public, max-age=3600")
