@@ -90,8 +90,16 @@ export class Game {
    * `outcome` is 'guessed', 'failed', or null for a word that went back in the
    * hat — the parser reads all three differently, so the caller must not
    * normalise them.
+   *
+   * `continues` is the clock's half of the decision, and it has to be asked
+   * rather than assumed. The rules end a turn on an error or a surrender,
+   * which is knowable here; the bell also ends one, which is not. Drawing is
+   * what takes a word out of the hat, so a turn that ended on a guess made in
+   * the extra seconds used to draw a word the round screen then dropped on the
+   * floor — never shown, never logged, and with nothing to put it back. One
+   * word left the game that way on every turn the bell decided.
    */
-  record(outcome, timeMs, extraMs) {
+  record(outcome, timeMs, extraMs, continues = true) {
     this.turnLog.push(logs.attempt({
       word: this.word,
       from: this.explainer,
@@ -107,8 +115,8 @@ export class Game {
       this.putBack(this.word);
     }
     // Only a guess continues the turn; an error or a surrender ends it, as in
-    // the printed rules.
-    if (outcome !== 'guessed' || this.empty) return null;
+    // the printed rules. So does the bell, which is what `continues` carries.
+    if (outcome !== 'guessed' || !continues || this.empty) return null;
     this.word = this.draw();
     return this.word;
   }
@@ -161,10 +169,11 @@ export class Game {
     this.assignPair();
   }
 
+  /** Close the game. True when a log went to the outbox — see logs.finish. */
   async finish() {
-    if (this.finished) return;
+    if (this.finished) return false;
     this.finished = true;
-    await logs.finish(this.log);
+    return logs.finish(this.log);
   }
 
   /**

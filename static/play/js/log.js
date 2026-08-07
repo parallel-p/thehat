@@ -53,10 +53,24 @@ export function attempt({ word, from, to, time, extraTime = 0, outcome = null })
   return entry;
 }
 
+/**
+ * Queue a finished game for the server. True when there was one to queue.
+ *
+ * A log with no attempts is not a game that was played, it is somebody who
+ * started one and changed their mind — and since «Закончить игру» is the only
+ * way off the handoff screen, that is the ordinary way to back out of a game,
+ * not an edge case. The parser does not catch it: `2 * len(seen_words_time) <
+ * len(words_orig)` is `0 < 0` for a log of nothing, so an empty game passed
+ * every check and put a tick on TotalStatistics.games — the number the landing
+ * page leads with. Refused here, where the log's own shape is known, rather
+ * than in either mode: both of them end this way.
+ */
 export async function finish(log) {
+  if (!log.attempts.length) return false;
   log.end_timestamp = Date.now();
   await db.put('outbox', log.game_id, log);
   flush();                        // deliberately not awaited
+  return true;
 }
 
 let flushing = false;

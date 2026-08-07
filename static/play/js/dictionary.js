@@ -112,6 +112,18 @@ function drawBucket(difficulty, dispersion) {
   return Math.min(BUCKETS - 1, Math.max(0, Math.round(difficulty)));
 }
 
+/**
+ * Uniform over the buckets `low..high` inclusive.
+ *
+ * The other way to choose a bucket, and the deathmatch's: it walks a band up
+ * the dictionary rather than standing at a point on it, so every bucket in
+ * the band is meant to be equally likely. A normal draw centred on the band
+ * would favour its middle, which for a band of five buckets is most of it.
+ */
+function drawFromBand(low, high) {
+  return low + Math.floor(Math.random() * (high - low + 1));
+}
+
 function nextFromBucket(index) {
   const list = buckets[index];
   if (!list.length) return null;
@@ -168,13 +180,34 @@ async function readRing() {
 }
 
 /**
- * Draw `count` words around `difficulty`.
+ * Draw `count` words around `difficulty`, normally distributed.
+ *
+ * The hat's way of choosing: one difficulty, and a spread either side of it.
+ */
+export async function getWords(count, difficulty, dispersion) {
+  return draw(count, () => drawBucket(difficulty, dispersion), difficulty);
+}
+
+/**
+ * Draw `count` words uniformly from the buckets `low..high` inclusive.
+ *
+ * The deathmatch's way: a band, walked upward as the game escalates.
+ */
+export async function getWordsInBand(count, low, high) {
+  return draw(count, () => drawFromBand(low, high), (low + high) / 2);
+}
+
+/**
+ * The shared half: how a chosen bucket becomes a word nobody has just had.
+ *
+ * `pickBucket` is the caller's sampling; `centre` is where the fallback
+ * starts looking when the band has nothing left to give.
  *
  * Recently played words are skipped: without this a short dictionary bucket
  * hands out the same word two games running, which is the single most
  * noticeable way a word game can feel cheap.
  */
-export async function getWords(count, difficulty, dispersion) {
+async function draw(count, pickBucket, centre) {
   const ring = await readRing();
   const recent = new Set(ring.words);
   const drawn = [];
@@ -183,7 +216,7 @@ export async function getWords(count, difficulty, dispersion) {
     let word = null;
     // Bounded: a bucket can be entirely recent, and the hat still has to fill.
     for (let attempt = 0; attempt < 60 && word === null; attempt++) {
-      const candidate = nextFromBucket(drawBucket(difficulty, dispersion));
+      const candidate = nextFromBucket(pickBucket());
       if (candidate && !recent.has(candidate) && !drawn.includes(candidate)) {
         word = candidate;
       }
@@ -193,7 +226,7 @@ export async function getWords(count, difficulty, dispersion) {
       // nicety; a hat holding the same word twice is a broken game — the
       // players meet it once, guess it, and meet it again — so the second
       // pass gives up the ring and keeps uniqueness instead.
-      word = unusedNear(difficulty, [...drawn, ...justPlayed(ring)]) || '—';
+      word = unusedNear(centre, [...drawn, ...justPlayed(ring)]) || '—';
     }
     drawn.push(word);
     recent.add(word);
