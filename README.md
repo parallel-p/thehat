@@ -15,6 +15,7 @@ app/                FastAPI application
   py2compat.py      CPython 2.7 semantics the pipeline depends on
   dictionary_gen.py dictionary blob generation job
   web.py            landing page + statistics pages
+  duel.py           /duel — the daily word duel, «Что сложнее?»
 scripts/            maintenance jobs (there is no admin UI)
 tests/              pytest suite; runs against the Datastore emulator
 legacy/             the python27 application, for reference only; not deployed

@@ -71,6 +71,14 @@ handlers:
   static_files: static/play/\1
   upload: static/play/.*
 
+# The daily duel. `/duel` itself is a rendered page and falls through to the
+# app below; only its two shell files are static, and they are served from
+# under the same path so that the page and its program share a prefix the way
+# /play's do.
+- url: /duel/(.*)
+  static_files: static/duel/\1
+  upload: static/duel/.*
+
 - url: /favicon\.ico
   static_files: favicon.ico
   upload: favicon\.ico

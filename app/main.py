@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.exception_handlers import http_exception_handler
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app import api_v1_compat, api_v2, internal, settings, web
+from app import api_v1_compat, api_v2, duel, internal, settings, web
 from app.ndb_ctx import NDBMiddleware
 
 logging.basicConfig(level=logging.INFO)
@@ -33,6 +33,7 @@ app = FastAPI(
 # Route order matters: the v1 compat router owns `/{device_id}/...`, which would
 # otherwise shadow single-segment prefixes, so it is registered last.
 app.include_router(web.router)
+app.include_router(duel.router)
 app.include_router(api_v2.router)
 app.include_router(internal.router)
 app.include_router(api_v1_compat.router)
@@ -55,7 +56,8 @@ def _mount_static_for_local_dev():
 
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    for url, directory in (("/assets", "assets"), ("/tos", "tos")):
+    for url, directory in (("/assets", "assets"), ("/tos", "tos"),
+                           ("/duel", "static/duel")):
         path = os.path.join(root, directory)
         if os.path.isdir(path):
             app.mount(url, StaticFiles(directory=path, html=True), name=url[1:])

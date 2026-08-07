@@ -17,6 +17,7 @@
     <div class="wrap masthead__inner">
         <a class="masthead__brand" href="/">Шляпа</a>
         <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/duel">Что сложнее?</a>
             <a href="/statistics/word_statistics">Сложность слов</a>
             <a href="/statistics/total_statistics">Статистика</a>
             <a href="/play">Играть</a>
@@ -121,6 +122,12 @@
                             который может быть полезен для изучения того, как люди
                             объясняют друг другу слова.
                         </p>
+                        <p>
+                            А насколько хорошо вы сами чувствуете, что труднее
+                            объяснить? Каждый день мы достаём из словаря десять
+                            пар слов, в которых сервер уверен, — и предлагаем
+                            угадать, какое слово в паре сложнее.
+                        </p>
                         <div class="figures">
                             <p class="figure">
                                 <span class="figure__value">{{ total_games }}</span>
@@ -130,6 +137,9 @@
                                 <span class="figure__value">{{ total_explanations }}</span>
                                 <span class="figure__label">объяснений слов</span>
                             </p>
+                        </div>
+                        <div class="btn-row">
+                            <a class="btn btn--primary" href="/duel">Что сложнее?</a>
                         </div>
                     </div>
                 </div>

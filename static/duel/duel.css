@@ -1,0 +1,250 @@
+/* «Что сложнее?» — layout for the daily word duel.
+   ==========================================================================
+
+   Same contract as static/play/app.css: hat.css carries the tokens, the
+   torn paper (.ws), the buttons and the table, and this file only lays out
+   the screen they appear on. No colour, no type, no new tokens.
+
+   One thing here is a decision rather than a layout, and it is worth saying
+   why. Right and wrong have no colours in this design language — there is no
+   green and no red, only four slips and a brass band — so a correct answer is
+   a slip that is *there* and a wrong one is a slip that is *not*: filled paper
+   against an empty outline. That reads the same to someone who cannot tell the
+   two apart by hue, which a green/red pair does not, and it does not smuggle a
+   fifth colour onto the felt. Words carry the honey slip, and both words in a
+   pair carry the same one: a pair where one slip is prettier is a pair with a
+   thumb on the scale. */
+
+/* `hidden` has to actually hide. The attribute is only a rule in the
+   browser's own stylesheet, and any author rule that sets `display` beats it
+   whatever the specificity — so the `Дальше` button, being a `.btn` and so
+   `display: inline-flex`, sat on screen through every unanswered question
+   until this line existed. Same reasoning, and the same one exception to
+   never using !important, as in static/play/app.css. */
+[hidden] { display: none !important; }
+
+/* -- the run of ten -------------------------------------------------------
+   Ten pieces of paper in a row: taken ones filled, the rest still blank.
+   Small, because it is the score so far and not the thing being played. */
+
+.pips {
+  list-style: none;
+  margin: 0 0 var(--s6);
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--s2);
+}
+.pip {
+  width: 14px;
+  height: 18px;
+  border: 1px solid var(--rule);
+  border-radius: 1px 3px 1px 3px;
+  background: transparent;
+}
+.pip--hit { background: var(--slip-honey); border-color: var(--slip-honey); }
+/* Missed: the outline stays, struck through — an answered question that is
+   empty, not one still to come. */
+.pip--miss {
+  border-color: var(--ink-muted);
+  background: repeating-linear-gradient(
+    -45deg, transparent 0 3px, var(--ink-muted) 3px 4px);
+}
+.pip--now { border-color: var(--brass); box-shadow: 0 0 0 2px var(--brass); }
+
+/* -- the question ---------------------------------------------------------- */
+
+.duel__ask {
+  text-align: center;
+  font-family: var(--serif);
+  font-size: var(--t-lead);
+  color: var(--ink-muted);
+  margin: 0 0 var(--s5);
+}
+
+/* Two slips, side by side, and stacked before they would have to break a
+   word. `align-items: start` so a two-line word does not stretch its
+   partner's paper to match — slips are torn to the word, not to a grid. */
+.duel__pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--s5);
+  align-items: start;
+  justify-items: center;
+}
+@media (min-width: 34rem) {
+  .duel__pair { grid-template-columns: 1fr 1fr; gap: var(--s4); }
+}
+
+/* A slip you can press. `.ws` gives it the paper, the fold, the grain and the
+   shadow that follows the tear; everything here is the difference between a
+   slip and a button.
+
+   It stays a slip and does not become a card: a word, and enough paper round
+   it to have been torn off. The two lines under the word are in the markup
+   from the first paint, revealed rather than added, so answering does not
+   change the shape of the thing under your finger — and the same height is
+   reserved *above* the word, which is what leaves it centred on the paper
+   rather than sitting high on it while two invisible lines wait below.
+
+   These slips lie square. Everywhere else on the site paper is tilted a
+   degree or two, but there it is decoration; here it is the thing you are
+   comparing, and two words set at different angles are two words where one
+   is easier to read. */
+.duel__slip {
+  /* the tag line and the rating line, reserved top and bottom alike */
+  --reveal-h: 2.75rem;
+  appearance: none;
+  border: 0;
+  width: 100%;
+  max-width: 21rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--s4) + var(--reveal-h)) var(--s5) var(--s4);
+  font-family: var(--serif);
+  /* Roman, not the italic the site's word slips wear: those are words jotted
+     down in a hurry, and these are two words being read against each other. */
+  font-style: normal;
+  font-size: clamp(1.375rem, 5vw, 1.75rem);
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  --rot: 0deg;
+  --ty: 0px;
+  /* Long words wrap rather than push the pair sideways; no chart and no slip
+     on this site scrolls horizontally. */
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.duel__reveal {
+  height: var(--reveal-h);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Lying square, a slip cannot straighten to say it has been noticed, so it
+   comes up off the felt instead. The colour and the tear are picked per pair
+   by duel.js; --rip-*, not --tear-*, because at this size the word-slip tears
+   cut pennants out of the sides. See the note on both in hat.css. */
+.duel__slip:hover { transform: scale(1.035); }
+.duel__slip:active { transform: scale(0.995); }
+
+.duel__slip:focus-visible {
+  outline: 3px solid var(--brass);
+  outline-offset: 4px;
+}
+
+/* Once answered, the pair is a statement rather than a question: nothing
+   moves under the cursor any more and nothing is pressable. The one you
+   pressed stays up, which is how the page says "this is what you said". */
+.duel__slip[disabled] { cursor: default; }
+.duel__slip[disabled]:hover { transform: none; }
+.duel__slip[data-picked],
+.duel__slip[data-picked][disabled]:hover { transform: scale(1.035); }
+
+/* The rating, revealed with the answer. Numbers count, so they keep the sans
+   and the tabular figures even here on the paper. */
+.duel__rating {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.duel__slip[data-answer] .duel__rating { opacity: 0.75; }
+
+/* Which of the two it was. A line of ink drawn on the paper — the slip you
+   were looking for, ticked. */
+.duel__tag {
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  opacity: 0;
+}
+.duel__slip[data-answer="harder"] .duel__tag { opacity: 1; }
+
+.duel__verdict {
+  min-height: 1.5em;
+  margin: var(--s5) 0 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-size: var(--t-lead);
+}
+.duel__verdict em {
+  font-family: var(--display-face);
+  font-style: italic;
+  text-decoration: underline wavy var(--brass);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1.5px;
+}
+.duel__next { margin-top: var(--s5); min-height: 3rem; }
+
+/* -- the result ------------------------------------------------------------ */
+
+.duel__done { text-align: center; }
+
+.duel__score { margin: 0; }
+.duel__score-value {
+  font-family: var(--sans);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t-display);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.duel__score-of {
+  font-family: var(--sans);
+  font-size: 1rem;
+  color: var(--ink-muted);
+  margin-left: 0.3em;
+}
+
+.duel__streak { margin: var(--s4) 0 var(--s6); font-family: var(--serif); }
+.duel__next-at { margin: var(--s5) 0 0; font-size: var(--t-small); }
+
+/* The result above is a figure and reads centred; the table under it is
+   reading matter and does not. */
+.duel__review { text-align: left; }
+.duel__review-title { margin: var(--s8) 0 var(--s4); }
+#review .num { width: 1%; }
+/* The two words of a pair belong together: the rule goes under the pair, not
+   between its halves, and the number sits with the first of them. */
+/* The pip and the number are one label, and a 1%-wide column will break them
+   over two lines given the chance. */
+#review .rank { vertical-align: top; white-space: nowrap; }
+#review td { border-bottom: 0; }
+#review .review__pair + tr td { border-bottom: 1px solid var(--rule); }
+.review__tag {
+  font-family: var(--sans);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+/* The same run of ten again, a row at a time: how you did is part of reading
+   the table, not a separate column of ticks. */
+#review .pip {
+  display: inline-block;
+  vertical-align: -3px;
+  margin-right: var(--s2);
+}
+
+.duel__how { margin-top: var(--s8); }
+
+/* Nothing on this page needs to move for it to be readable. The scale stays
+   — it is a state, not an animation, and without a transition it simply is
+   the size it is — but nothing eases into anything. */
+@media (prefers-reduced-motion: reduce) {
+  .duel__slip, .duel__rating { transition: none; }
+}

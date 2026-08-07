@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+{# «Что сложнее?» — the daily word duel.
+
+   A program, like /play and unlike every other page here: it keeps a score,
+   remembers which day you have played and writes a line you can paste into a
+   chat, none of which markup can do. It takes the site's stylesheet whole and
+   adds `duel.css` for layout only — no colour, no type, no new tokens.
+
+   The shell below is the furniture: the ten pairs themselves are built by
+   duel.js out of the JSON at the foot of the page, because a puzzle rendered
+   into the markup would be a puzzle with its answers in the markup. #}
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#F4F5F1" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#17251D" media="(prefers-color-scheme: dark)">
+    <meta name="description" content="Ежедневная игра: десять пар слов, в каждой одно объяснить труднее. Сложность посчитана по настоящим партиям в Шляпу.">
+    <title>Что сложнее? №{{ day }} — Шляпа</title>
+{% include "_icons.html" %}
+    <link rel="stylesheet" href="/assets/hat.css">
+    <link rel="stylesheet" href="/duel/duel.css">
+</head>
+<body>
+<div class="sheet">
+
+<header class="masthead">
+    <div class="wrap masthead__inner">
+        <a class="masthead__brand" href="/">Шляпа</a>
+        <nav class="masthead__nav" aria-label="Основная навигация">
+            <a href="/duel" aria-current="page">Что сложнее?</a>
+            <a href="/statistics/word_statistics">Сложность слов</a>
+            <a href="/statistics/total_statistics">Статистика</a>
+            <a href="/play">Играть</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    {# Short on purpose: this is a game, and the game has to be reachable on a
+       phone without scrolling past an argument for it first. What the lead
+       does say is the part that could not be guessed — that the answer is
+       measured rather than an opinion. #}
+    <section class="hero hero--center" style="padding-block: var(--s6) var(--s5);">
+        <div class="wrap">
+            <p class="eyebrow eyebrow--honey eyebrow--center">
+                <span class="eyebrow__num">№{{ day }}</span> выпуск дня
+            </p>
+            <h1 class="title hero__title">Что <em>сложнее</em>?</h1>
+            <p class="lead hero__lead">
+                Каждый день 10 пар слов. В каждой паре одно из слов объяснить сложнее по статистики тысяч реальных игр в шляпу. C каждой парой разница в сложности все меньше, но статистически значимая.
+            </p>
+        </div>
+    </section>
+
+    <section class="section" style="padding-block: var(--s6) var(--s8); border: 0;">
+        <div class="wrap wrap--narrow">
+
+            <noscript>
+                <p class="empty">Эта страница считает очки, поэтому ей нужен
+                    JavaScript. Всё остальное на сайте работает и без него —
+                    например, <a href="/statistics/word_statistics">сложность
+                    слов</a> целиком.</p>
+            </noscript>
+
+            {% if not has_puzzle %}
+            <p class="empty">Сегодняшние пары ещё не готовы. Загляните чуть
+                позже — или посмотрите, <a href="/statistics/word_statistics">какие
+                слова оказались самыми трудными</a> за всё время.</p>
+            {% endif %}
+
+            {# Everything below is filled in and revealed by duel.js. #}
+            <div class="duel" id="duel" hidden>
+                <ol class="pips" id="pips" aria-label="Ход игры"></ol>
+
+                <div class="duel__round" id="round">
+                    <p class="duel__ask" id="ask">Какое слово труднее объяснить?</p>
+                    <div class="duel__pair" id="pair"></div>
+                    <p class="duel__verdict" id="verdict" role="status" aria-live="polite"></p>
+                    <div class="btn-row btn-row--center duel__next">
+                        <button class="btn btn--primary" id="next" hidden>Дальше</button>
+                    </div>
+                </div>
+
+                <div class="duel__done" id="done" hidden>
+                    <p class="duel__score">
+                        <span class="duel__score-value" id="score">—</span>
+                        <span class="duel__score-of">из 10</span>
+                    </p>
+                    {# No emoji preview of the line you are about to paste:
+                       the run of pips above is the same ten answers in the
+                       site's own paper, and 🟩⬜ would be the only colour on
+                       the page that is not one of the four slips. The emoji
+                       exist in the copied text, where the site's palette
+                       cannot follow them. #}
+                    <p class="duel__streak muted" id="streak"></p>
+                    <div class="btn-row btn-row--center">
+                        <button class="btn btn--primary" id="share">Поделиться</button>
+                        <a class="btn btn--ghost" href="/play">Сыграть в шляпу</a>
+                    </div>
+                    <p class="duel__next-at muted" id="next-at"></p>
+
+                    {# Two rows to a pair, the harder word first, rather than
+                       five columns across: at five columns a phone cuts the
+                       last two off, and nothing on this site scrolls
+                       sideways — if it does not fit, it changes shape. #}
+                    <div class="duel__review">
+                        <h2 class="section__title duel__review-title">Разбор</h2>
+                        <table class="table" id="review">
+                            <caption>Сложность — по времени объяснения в настоящих
+                                играх: 50 — средний уровень словаря.</caption>
+                            <thead>
+                                <tr>
+                                    <th class="rank" scope="col">#</th>
+                                    <th scope="col">Слово</th>
+                                    <th class="num" scope="col">Сложность</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <details class="disclosure duel__how">
+                <summary>Откуда известно, что сложнее</summary>
+                <div class="prose" style="margin-top: var(--s4);">
+                    <p>Сервер собирает логи партий с 2014 года. В каждой игре слова
+                        упорядочены по времени объяснения, и по этому порядку пересчитывается их рейтинг
+                        — почти как у шахматистов на турнире. Рейтинг
+                        считается алгоритмом TrueSkill: у каждого слова есть оценка
+                        сложности и то, насколько уверенно она измерена.</p>
+                    <p>Пары идут по возрастанию трудности, и труднее становится
+                        сразу в двух отношениях. Разница в сложности тает: в первой
+                        паре её около семи пунктов, в последней — меньше двух
+                        с половиной. А начиная с шестой пары слова ещё и подбираются
+                        так, чтобы встречаться в речи примерно одинаково часто:
+                        обычно редкое слово и правда объяснить труднее, так что это часто дает подсказку.
+                        </p>
+                    <p>Это не значит, что последние пары сомнительные: даже там
+                        вероятность, что «трудное» и правда труднее, не меньше 90 %.
+                        </p>
+                    <p>Слова не повторяются: каждый день берутся те, которых ещё
+                        не было, — словаря хватит почти на два года.</p>
+                    <p>Всё, что про это известно, — на странице
+                        <a href="/statistics/word_statistics">сложности слов</a>.</p>
+                </div>
+            </details>
+        </div>
+    </section>
+</main>
+
+</div>
+
+<script type="application/json" id="puzzle">{{ payload|safe }}</script>
+<script type="module" src="/duel/duel.js"></script>
+</body>
+</html>

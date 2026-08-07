@@ -29,6 +29,9 @@ KINDS = [
     # are served to the next from Datastore, which the in-process cache being
     # cleared below no longer prevents.
     "StatsCache",
+    # The daily duel's puzzles. They are the record of which words have been
+    # asked, so a leftover from one test is a word the next one cannot draw.
+    "WordDuel",
 ]
 
 

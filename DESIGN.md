@@ -2,18 +2,19 @@
 
 One stylesheet, `assets/hat.css`, covers every page the site serves: the landing
 page, the two beta pages, the two privacy policies, the two statistics pages,
-and the game at `/play`. This language replaced "paper & ink" (warm cream, one
-red accent) after it was reviewed as too close to the default
-warm-cream-serif look.
+the daily duel at `/duel`, and the game at `/play`. This language replaced
+"paper & ink" (warm cream, one red accent) after it was reviewed as too close
+to the default warm-cream-serif look.
 
-**Documents carry no JavaScript; the app is allowed it.** Every page that is a
-page renders with markup and CSS alone, and that is not negotiable — it is why
-they are fast, printable and legible with anything turned off. `/play` runs a
-stopwatch for people sitting around a table, so it is a program and says so:
-`static/play/` is the only place in the repo with script. It buys back its
-keep by taking this stylesheet whole rather than inventing a second look —
-`static/play/app.css` adds layout and nothing else, no colour, no type, no
-new tokens.
+**Documents carry no JavaScript; a program is allowed it.** Every page that is
+a page renders with markup and CSS alone, and that is not negotiable — it is
+why they are fast, printable and legible with anything turned off. Two things
+here are not pages: `/play` runs a stopwatch for people sitting around a table,
+and `/duel` keeps a score and writes a line you can paste into a chat. Both say
+so — `static/play/` and `static/duel/` are the only places in the repo with
+script — and both buy back their keep by taking this stylesheet whole rather
+than inventing a second look. `static/play/app.css` and `static/duel/duel.css`
+add layout and nothing else: no colour, no type, no new tokens.
 
 ## The idea
 
@@ -100,7 +101,9 @@ pills, cards are `--r-card` (10px), word slips get an irregular torn cut.
   italic × Cyrillic + Latin = 4 files, ~95 KB, OFL) — headlines only, via
   `--display-face`. `unicode-range` keeps a page to the subsets it uses.
 - **Georgia** (system) — prose, leads, eyebrows, words on slips (italic — a
-  word written in a hurry). Costs no bytes.
+  word written in a hurry; `/duel`'s pair of slips is the one exception, and
+  is roman, because there the word is being read rather than jotted). Costs
+  no bytes.
 - **System sans** — everything that measures, with `tabular-nums` in columns
   only; standalone figures stay proportional.
 
@@ -141,9 +144,10 @@ pills, cards are `--r-card` (10px), word slips get an irregular torn cut.
   borrowed picture carries its credit (`.credit`) under the print: sans,
   `--t-micro`, muted throughout. A licence that asks to be attributed is not
   attributed by a `title` attribute.
-- **Motion** is three hover gestures: a slip straightens and lifts, a button
-  tilts −1°, a link underline goes wavy. Nothing else moves;
-  `prefers-reduced-motion` kills all of it.
+- **Motion** is four hover gestures: a slip straightens and lifts, a button
+  tilts −1°, a link underline goes wavy, and a duel slip — which lies square
+  and so has nothing to straighten — comes up a little instead. Nothing else
+  moves; `prefers-reduced-motion` kills the easing on all of it.
 
 ## The statistics pages
 
@@ -214,6 +218,82 @@ bottom of the games page: it was never about games.
   TrueSkill mu is not bounded and a few words sit above it), outcome bars,
   and the explanation-time histogram.
 
+## «Что сложнее?» — the daily duel
+
+`/duel` is the statistics pages' argument turned into a game: ten pairs of
+words a day, and you say which of each takes longer to explain. It is the one
+place on the site where the dictionary's ratings are the answer to a question
+rather than a table, so it is the one page that has to make them *feel* like
+something — and it is a program, because it keeps a score and shares it.
+
+**The day is a ramp, and that is the shape of the game.** The ten pairs are
+drawn one per band of `_GAP_BANDS`, widest difference first. A flat run of ten
+comparable pairs was the first cut and it was wrong: ten coin-flips of the
+same weight, and a score that says only how lucky you were. Ordered, the run
+of pips reads as how far you got before the difference stopped being visible,
+and the shared grid says the same at a glance.
+
+**It ramps along two axes, and the second one matters more.** The gap closes
+from about seven points to under two and a half — the floor, where the answer
+is still 90 % certain and a person has no chance of seeing it. But gap alone
+was never what made a pair easy. Corpus frequency was: left to itself, "the
+rarer word is the harder one" is right 61 % of the time at a four-point gap
+and 90 % at a twenty-point one, so a reader who knows nothing about the
+ratings can play well by asking which word sounds more obscure. So from the
+sixth pair on, the two words must also be within 1.6× of each other in corpus
+frequency, which takes that cue down to a coin flip and leaves the rating as
+the only thing to go on. This is the site's own «Частота — не сложность»
+argument turned into a rule.
+
+Deliberately *not* the harder-looking option, which is to require frequency to
+point the *wrong* way. That reads as harder and is in fact easier, because
+used systematically it becomes its own tell: a regular learns "on the late
+questions, pick the commoner word" and the game is given away again from the
+other side. Neutral cannot be gamed; inverted can.
+
+- **Right and wrong have no colours here**, because this design language has
+  none: four slips and a brass band, and no green or red anywhere. So a
+  correct answer is a slip that is *there* and a wrong one is a slip that is
+  *not* — filled honey paper against a struck-through outline (`.pip--hit`,
+  `.pip--miss`). That reads the same to someone who cannot tell two hues
+  apart, which a green/red pair does not, and it keeps a fifth colour off the
+  felt. The share text is the exception and has to be: a messenger cannot
+  render the site's paper, so there it is 🟩 and ⬜.
+- **The two slips of a pair are two different papers**, picked from the four
+  along with one of the five tears. Deterministically, from the day and the
+  number of the pair rather than at random — a reload has to give back the
+  same two slips, or coming back to a half-played puzzle would re-paper it
+  under the reader. The two are never the same colour, and the offset between
+  them turns as the day goes on, so a colour does not keep the same partner.
+- **They lie square, and come up when noticed.** Everywhere else on the site
+  paper is tilted a degree or two, but there the tilt is decoration; here the
+  paper is the thing being compared, and two words set at different angles are
+  two words where one is easier to read. So the tilt goes, and the gesture
+  that replaces it is scale: `1.035` under the cursor, and the slip you
+  pressed keeps it afterwards, which is how the page says "this is what you
+  said" without moving anything.
+- **The word is roman, not the italic the site's word slips wear.** Those are
+  words jotted down in a hurry; these are two words being read against each
+  other.
+- **The word sits centred on the paper.** The two lines under it — the
+  `труднее` tag and the rating — are in the markup from the first paint and
+  revealed rather than added, so answering does not change the shape of the
+  thing under your finger; the same height is reserved *above* the word, which
+  is what stops it sitting high on the slip while two invisible lines wait
+  below.
+- **The tears are `--rip-*`, not `--tear-*`.** The word-slip tears are cut for
+  word-sized paper and their percentages are of the box, so at 340px they bite
+  pennants out of the sides instead of reading as torn. Both sets live in
+  `hat.css`; the `--rip-*` five began in `static/play/app.css` and moved when
+  a second program wanted them.
+- **The review changes shape rather than scrolling.** Ten pairs are two rows
+  each under one numbered cell, not five columns across: at five columns a
+  phone cuts the last two off, and nothing here scrolls sideways at any width.
+- **The hero is short on purpose.** It is a game, and the game has to be
+  reachable on a phone without scrolling past an argument for it first; what
+  the lead does say is the part nobody could guess, that the answer is
+  measured rather than an opinion.
+
 ## Charts
 
 All charts are **single-series magnitude**, and the "paper & ink" discipline
@@ -241,14 +321,20 @@ survives verbatim:
 
 ## Working on it
 
-The statistics pages are server-rendered Jinja2 (`templates/`); the rest are
-static files served by `app.yaml` handlers. `/` and `/landing` must stay
+The statistics pages and `/duel` are server-rendered Jinja2 (`templates/`);
+the rest are static files served by `app.yaml` handlers. `/duel` is the page
+and `/duel/*` its two shell files, the same split `/play` has. `/` and `/landing` must stay
 byte-identical — `/` serves the file rather than rendering it, and a test
 asserts this. Fonts live in `assets/fonts/` and are served by the `/assets`
 static_dir handler.
 
-To see changes locally, `make serve` mounts `/assets`, `/tos` and the
+To see changes locally, `make serve` mounts `/assets`, `/tos`, `/duel` and the
 single-file static handlers so local URLs match production.
+
+`tools/drive.mjs` drives any page here, not just `/play`: it waits on
+`data-screen` where there is one and on the document's own readiness where
+there is not, and prints the path after each step. `/duel` is played from it
+with `sel:` and read back with `eval:`.
 
 Screenshotting notes: headless Chrome on macOS clamps the window width, so
 `--window-size=390` crops a wider layout — load the page in a 390px `<iframe>`

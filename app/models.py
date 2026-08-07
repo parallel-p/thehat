@@ -281,3 +281,34 @@ class GameLength(ndb.Model):
     player_count = ndb.IntegerProperty()
     lens = ndb.JsonProperty()
     type = ndb.StringProperty()
+
+
+# --------------------------------------------------------------------------
+# The daily word duel (/duel). New with the python3 app.
+# --------------------------------------------------------------------------
+
+
+class WordDuel(ndb.Model):
+    """One day's puzzle: ten pairs of words, and which of each is harder.
+
+    The entity id is the date the puzzle belongs to, ``YYYY-MM-DD`` in the
+    game's timezone (see `app.duel.DUEL_TZ`) -- so a day and its puzzle are
+    the same thing and there is no way to have two of one.
+
+    Written once, by whoever asks for a day first (usually the daily cron),
+    and never again: the puzzle a reader shares has to be the puzzle everyone
+    else got, and it is also the record of which words have been spent.
+
+    `pairs` is [[left, right, harder, E_left, E_right], ...] where `harder` is
+    0 or 1 -- the index of the harder word, already in the order the page
+    shows them, so that rendering the puzzle is a read and nothing more.
+
+    The two ratings are stored rather than looked up when the page is drawn,
+    because they are what the pair was chosen on. A word's difficulty moves
+    every time it is played; a puzzle that showed today's numbers as its
+    working could end up showing a pair that no longer clears the bar it was
+    picked by, or -- given enough drift -- the wrong answer entirely.
+    """
+    day = ndb.IntegerProperty()
+    pairs = ndb.JsonProperty()
+    created = ndb.DateTimeProperty()
