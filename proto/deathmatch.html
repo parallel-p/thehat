@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Прототип — режим для двоих</title>
+<link rel="stylesheet" href="/assets/hat.css">
+<link rel="stylesheet" href="/static/play/app.css">
+<style>
+/* Prototype-only chrome. Nothing here is meant to survive: the slips, the
+   colours and the type all come from the two stylesheets above, so what is on
+   screen is the real design language and only the harness is fake. */
+
+body { overflow: auto; height: auto; }
+.proto { max-width: 66rem; margin: 0 auto; padding: var(--s6) var(--s5) var(--s8);
+         font-family: var(--sans); color: var(--ink); }
+.proto h2 { font-family: var(--display-face); font-size: 1.6rem; margin: var(--s7) 0 var(--s2); }
+.proto p.note { color: var(--ink-muted); font-size: var(--t-small); max-width: 42rem;
+                margin: 0 0 var(--s5); line-height: 1.5; }
+
+.dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+         gap: var(--s2) var(--s5); background: var(--paper-sunk);
+         border-radius: var(--r-card, 10px); padding: var(--s4) var(--s5); margin-bottom: var(--s4); }
+.dial { display: grid; grid-template-columns: 8.5rem 1fr 3.2rem; align-items: center;
+        gap: var(--s3); font-size: var(--t-small); }
+.dial output { font-variant-numeric: tabular-nums; color: var(--ink-muted); text-align: right; }
+.dial input { width: 100%; }
+.radios { display: flex; gap: var(--s4); flex-wrap: wrap; font-size: var(--t-small);
+          align-items: center; margin-bottom: var(--s4); }
+.radios label { display: inline-flex; gap: var(--s2); align-items: center; }
+
+.stage { display: flex; gap: var(--s6); flex-wrap: wrap; align-items: flex-start; }
+.phone { position: relative; width: 22rem; height: 44rem; background: var(--paper);
+         border-radius: 26px; box-shadow: var(--shadow-sheet, 0 24px 70px rgba(0,0,0,.4));
+         overflow: hidden; display: flex; flex-direction: column; flex: none; }
+.phone .round { flex: 1; }
+.drive { display: grid; gap: var(--s3); align-content: start; min-width: 13rem; }
+.drive button { font: inherit; font-size: var(--t-small); padding: var(--s3) var(--s4);
+                border-radius: var(--r-card, 10px); border: 1px solid var(--ink-muted);
+                background: transparent; color: var(--ink); cursor: pointer; text-align: left; }
+.drive button:hover { border-color: var(--brass); color: var(--brass-text); }
+.drive .kbd { color: var(--ink-muted); }
+
+/* The ladder: every level at once — the one view the game can never give you. */
+.ladder { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+          gap: var(--s7) var(--s4); }
+.rung { text-align: center; }
+.rung__cap { font-size: var(--t-small); color: var(--ink-muted);
+             font-variant-numeric: tabular-nums; margin-top: var(--s3); }
+.ladder .word { font-size: 2.3rem; }
+
+/* ==========================================================================
+   THE SLIP
+   --------------------------------------------------------------------------
+   Restructured from the app's `<p class="word torn"><span>` into three
+   layers, and both of the things being prototyped need it:
+
+     .word         the box — padding, type, tilt. No background, no clipping.
+     .word__paper  the paper itself, and the only thing that gets torn.
+     span          the ink, which must never be torn or displaced.
+
+   In the app the background and the text are the same element, so any filter
+   that eats the edge of the paper also eats the letters. That is fatal for
+   the turbulence mode below — feDisplacementMap would warp the word into
+   something unreadable — and it is what stops a torn edge from ever showing
+   a fringe, because clip-path on a parent clips its children too.
+   ========================================================================== */
+/* color came from .torn, which this markup no longer carries: dark ink on
+   pastel paper, never the felt's light ink. */
+.word { position: relative; color: var(--slip-ink);
+        background: none !important; filter: none !important; clip-path: none !important; }
+.word > span { position: relative; z-index: 1; }
+.word__paper {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--slip-col, var(--paper-raised));
+  background-image:
+    linear-gradient(163deg, rgba(255,255,255,0.22), rgba(255,255,255,0) 46%, rgba(50,40,36,0.07)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* The fibre fringe. A torn edge shows the paper's own core where the
+     fibres pulled apart — a hair of lighter stock hugging the tear. Two
+     zero-blur drop-shadows in a lightened slip colour draw exactly that, and
+     because drop-shadow follows the alpha contour it follows the tear rather
+     than the rectangle. Chained BEFORE --slip-filter so the slip's real
+     shadow falls outside the fringe, not under it. */
+  filter:
+    drop-shadow( var(--fringe, 1px)  var(--fringe, 1px) 0 var(--fringe-col))
+    drop-shadow(calc(-1 * var(--fringe, 1px)) calc(-1 * var(--fringe, 1px)) 0 var(--fringe-col))
+    var(--slip-filter);
+}
+.word--rose  { --slip-col: var(--slip-rose); }
+.word--honey { --slip-col: var(--slip-honey); }
+.word--sky   { --slip-col: var(--slip-sky); }
+.word--lilac { --slip-col: var(--slip-lilac); }
+.word { --fringe-col: color-mix(in srgb, var(--slip-col) 45%, white); }
+
+/* ==========================================================================
+   1. the two-segment bar
+   --------------------------------------------------------------------------
+   Fixed 70-second scale — 60 of main clock plus the 10 the bonus starts at,
+   which is the true maximum because mainLeft only ever falls. Fixed scale is
+   the point: it makes the brass segment's WIDTH the bonus in seconds, so a
+   cut from 10 to 9 is a visibly shorter refill.
+
+   The bar is the clock now — there is no digital reading of it anywhere on
+   the screen. A number counting down is the thing a player stares at instead
+   of the word, and it says nothing the length of the bar does not.
+
+   Rounding lives on __fill and nowhere else. Rounding each segment put a cap
+   on BOTH of its ends, so the two met cap-to-cap and pinched the bar in at
+   the junction — a seam exactly where the design is claiming there is one
+   continuous clock. One rounded, overflow-hidden wrapper gives the outer ends
+   their caps and clips the join flush, with no conditional rounding for the
+   moment the bonus empties and the ink becomes the right-hand end itself.
+   ========================================================================== */
+.clockbar { --bar-h: 10px;
+            position: relative; height: var(--bar-h); border-radius: 999px;
+            background: var(--paper-sunk); }
+.clockbar__fill { position: absolute; inset: 0 auto 0 0; display: flex;
+                  border-radius: 999px; overflow: hidden; }
+.clockbar__main  { background: var(--ink-muted); }
+.clockbar__bonus { background: var(--brass); }
+
+/* The second just taken away. It is drawn ON the bar, over the last second of
+   it, and holds there while the bar still shows its old length — so the eye
+   sees the tip of the clock turn red and then break off, rather than a
+   lozenge appearing beside a bar that had already got shorter.
+
+   Corners, in the order they went wrong:
+
+   Height matches the bar exactly. At top/bottom -2px it stood proud of the
+   very thing it was meant to be part of.
+
+   Left square, right capped: square is the fresh break, and the cap is the
+   bar's own end — which this piece IS, for as long as it is still attached.
+
+   The cap is half the bar height, spelled out. 999px is right on .fill, where
+   CSS scales the radii down to exactly half-height. On a piece this narrow it
+   scales against the WIDTH instead — one second is ~4.5px of a 320px bar, and
+   999px on both right corners of a 4.5px box collapses to a couple of pixels.
+   The pill turned back into a rectangle at the one size that mattered. */
+.clockbar__lost {
+  position: absolute; top: 0; bottom: 0;
+  border-radius: 0 calc(var(--bar-h) / 2) calc(var(--bar-h) / 2) 0;
+  background: var(--rose-deep); opacity: 0;
+}
+/* The count, and now the only number on the screen. Under the bar rather than
+   beside a clock, because there is no longer a clock to sit beside. */
+.round__count { font-family: var(--sans); font-size: var(--t-small);
+                color: var(--ink-muted); margin: var(--s2) 0 0; }
+.round__count b { color: var(--ink); font-variant-numeric: tabular-nums; }
+/* Held flush for the first 40%, which is the window the bar spends still at
+   its old length, then it drops away. ease-IN, not out: a piece of paper
+   coming off starts slowly and accelerates. */
+.clockbar.cut .clockbar__lost { animation: lost 760ms ease-in; }
+@keyframes lost {
+  0%, 40% { opacity: 1; transform: translateY(0) rotate(0deg); }
+  100%    { opacity: 0; transform: translateY(18px) rotate(11deg); }
+}
+/* The bar reacts, but it does not go rose. Flashing the whole bonus segment
+   the same colour as the piece breaking off made the two indistinguishable —
+   the eye saw one rose blob shorten, and the one second that was actually
+   lost was the part it could not pick out. A brightness pulse keeps the bar
+   brass, so rose means exactly one thing on this bar: the second that left. */
+.clockbar.cut .clockbar__bonus { animation: barflash 760ms ease-out; }
+@keyframes barflash {
+  0%, 40% { filter: brightness(1.28); }
+  100%    { filter: brightness(1); }
+}
+
+/* ==========================================================================
+   2. the border flash — halo only
+   --------------------------------------------------------------------------
+   The solid inset rule is gone. It was the part that read as chrome: a hard
+   3px rectangle is a UI border, and a UI border is the one thing a screen
+   made of paper on a table should not grow. What is left is light bleeding in
+   from the edge, which covers nothing and belongs to no widget.
+   ========================================================================== */
+.flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; border-radius: inherit; }
+.phone[data-flash="bloom"] .flash { box-shadow: inset 0 0 90px 6px var(--rose-deep); }
+.phone.harder .flash { animation: bloom 620ms ease-out; }
+@keyframes bloom { 0% { opacity: 0; } 18% { opacity: 0.9; } 100% { opacity: 0; } }
+/* A 620ms pulse cannot be judged from a screenshot — the shot lands somewhere
+   random in the fade. This pins it at full. */
+.phone.hold .flash { animation: none; opacity: 1; }
+/* Same for the cut: paused at 0% is exactly the attached state, which is the
+   frame the corners have to survive and the one a screenshot never catches. */
+.phone.hold .clockbar.cut .clockbar__lost,
+.phone.hold .clockbar.cut .clockbar__bonus { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .phone.harder .flash { animation: none; }
+  .clockbar.cut .clockbar__bonus, .clockbar.cut .clockbar__lost { animation: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="tear-filters"></defs></svg>
+
+<div class="proto">
+
+<h2 style="margin-top:0">Прототип: рваный край как шкала сложности</h2>
+<p class="note">
+  Пробел или «Угадано» — слово. Кнопки справа принудительно вызывают обе
+  эскалации. Два способа рвать бумагу переключаются ниже; ползунки правят все
+  пятнадцать уровней сразу.
+</p>
+
+<div class="radios">
+  <b>Как рвём:</b>
+  <label><input type="radio" name="mode" value="nick" checked> (C) надрывы = уровень</label>
+  <label><input type="radio" name="mode" value="poly"> (A) фрактальный контур</label>
+  <label><input type="radio" name="mode" value="turb"> (B) турбулентность</label>
+  <span style="width:var(--s5)"></span>
+  <b>Вспышка:</b>
+  <label><input type="radio" name="flash" value="bloom" checked> ореол</label>
+  <label><input type="radio" name="flash" value="none"> нет</label>
+  <label><input type="checkbox" id="c-hold"> задержать</label>
+  <span style="flex:1"></span>
+  <label><input type="checkbox" id="c-theme"> день</label>
+</div>
+
+<div class="dials" id="dials-nick">
+  <label class="dial">Глубина надрыва<input type="range" id="d-nickd" min="5" max="70" step="1" value="20"><output></output></label>
+  <label class="dial">Ширина надрыва<input type="range" id="d-nickw" min="5" max="300" step="5" value="110"><output></output></label>
+  <label class="dial">Обычный край<input type="range" id="d-nickbase" min="0" max="200" step="5" value="55"><output></output></label>
+  <label class="dial">Мин. просвет<input type="range" id="d-nickgap" min="0" max="80" step="1" value="22"><output></output></label>
+  <label class="dial">Бахрома, px<input type="range" id="d-fringe2" min="0" max="50" step="1" value="12"><output></output></label>
+</div>
+
+<div class="dials" id="dials-poly" hidden>
+  <label class="dial">Волокно, база<input type="range" id="d-fine0" min="0" max="60" step="1" value="12"><output></output></label>
+  <label class="dial">Волокно, рост<input type="range" id="d-fine" min="0" max="120" step="1" value="26"><output></output></label>
+  <label class="dial">Средняя рябь<input type="range" id="d-mid" min="0" max="240" step="2" value="80"><output></output></label>
+  <label class="dial">Крупный ход<input type="range" id="d-coarse" min="0" max="500" step="5" value="200"><output></output></label>
+  <label class="dial">Клочья, число<input type="range" id="d-chunks" min="0" max="60" step="1" value="25"><output></output></label>
+  <label class="dial">Клочья, глубина<input type="range" id="d-chunkd" min="0" max="40" step="1" value="12"><output></output></label>
+  <label class="dial">Шаг узла, px<input type="range" id="d-node" min="20" max="200" step="5" value="50"><output></output></label>
+  <label class="dial">Предел укуса<input type="range" id="d-cap" min="4" max="45" step="1" value="26"><output></output></label>
+  <label class="dial">Неровный шаг<input type="range" id="d-jit" min="0" max="100" step="5" value="70"><output></output></label>
+  <label class="dial">Бахрома, px<input type="range" id="d-fringe" min="0" max="50" step="1" value="12"><output></output></label>
+  <label class="dial">Наклон растёт<input type="range" id="d-rot" min="0" max="40" step="1" value="14"><output></output></label>
+</div>
+
+<div class="dials" id="dials-turb" hidden>
+  <label class="dial">Частота, база<input type="range" id="d-freq" min="10" max="400" step="5" value="90"><output></output></label>
+  <label class="dial">Смещение, рост<input type="range" id="d-scale" min="2" max="120" step="1" value="34"><output></output></label>
+  <label class="dial">Октав<input type="range" id="d-oct" min="1" max="5" step="1" value="3"><output></output></label>
+</div>
+
+<h2>Живой экран</h2>
+<div class="stage">
+  <div class="phone" id="phone" data-flash="bloom">
+    <span class="flash"></span>
+    <div class="round">
+      <!-- .round is `grid-template-rows: auto 1fr auto` (app.css:594) — three
+           rows, the middle one the word. The bar is a fourth child, so it
+           rides inside the header or the slot loses its 1fr and the slip
+           drops to the floor. It belongs there anyway: it is the clock. -->
+      <div class="round__clock">
+        <div class="clockbar" id="p-bar">
+          <span class="clockbar__fill" id="p-fill">
+            <span class="clockbar__main" id="p-main"></span>
+            <span class="clockbar__bonus" id="p-bonus"></span>
+          </span>
+          <span class="clockbar__lost" id="p-lost"></span>
+        </div>
+        <p class="round__count"><b id="p-score">0</b> слов</p>
+      </div>
+      <div class="word-slot">
+        <p class="word" id="p-word"><i class="word__paper"></i><span></span></p>
+      </div>
+      <div class="round__acts">
+        <button class="act act--ok" id="b-ok">Угадано</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drive">
+    <button id="b-run">▶︎ Пустить часы</button>
+    <button id="b-harder">Сложнее — уровень +1 <span class="kbd">(ореол)</span></button>
+    <button id="b-cut">Секунда долой <span class="kbd">(полоса)</span></button>
+    <button id="b-both">Оба сразу</button>
+    <button id="b-reset">Сброс</button>
+    <p class="note" style="margin-top:var(--s4)">
+      уровень <b id="p-level">1</b> / 15<br>бонус <b id="p-add">10</b> с
+    </p>
+  </div>
+</div>
+
+<h2>Лестница: все пятнадцать уровней</h2>
+<p class="note">
+  Одно слово, вырезанное пятнадцатью разными руками. Соседние ступени различать
+  и не нужно: момент перехода объявляет ореол, а бумага несёт то, как глубоко
+  вы уже забрались. Разница должна читаться между 1 и 8, а не между 8 и 9.
+</p>
+<div class="ladder" id="ladder"></div>
+
+</div>
+
+<script type="module">
+// ==========================================================================
+// The torn edge
+// ==========================================================================
+//
+// The first cut of this was a comb: nodes at regular intervals, each pushed
+// in by an independent random amount. That is white noise, and white noise
+// does not look like paper — every tooth is the same size, they arrive on a
+// beat, and the eye reads "generated" immediately. A real tear has structure
+// at several scales at once: it wanders slowly across the whole edge, ripples
+// over a few centimetres, and frays at the fibre. So the displacement here is
+// a sum of three octaves of value noise, and the node spacing is itself
+// irregular — a tear does not step evenly.
+//
+// The octaves are also what make the ladder legible. They do not grow
+// together: the fibre is nearly all there is at level 1 (a crisp deckle), and
+// the coarse octave — which is what removes whole pieces of paper — is scaled
+// by t² so it arrives late and hard. Level 1 and level 15 then differ in
+// KIND, not just in depth, which is what "significant difference between
+// stages" actually needs. Uniformly deeper teeth just look like the same
+// comb held closer.
+
+const LEVELS = 15;                    // BANDS.length in deathmatch.js
+
+/** xorshift: one level and seed must cut the same slip every time, or the
+ *  ladder is not comparable from one look to the next. */
+function rng(seed) {
+  let s = (seed >>> 0) || 1;
+  return () => {
+    s ^= s << 13; s >>>= 0;
+    s ^= s >>> 17;
+    s ^= s << 5;  s >>>= 0;
+    return s / 4294967296;
+  };
+}
+
+/** Value noise over [0,1) with `n` control points, smoothstepped between. */
+function octave(rand, n) {
+  const v = [];
+  for (let i = 0; i < n; i++) v.push(rand() * 2 - 1);
+  return (u) => {
+    const x = (((u % 1) + 1) % 1) * n;
+    const i = Math.floor(x), f = x - i;
+    const a = v[i % n], b = v[(i + 1) % n];
+    return a + (b - a) * (f * f * (3 - 2 * f));
+  };
+}
+
+const dials = {
+  fine0: 1.2, fine: 2.6, mid: 8.0, coarse: 20.0,   // px
+  chunks: 2.5, chunkd: 1.2, node: 5.0, jit: 0.7, fringe: 1.2, rot: 1.4, cap: 0.26, nickd: 0.20, nickw: 11.0, nickbase: 0.055, nickgap: 22,
+  freq: 0.09, scale: 34, oct: 3,                   // turbulence mode
+};
+
+/**
+ * The SHAPE of one torn edge: the octave mix, normalised so its deepest bite
+ * is exactly 1. Magnitude is applied separately, by tear() — that split is
+ * what lets the level change the tear's character and its depth independently
+ * instead of the two being the same knob.
+ */
+function profile(rand, t) {
+  const coarse = octave(rand, 5), mid = octave(rand, 13), fine = octave(rand, 31);
+  const A = {
+    // t², so whole pieces start coming off only near the top of the ladder.
+    coarse: dials.coarse * t * t,
+    mid: 0.6 + dials.mid * t,
+    fine: dials.fine0 + dials.fine * t,
+  };
+  const span = A.coarse + A.mid + A.fine;
+
+  // Missing chunks: one or two big bites, at high levels only. A gaussian
+  // rather than a notch — a tear that takes a piece out takes it out
+  // gradually at the sides. Kept clear of the ends, because a chunk at u≈0
+  // fights the corner taper below and the two together make a spike.
+  //
+  // Added ON TOP of the normalised edge, in multiples of it, and that is the
+  // whole trick. Folding the chunks in before normalising made them free:
+  // a chunk ate the depth budget the rest of the edge would have used, so a
+  // slip with a piece missing came out with a TAMER edge everywhere else and
+  // the ladder flattened to fifteen near-identical slips. The general edge
+  // holds its depth; chunks go deeper than it.
+  const chunks = [];
+  for (let i = 0; i < Math.floor(t * dials.chunks + rand() * 0.6); i++) {
+    chunks.push({ c: 0.18 + rand() * 0.64, w: 0.04 + rand() * 0.09,
+                  a: (0.5 + rand()) * dials.chunkd * t });
+  }
+
+  const at = (u) => {
+    let d = (A.coarse * coarse(u) + A.mid * mid(u) + A.fine * fine(u) + span)
+            / (2 * span);               // 0…1, the general edge
+    for (const k of chunks) {
+      const z = (u - k.c) / k.w;
+      d += k.a * Math.exp(-z * z);      // …plus whatever is missing outright
+    }
+    return d;
+  };
+  at.max = 1 + chunks.reduce((m, k) => Math.max(m, k.a), 0);
+  return at;
+}
+
+/** A bound on at.max above, so the padding can be set before any edge is
+ *  walked. Must not under-estimate: the padding is what keeps the deepest
+ *  chunk off the ink. */
+const padFactor = (t) => 1 + 1.5 * dials.chunkd * t;
+
+const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = (k) => k * k * (3 - 2 * k);
+
+/**
+ * How deep the tear may go on a w×h slip, in px.
+ *
+ * Capped against the SHORT side, because that is the one it can destroy: at
+ * 62px of bite into a 90px slip the first cut of this stopped producing torn
+ * paper and started producing amoebas. In px rather than percent for the same
+ * reason the whole generator is — the same percentage is a different bite on
+ * each edge of a box this far from square.
+ *
+ * Level 1 is a crisp deckle, level 15 is at the cap. The octave mix carries
+ * the change in character; this carries the change in magnitude.
+ */
+function depth(w, h, level) {
+  const t = level / (LEVELS - 1);
+  return Math.min(w, h) * dials.cap * (0.12 + 0.88 * t);
+}
+
+/** The clip-path for a slip of w×h at `level` (0-based), and the padding that
+ *  keeps the ink clear of the teeth. */
+function tear(w, h, level, seed, deep) {
+  const t = level / (LEVELS - 1);
+  const rand = rng(seed * 7919 + level * 104729);
+
+  // The four corners, agreed ONCE and shared by the two edges that meet
+  // there. Independent profiles per edge left the top edge arriving at one
+  // depth and the right edge leaving at another, and the polygon closed that
+  // disagreement with a horn — the spikes on rungs 11–15.
+  const corner = [];
+  for (let i = 0; i < 4; i++) {
+    corner.push({ x: rand() * deep * 0.55, y: rand() * deep * 0.55 });
+  }
+  const TL = corner[0], TR = corner[1], BR = corner[2], BL = corner[3];
+
+  const P = [];
+  const put = (x, y) => P.push(`${x.toFixed(2)}% ${y.toFixed(2)}%`);
+
+  /** Walk one edge from corner `a` to corner `b`, tapering the free-running
+   *  profile into each corner's agreed depth over the end fifth. */
+  const walk = (len, a, b, pick, emit) => {
+    const shape = profile(rand, t);
+    const n = Math.max(12, Math.min(80, Math.round(len / dials.node)));
+    const ends = 0.2;
+    for (let i = 0; i <= n; i++) {
+      const u = i === 0 || i === n
+        ? i / n                                    // corners land exactly
+        : Math.min(1, Math.max(0, (i + (rand() - 0.5) * dials.jit) / n));
+      let d = shape(u) * deep;
+      if (u < ends) d = lerp(pick(a), d, smooth(u / ends));
+      if (u > 1 - ends) d = lerp(pick(b), d, smooth((1 - u) / ends));
+      emit(u, d);
+    }
+  };
+
+  const py = (o) => o.y, px = (o) => o.x;
+  walk(w, TL, TR, py, (u, d) => put(lerp(TL.x, w - TR.x, u) / w * 100, d / h * 100));
+  walk(h, TR, BR, px, (u, d) => put(100 - d / w * 100, lerp(TR.y, h - BR.y, u) / h * 100));
+  walk(w, BR, BL, py, (u, d) => put(lerp(w - BR.x, BL.x, u) / w * 100, 100 - d / h * 100));
+  walk(h, BL, TL, px, (u, d) => put(d / w * 100, lerp(h - BL.y, TL.y, u) / h * 100));
+
+  return { path: `polygon(${P.join(', ')})`, pad: deep };
+}
+
+// -- (C) nicks ------------------------------------------------------------
+//
+// The level IS the number of tears in the paper. Level 1 is a clean slip and
+// every escalation cuts one more into it, so the thing the player is asked to
+// perceive is a COUNT — few versus many — instead of a 7% change in roughness
+// that no eye can resolve. It also gives the escalation a second home: the
+// slip that arrives after the band moves is not merely rougher, it has one
+// more slash in it than the last one did.
+//
+// The edge underneath stays exactly as the app already draws it, so nothing
+// about a level-1 slip changes. The nicks are narrow and deep — a straight-
+// sided slit that tapers to a point, which is what a nick in paper is, and
+// which reads at a glance in a way a wandering contour never did.
+
+function tearNicks(w, h, level, seed) {
+  const rand = rng(seed * 7919 + level * 104729);
+  const short = Math.min(w, h);
+  const nickDeep = short * dials.nickd;
+  const baseDeep = short * dials.nickbase;
+
+  // One nick per level, scattered over the perimeter in proportion to edge
+  // length so they do not bunch on the short sides.
+  const edges = [w, h, w, h];
+  const perimeter = edges.reduce((a, b) => a + b, 0);
+  const nicks = [[], [], [], []];
+  for (let i = 0; i < level; i++) {
+    // Blue noise, not uniform: two nicks landing 3px apart merge into one
+    // wide gash, which costs the player a countable tear at exactly the
+    // moment the count is the whole signal. Ten tries at a spot that clears
+    // its neighbours, then take what we get rather than loop forever.
+    let best = null;
+    for (let tries = 0; tries < 10; tries++) {
+      let r = rand() * perimeter, e = 0;
+      while (r > edges[e] && e < 3) { r -= edges[e]; e += 1; }
+      const u = 0.10 + (r / edges[e]) * 0.80;
+      const gap = nicks[e].reduce(
+        (m, k) => Math.min(m, Math.abs(k.u - u) * edges[e]), Infinity);
+      if (!best || gap > best.gap) best = { e, u, gap };
+      if (gap >= dials.nickgap) break;
+    }
+    nicks[best.e].push({
+      u: best.u,
+      d: nickDeep * (0.7 + rand() * 0.5),
+      // Asymmetric on purpose — paper does not tear down the middle.
+      l: dials.nickw * (0.5 + rand()) / edges[best.e],
+      r: dials.nickw * (0.5 + rand()) / edges[best.e],
+    });
+  }
+
+  const corner = [];
+  for (let i = 0; i < 4; i++) {
+    corner.push({ x: rand() * baseDeep * 0.6, y: rand() * baseDeep * 0.6 });
+  }
+  const [TL, TR, BR, BL] = corner;
+
+  const P = [];
+  const put = (x, y) => P.push(`${x.toFixed(2)}% ${y.toFixed(2)}%`);
+
+  const walk = (len, list, a, b, pick, emit) => {
+    const shape = profile(rand, 0.12);          // the paper's ordinary edge
+    const n = Math.max(12, Math.min(60, Math.round(len / dials.node)));
+
+    // The slit needs its own vertices or the regular node spacing rounds the
+    // point off into a dent. Three per nick — mouth, apex, mouth — merged
+    // into the ordinary nodes and sorted.
+    const us = [];
+    for (let i = 0; i <= n; i++) us.push({ u: i / n, nick: 0 });
+    for (const k of list) {
+      us.push({ u: k.u - k.l, nick: 0 }, { u: k.u, nick: k.d }, { u: k.u + k.r, nick: 0 });
+    }
+    us.sort((p, q) => p.u - q.u);
+
+    const ends = 0.2;
+    for (const { u, nick } of us) {
+      if (u < 0 || u > 1) continue;
+      let d = shape(u) * baseDeep;
+      if (u < ends) d = lerp(pick(a), d, smooth(u / ends));
+      if (u > 1 - ends) d = lerp(pick(b), d, smooth((1 - u) / ends));
+      emit(u, d + nick);
+    }
+  };
+
+  const py = (o) => o.y, px = (o) => o.x;
+  walk(w, nicks[0], TL, TR, py, (u, d) => put(lerp(TL.x, w - TR.x, u) / w * 100, d / h * 100));
+  walk(h, nicks[1], TR, BR, px, (u, d) => put(100 - d / w * 100, lerp(TR.y, h - BR.y, u) / h * 100));
+  walk(w, nicks[2], BR, BL, py, (u, d) => put(lerp(w - BR.x, BL.x, u) / w * 100, 100 - d / h * 100));
+  walk(h, nicks[3], BL, TL, px, (u, d) => put(d / w * 100, lerp(h - BL.y, TL.y, u) / h * 100));
+
+  return { path: `polygon(${P.join(', ')})`, pad: nickDeep * 1.2 };
+}
+
+// -- (B) turbulence -------------------------------------------------------
+//
+// The other way to tear paper, and the only one that can show a fibre. A
+// polygon edge is straight between its vertices, so a clip-path can only ever
+// approximate fraying — you would need vertices a pixel apart. Displacing the
+// paper through fractal noise frays it for real.
+//
+// It is the restructured markup that makes this usable at all: the filter is
+// on .word__paper, so the letters, which live in a sibling, are untouched.
+// Warping the word would be unreadable.
+
+const defs = document.getElementById('tear-filters');
+
+function buildFilters() {
+  defs.textContent = '';
+  for (let level = 0; level < LEVELS; level++) {
+    const t = level / (LEVELS - 1);
+    const f = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+    f.id = `tear-${level}`;
+    // Room to displace into, or the filter region crops the fraying flat.
+    f.setAttribute('x', '-25%'); f.setAttribute('y', '-40%');
+    f.setAttribute('width', '150%'); f.setAttribute('height', '180%');
+    f.setAttribute('color-interpolation-filters', 'sRGB');
+    f.innerHTML =
+      `<feTurbulence type="fractalNoise" seed="${level * 7 + 3}"` +
+      ` baseFrequency="${(dials.freq * 0.45).toFixed(4)} ${dials.freq.toFixed(4)}"` +
+      ` numOctaves="${dials.oct}" result="n"/>` +
+      `<feDisplacementMap in="SourceGraphic" in2="n"` +
+      ` scale="${(2 + dials.scale * t).toFixed(1)}"` +
+      ` xChannelSelector="R" yChannelSelector="G"/>`;
+    defs.append(f);
+  }
+}
+
+// ==========================================================================
+// Cutting a slip
+// ==========================================================================
+
+let mode = 'nick';
+
+/** main.js:482 — the slip is never wider than its slot, so a long word comes
+ *  down in size rather than off the edge of the phone.
+ *
+ *  One change from the original, forced by the tear: main.js budgets for the
+ *  tilt with a flat 0.97, which holds while every slip is the same height and
+ *  angle. A torn slip is neither — it grows a padded margin and lies at a
+ *  bigger angle, and a tilted box reaches wider the taller it is. The second
+ *  pass measures the box actually on screen, rotation and all. */
+function fitWord(slip) {
+  const text = slip.querySelector('span');
+  const room = slip.parentElement.clientWidth * 0.97;
+  if (room <= 0) return;
+  slip.style.fontSize = '';
+  const style = getComputedStyle(slip);
+  const size = parseFloat(style.fontSize);
+  const sides = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  const want = text.getBoundingClientRect().width + sides;
+  if (want > room) slip.style.fontSize = `${size * room / want}px`;
+
+  // 0.99, not 1: taking the type down also takes the height down, which
+  // narrows the rotated box further than this correction predicts. One pass
+  // with a hair of margin beats iterating to a fixed point.
+  const slot = slip.parentElement.clientWidth * 0.99;
+  const wide = slip.getBoundingClientRect().width;
+  if (wide > slot) {
+    const now = parseFloat(getComputedStyle(slip).fontSize);
+    slip.style.fontSize = `${now * slot / wide}px`;
+  }
+}
+
+/** Cut `slip` at `level`.
+ *
+ *  Order matters and is not the obvious one: the padding lands BEFORE the box
+ *  is measured, because the padding is part of the box the polygon is a
+ *  percentage of. Measure first and every tear is cut against the last
+ *  level's slip. */
+function cut(slip, level, seed) {
+  const t = level / (LEVELS - 1);
+  const paper = slip.querySelector('.word__paper');
+  const rot = (seed % 2 ? -1 : 1) * (0.8 + t * dials.rot);
+
+  slip.style.setProperty('--rot', `${rot.toFixed(2)}deg`);
+  slip.style.setProperty('--fringe', `${(dials.fringe * (0.6 + t)).toFixed(2)}px`);
+  slip.style.transform = `rotate(${rot.toFixed(2)}deg)`;
+
+  // Two passes, and they are not optional. The padding is a bound on the
+  // deepest bite, so a shredded slip is a bigger piece of paper carrying the
+  // same ink rather than the same paper with the ink chewed off — but the
+  // bite is capped against the slip's short side, and the padding is part of
+  // that side. Measure the bare slip to learn how deep the tear may go, pad
+  // by exactly that, then measure again for the polygon the tear is a
+  // percentage of.
+  slip.style.setProperty('--tear-pad', '0px');
+  fitWord(slip);
+  const bare = slip.getBoundingClientRect();
+  const deep =
+    mode === 'turb' ? 3 + dials.scale * t * 0.7
+    : mode === 'nick' ? Math.min(bare.width, bare.height) * dials.nickd * 1.2
+    : depth(bare.width, bare.height, level) * padFactor(t);
+
+  slip.style.setProperty('--tear-pad', `${deep.toFixed(1)}px`);
+  fitWord(slip);
+
+  if (mode === 'turb') {
+    paper.style.clipPath = '';
+    paper.style.filter =
+      `url(#tear-${level})` +
+      ` drop-shadow(var(--fringe) var(--fringe) 0 var(--fringe-col))` +
+      ` var(--slip-filter)`;
+  } else {
+    paper.style.filter = '';
+    const box = slip.getBoundingClientRect();
+    paper.style.clipPath = mode === 'nick'
+      ? tearNicks(box.width, box.height, level, seed).path
+      : tear(box.width, box.height, level, seed, deep / padFactor(t)).path;
+  }
+}
+
+// .word's padding is in em so the slip scales with its type; the tear's is in
+// px because the tear is in px. Both, added.
+const padRule = document.createElement('style');
+padRule.textContent = `.word {
+  padding: calc(0.30em + var(--tear-pad, 0px))
+           calc(0.55em + var(--tear-pad, 0px))
+           calc(0.36em + var(--tear-pad, 0px)); }`;
+document.head.append(padRule);
+
+// ==========================================================================
+// The ladder
+// ==========================================================================
+
+const SLIPS = ['rose', 'honey', 'sky', 'lilac'];
+const ladder = document.getElementById('ladder');
+
+function buildLadder() {
+  ladder.textContent = '';
+  for (let level = 0; level < LEVELS; level++) {
+    const rung = document.createElement('div');
+    rung.className = 'rung';
+    rung.innerHTML =
+      `<p class="word word--${SLIPS[level % 4]}"><i class="word__paper"></i><span>КАРУСЕЛЬ</span></p>` +
+      `<p class="rung__cap">${level + 1}</p>`;
+    ladder.append(rung);
+    cut(rung.firstElementChild, level, level + 1);
+  }
+}
+
+// ==========================================================================
+// The live screen
+// ==========================================================================
+
+const WORDS = ['КАРУСЕЛЬ', 'ЗЕРКАЛО', 'ПАРУС', 'ГРОМООТВОД', 'ЛОЖКА', 'ВЕТЕР',
+               'КОМПАС', 'ЯБЛОКО', 'ТУМАН', 'ПОДКОВА', 'ЧЕРДАК', 'ЛАСТОЧКА',
+               'СУГРОБ', 'КОЛОКОЛ', 'МАЯТНИК'];
+
+const SCALE = 70;                    // seconds the bar is drawn to: 60 + 10
+const FLOOR = 3;                     // BONUS_FLOOR
+
+const $ = (id) => document.getElementById(id);
+const phone = $('phone'), bar = $('p-bar'), slip = $('p-word');
+
+let level = 0, bonus = 10, score = 0, main = 60, left = 10, drawn = 0, timer = null;
+
+function paintBar() {
+  // The wrapper is the whole clock; the two segments split it by flex-grow,
+  // so their proportions are the seconds themselves and the join needs no
+  // arithmetic to stay put.
+  $('p-fill').style.width = `${(main + left) / SCALE * 100}%`;
+  $('p-main').style.flex = `${main}`;
+  $('p-bonus').style.flex = `${left}`;
+}
+
+function paintNumbers() {
+  $('p-score').textContent = score;
+  $('p-level').textContent = level + 1;
+  $('p-add').textContent = bonus;
+}
+
+function word() {
+  slip.className = `word word--${SLIPS[drawn % 4]}`;
+  slip.querySelector('span').textContent = WORDS[drawn % WORDS.length];
+  drawn += 1;
+  cut(slip, level, drawn);
+}
+
+/** The band moved up: the halo blooms, and the next slip comes out rougher. */
+function harder() {
+  if (level >= LEVELS - 1) return;
+  level += 1;
+  phone.classList.remove('harder');
+  void phone.offsetWidth;                    // restart the animation
+  phone.classList.add('harder');
+  word();
+  paintNumbers();
+}
+
+/** The bonus was cut: the bar flashes and the second falls off its end. */
+function cutBonus() {
+  if (bonus <= FLOOR) return;
+  bonus -= 1;
+
+  // The piece sits over the LAST second of the bar as it currently stands —
+  // its right edge on the bar's cap, its square left edge on the brass. So
+  // `left` keeps the old bonus for now; shortening the bar first would leave
+  // the piece floating past the end with a gap where it broke from.
+  // Extended one cap-radius to the LEFT of where the second begins. A square
+  // left edge landing exactly on the bar's end put full-height corners over
+  // the fill's rounded cap, so the piece stood proud of the bar's silhouette
+  // at top and bottom — a tiny shoulder, right at the end where the eye is.
+  // Starting it back where the fill is still full height nests it perfectly:
+  // the piece's own cap then coincides with the bar's, and nothing protrudes.
+  const CAP = 5;                           // half of --bar-h
+  const lost = $('p-lost');
+  lost.style.left = `calc(${(main + bonus) / SCALE * 100}% - ${CAP}px)`;
+  lost.style.width = `calc(${1 / SCALE * 100}% + ${CAP}px)`;
+  bar.classList.remove('cut');
+  void bar.offsetWidth;                    // restart the animation
+  bar.classList.add('cut');
+  paintBar();
+  paintNumbers();
+
+  // 40% of 760ms — the instant the keyframes let go of it. min(), because the
+  // ticker may already have drained past the new bonus while it was held, and
+  // the cut must never hand a second back.
+  setTimeout(() => { left = Math.min(left, bonus); paintBar(); }, 304);
+}
+
+function guessed() { score += 1; left = bonus; word(); paintBar(); paintNumbers(); }
+
+function reset() {
+  level = 0; bonus = 10; score = 0; main = 60; left = 10; drawn = 0;
+  phone.classList.remove('harder');
+  bar.classList.remove('cut');
+  word(); paintBar(); paintNumbers();
+}
+
+function run() {
+  if (timer) { clearInterval(timer); timer = null; $('b-run').textContent = '▶︎ Пустить часы'; return; }
+  $('b-run').textContent = '❚❚ Стоп';
+  timer = setInterval(() => {
+    // The bonus is spent first and the minute only runs when it is empty —
+    // main.js:738. On the bar that is the brass shrinking away before the ink
+    // is touched at all.
+    if (left > 0) left = Math.max(0, left - 0.1);
+    else main = Math.max(0, main - 0.1);
+    paintBar();
+    if (main === 0 && left === 0) run();
+  }, 100);
+}
+
+// -- wiring ---------------------------------------------------------------
+
+function redraw() { buildFilters(); buildLadder(); cut(slip, level, drawn); }
+
+$('b-ok').onclick = guessed;
+$('b-harder').onclick = harder;
+$('b-cut').onclick = cutBonus;
+$('b-both').onclick = () => { harder(); cutBonus(); };
+$('b-reset').onclick = reset;
+$('b-run').onclick = run;
+addEventListener('keydown', (e) => { if (e.code === 'Space') { e.preventDefault(); guessed(); } });
+
+for (const r of document.querySelectorAll('input[name=flash]')) {
+  r.onchange = () => { phone.dataset.flash = r.value; };
+}
+for (const r of document.querySelectorAll('input[name=mode]')) {
+  r.onchange = () => {
+    mode = r.value;
+    $('dials-nick').hidden = mode !== 'nick';
+    $('dials-poly').hidden = mode !== 'poly';
+    $('dials-turb').hidden = mode !== 'turb';
+    redraw();
+  };
+}
+$('c-hold').onchange = (e) => phone.classList.toggle('hold', e.target.checked);
+$('c-theme').onchange = (e) => {
+  document.documentElement.dataset.theme = e.target.checked ? 'day' : 'night';
+};
+
+const DIALS = [
+  ['d-fine0', 'fine0', 10, (v) => `${v.toFixed(1)}px`],
+  ['d-fine',  'fine',  10, (v) => `${v.toFixed(1)}px`],
+  ['d-mid',   'mid',   10, (v) => `${v.toFixed(1)}px`],
+  ['d-coarse','coarse',10, (v) => `${v.toFixed(0)}px`],
+  ['d-chunks','chunks',10, (v) => v.toFixed(1)],
+  ['d-chunkd','chunkd',10, (v) => `×${v.toFixed(1)}`],
+  ['d-node',  'node',  10, (v) => `${v.toFixed(0)}px`],
+  ['d-jit',   'jit',  100, (v) => v.toFixed(2)],
+  ['d-fringe','fringe',10, (v) => `${v.toFixed(1)}px`],
+  ['d-rot',   'rot',   10, (v) => `${v.toFixed(1)}°`],
+  ['d-cap',   'cap',  100, (v) => `${Math.round(v*100)}%`],
+  ['d-nickd', 'nickd', 100, (v) => `${Math.round(v*100)}%`],
+  ['d-nickw', 'nickw',  10, (v) => `${v.toFixed(1)}px`],
+  ['d-nickbase','nickbase',1000, (v) => `${Math.round(v*1000)/10}%`],
+  ['d-nickgap','nickgap',  1, (v) => `${v.toFixed(0)}px`],
+  ['d-fringe2','fringe', 10, (v) => `${v.toFixed(1)}px`],
+  ['d-freq',  'freq',1000, (v) => v.toFixed(3)],
+  ['d-scale', 'scale',  1, (v) => v.toFixed(0)],
+  ['d-oct',   'oct',    1, (v) => v.toFixed(0)],
+];
+for (const [id, key, div, fmt] of DIALS) {
+  const el = $(id), out = el.parentElement.querySelector('output');
+  const apply = () => { dials[key] = Number(el.value) / div; out.textContent = fmt(dials[key]); };
+  el.oninput = () => { apply(); redraw(); };
+  apply();
+}
+
+reset();
+redraw();
+
+// For tools/drive.mjs, so the tear can be measured without clicking.
+Object.assign(window, { cut, tear, dials, setMode: (m) => { mode = m; redraw(); } });
+</script>
+</body>
+</html>
