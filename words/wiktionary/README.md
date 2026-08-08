@@ -9,8 +9,8 @@ difficulty estimate before import (see «Next stages» below).
 
 | file | contents |
 |---|---|
-| `candidates.ru.txt` | 92 427 new candidate words, one per line — not present in the production dictionary |
-| `candidates.ru.jsonl` | the same words with metadata per word: up to 3 glosses, compact labels (`разг`, `жарг`, `терм`, `истор`, `феминитив`, `аббр`, …), sense counts — input for the LLM pass |
+| `candidates.ru.txt` | 53 369 new candidate words, one per line — not present in the production dictionary |
+| `candidates.ru.jsonl` | the same words with metadata per word: up to 3 glosses, compact labels (`разг`, `жарг`, `терм`, `истор`, `аббр`, …), sense counts — input for the LLM pass |
 | `diminutives.ru.jsonl` | 3 874 words whose only qualifying senses are derivational diminutives («лучик», «брючки») — excluded from the main list; a later pass may rescue the genuinely common ones |
 
 ## What makes a good hat word
@@ -32,6 +32,23 @@ criminal-jargon or historical sense.
 
 Normalization: lowercase, ё→е (production convention), deduped against all
 13 799 production words including the 13 soft-deleted ones.
+
+## Pruning (second stage)
+
+`scripts/prune_wiktionary_candidates.py` cut the raw 92 427 extraction down to
+53 369:
+
+1. **Junk classes, hard-dropped (−25 764):** «пол-» compounds (60);
+   deverbal/deadjectival «действие/свойство по значению» nouns (10 269);
+   close spelling variants «то же, что X», edit distance ≤3 (1 578) —
+   these are `WordLookup` alias material, not new words; feminitives (3 491);
+   mineral (3 518), chemical (1 305) and biological-taxon (2 632) nomenclature;
+   demonyms (2 084); «сокр. от» compounds (577); sexual/euphemism terms (183);
+   letter names (67).
+2. **No moderator-reviewed version (−13 294):** ru.wiktionary runs FlaggedRevs;
+   a word is kept only if its page has a stable (patrolled) revision, per the
+   `flaggedpages` + `page` dump tables (dumps.wikimedia.org/ruwiktionary/latest/).
+   Verified against the live API (`prop=flagged`) in both directions.
 
 ## Source and reproduction
 
