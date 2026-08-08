@@ -55,6 +55,12 @@ CLASS_RULES = [
     ("сокр. compound", lambda r: re.match(r"сокр\.", g0(r))),
     ("sexual/euphemism", lambda r: re.search(r"эвф\.|сексол\.|порно", g0(r)[:40])),
     ("letter name", lambda r: re.search(r"буква |название буквы", g0(r))),
+    ("action noun (phrasing variants)", lambda r: re.search(
+        r"процесс(а)? действия|действи[яе] по (несов|сов)|результат действия по", g0(r))),
+    ("diminutive (mid-gloss)", lambda r: re.search(r"уменьш\.|ласк\.", g0(r))),
+    ("substantivized language name", lambda r: re.search(
+        r"то же, что [а-яё-]+ язык|название языка", g0(r))),
+    ("brand-derived", lambda r: re.search(r"марки |бренд[а ]|торговой марки", g0(r))),
 ]
 
 
