@@ -24,16 +24,16 @@ VALID_WHY = {"UNK", "DER", "NON", "OFF", "SLG", "PRP", "BAD"}
 
 
 def load_words():
+    # Diminutives are deliberately excluded from the run (Nikolay, 2026-08-08).
     words = []
-    for fname in ("candidates.ru.jsonl", "diminutives.ru.jsonl"):
-        with open(os.path.join(WIKT, fname), encoding="utf-8") as f:
-            for line in f:
-                r = json.loads(line)
-                words.append({
-                    "w": r["word"],
-                    "gloss": [g[:120] for g in r.get("glosses", [])[:2]],
-                    "labels": r.get("labels", []),
-                })
+    with open(os.path.join(WIKT, "candidates.ru.jsonl"), encoding="utf-8") as f:
+        for line in f:
+            r = json.loads(line)
+            words.append({
+                "w": r["word"],
+                "gloss": [g[:120] for g in r.get("glosses", [])[:2]],
+                "labels": r.get("labels", []),
+            })
     return words
 
 
