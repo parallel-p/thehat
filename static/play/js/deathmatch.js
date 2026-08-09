@@ -118,4 +118,17 @@ export class Deathmatch {
     }
     await logs.finish(this.log);
   }
+
+  /**
+   * Per-word timing for the deathmatch's end screen: how long each word took,
+   * and whether it was guessed. The word the clock caught still in hand is
+   * `guessed: false`, so the chart can colour it apart from the ones won.
+   */
+  wordTimes() {
+    return this.log.attempts.map(a => ({
+      word: a.word,
+      time: a.time,
+      guessed: a.outcome === 'guessed',
+    }));
+  }
 }

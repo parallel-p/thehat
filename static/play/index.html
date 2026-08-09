@@ -374,10 +374,16 @@
     </div>
 </section>
 
-<section class="screen" data-for="dm-score">
+<section class="screen screen--scroll" data-for="dm-score">
     <div class="pad center">
         <p class="muted">Отгадано слов</p>
         <p class="dm-final" id="d-final">0</p>
+        <!-- A bar per word: how long each one took, as vertical bars growing
+             from a common baseline. The word still in hand when the clock ran
+             out sits in the log with no outcome and is coloured apart. -->
+        <p class="muted" id="d-chart-label" hidden>Время на слово</p>
+        <div class="dm-chart" id="d-chart" role="img"
+             aria-label="Время, которое каждое слово заняло" hidden></div>
         <div class="btn-row btn-row--center">
             <button class="btn btn--primary" data-act="new-dm">Ещё раз</button>
             <!-- Only where the phone has a share sheet to open. -->

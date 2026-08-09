@@ -744,6 +744,73 @@ body[data-phase="last"] .round__timer { visibility: hidden; }
   line-height: 1;
   margin: 0 0 var(--s6);
 }
+
+/* -- deathmatch: the per-word times ------------------------------------
+   A bar per word on the score screen, vertical and growing from a common
+   baseline — the same ink-out-of-paper-sunk look as the round's clocks.
+   Each bar's fill is the word's share of the longest one, on a scale the
+   ticked axis to the left reads back to seconds. The word still in hand
+   when the clock ran out has no outcome and is greyed instead of brass. */
+.dm-chart {
+  --dm-bar-h: clamp(4rem, 16vw, 8rem);
+  width: 100%;
+  display: flex;
+  gap: var(--s1);
+  align-items: flex-end;
+  padding: var(--s1) 0;
+  overflow-x: auto;
+}
+.dm-chart__axis {
+  flex: 0 0 auto;
+  position: relative;
+  width: 2rem;
+  height: var(--dm-bar-h);
+}
+.dm-chart__tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px solid var(--rule);
+}
+.dm-chart__tick-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: right;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+.dm-bar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 2.5rem;
+}
+.dm-bar__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 24px;
+  height: var(--dm-bar-h);
+  background: var(--paper-sunk);
+  border-radius: 3px 3px 0 0;
+  overflow: hidden;
+}
+.dm-bar__fill {
+  width: 100%;
+  height: 0;
+  border-radius: inherit;
+  background: var(--brass);
+}
+.dm-bar__fill--open { background: var(--ink-muted); }
+
 /* Deathmatch slips carry their difficulty as slits cut into the edge — see
    nick.js. The paper grows by about one slit's depth so the tears eat margin
    instead of ink. A constant, and it can be: the level changes how MANY slits

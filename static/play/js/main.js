@@ -736,6 +736,74 @@ async function endGame() {
 
 // -- deathmatch ------------------------------------------------------------
 
+/**
+ * Lay out the deathmatch's per-word times as a chart of vertical bars on the
+ * score screen — one bar per word, how long each one took. The fill of each
+ * is the word's share of the longest one, growing from a common baseline.
+ *
+ * The time is read off a ticked axis to the left, not printed on every bar:
+ * the numbers crowd a screen already loud with the final score, and the axis
+ * gives the eye one scale to read them all against. Likewise the word itself
+ * is not printed — the player watched each one appear on its slip, and the
+ * bar's height is the whole of what this screen has to say about a word.
+ *
+ * The word the clock caught still in hand (logged with no outcome) is
+ * `guessed: false` and greyed instead of brass, the one word that never
+ * scored. Its time is carried on the bar's aria-label for the reader who
+ * cannot see the axis.
+ */
+function renderWordTimes(container, times) {
+  container.textContent = '';
+  if (!times.length) {
+    container.hidden = true;
+    return;
+  }
+  container.hidden = false;
+
+  const max = Math.max(...times.map(t => t.time));
+
+  // -- the axis, with ticks every quarter of the way up -------------------
+  // Five ticks at 0/25/50/75/100 % of the tallest bar, each labelled with the
+  // seconds that height represents. No backgrounds — just a line and a number.
+  const axis = document.createElement('div');
+  axis.className = 'dm-chart__axis';
+  const tickCount = 5;
+  for (let i = 0; i < tickCount; i++) {
+    const share = (tickCount - 1) ? i / (tickCount - 1) : 0;
+    const seconds = Math.round(max * share / 1000);
+    const tick = document.createElement('div');
+    tick.className = 'dm-chart__tick';
+    tick.style.bottom = `${share * 100}%`;
+    const label = document.createElement('span');
+    label.className = 'dm-chart__tick-label';
+    label.textContent = seconds;
+    tick.appendChild(label);
+    axis.appendChild(tick);
+  }
+  container.appendChild(axis);
+
+  // -- one bar per word, no labels ----------------------------------------
+  for (const entry of times) {
+    const seconds = Math.round(entry.time / 1000);
+    const bar = document.createElement('div');
+    bar.className = 'dm-bar';
+    bar.setAttribute('aria-label',
+      `${entry.word}: ${seconds} секунд${entry.guessed ? '' : ' — слово не отгадано'}`);
+
+    const body = document.createElement('span');
+    body.className = 'dm-bar__body';
+
+    const fill = document.createElement('span');
+    fill.className = 'dm-bar__fill';
+    if (!entry.guessed) fill.classList.add('dm-bar__fill--open');
+    fill.style.height = `${max > 0 ? entry.time / max * 100 : 0}%`;
+    body.appendChild(fill);
+
+    bar.appendChild(body);
+    container.appendChild(bar);
+  }
+}
+
 function beginDeathmatch() {
   if (body.dataset.screen !== 'dm-start' || countdown) return;
   countdown = tick($('d-count'), () => runDeathmatch());
@@ -851,6 +919,10 @@ async function runDeathmatch() {
     audio.play('over');
     await dm.end(Math.max(0, Date.now() - (dm.log.start_timestamp + wordStart)));
     $('d-final').textContent = dm.score;
+    // A bar per word, how long each one took — the run's rhythm, in the same
+    // ink-as-fill language as the clocks above.
+    renderWordTimes($('d-chart'), dm.wordTimes());
+    $('d-chart-label').hidden = $('d-chart').hidden;
     remember({ at: Date.now(), kind: 'dm', score: dm.score });
     $('share-btn').hidden = !navigator.share;
     show('dm-score');

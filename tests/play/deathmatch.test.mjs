@@ -248,3 +248,39 @@ test('a finished run reaches the outbox as one log', async () => {
   const words = logs[0].attempts.map(a => a.word);
   assert.equal(new Set(words).size, words.length);
 });
+
+// -- the per-word times for the end screen --------------------------------
+
+test('wordTimes returns one entry per logged attempt, with its guessed flag', async () => {
+  const game = new Deathmatch();
+  await game.begin();
+  const first = game.word;
+  await game.guessed(3000);
+  await game.guessed(5000);
+  const times = game.wordTimes();
+  // Two words guessed, the word now in hand not yet logged.
+  assert.equal(times.length, 2);
+  assert.equal(times[0].word, first);
+  assert.equal(times[0].time, 3000);
+  assert.equal(times[0].guessed, true);
+  assert.equal(times[1].time, 5000);
+  assert.equal(times[1].guessed, true);
+});
+
+test('wordTimes marks the word the clock caught in hand as not guessed', async () => {
+  const game = new Deathmatch();
+  await game.begin();
+  await game.guessed(3000);
+  const held = game.word;
+  await game.end(1500);
+  const times = game.wordTimes();
+  assert.equal(times.length, 2);
+  assert.equal(times[0].guessed, true);
+  assert.deepEqual(times[1], { word: held, time: 1500, guessed: false });
+});
+
+test('wordTimes is empty before any word is logged', async () => {
+  const game = new Deathmatch();
+  // begin has not been called: no attempts, no word in hand.
+  assert.deepEqual(game.wordTimes(), []);
+});
