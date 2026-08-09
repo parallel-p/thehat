@@ -744,6 +744,48 @@ body[data-phase="last"] .round__timer { visibility: hidden; }
   line-height: 1;
   margin: 0 0 var(--s6);
 }
+
+/* -- the run, word by word ------------------------------------------------
+   One bar per word on the score screen, in the order they came, as tall as
+   the word took long, all in the brass of the clock they were draining.
+   No axis and no numbers: the one number worth reading is written out
+   underneath, and any other bar answers when tapped. The kept word — the
+   one the clock died on — is sunk paper with an edge: time spent, nothing
+   won. */
+.dm-chart {
+  width: min(100%, 24rem);
+  margin: 0 auto var(--s6);
+}
+.dm-chart__bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  height: clamp(5rem, 16vh, 7rem);
+  border-bottom: 1px solid var(--rule);
+}
+.dm-chart__bar {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--brass);
+  cursor: pointer;
+}
+.dm-chart__bar--kept  {
+  background: var(--paper-sunk);
+  border: 1px solid var(--rule);
+  border-bottom: 0;
+}
+.dm-chart__note {
+  font-family: var(--sans);
+  font-size: var(--t-small);
+  color: var(--ink-muted);
+  margin: var(--s3) 0 0;
+  min-height: 1.3em;      /* a tap swaps the text; the buttons must not hop */
+}
 /* Deathmatch slips carry their difficulty as slits cut into the edge — see
    nick.js. The paper grows by about one slit's depth so the tears eat margin
    instead of ink. A constant, and it can be: the level changes how MANY slits
