@@ -851,6 +851,7 @@ async function runDeathmatch() {
     audio.play('over');
     await dm.end(Math.max(0, Date.now() - (dm.log.start_timestamp + wordStart)));
     $('d-final').textContent = dm.score;
+    paintDmChart(dm.log.attempts);
     remember({ at: Date.now(), kind: 'dm', score: dm.score });
     $('share-btn').hidden = !navigator.share;
     show('dm-score');
@@ -859,6 +860,52 @@ async function runDeathmatch() {
 
   clock = ticker(paint, 100);
 }
+
+/** Seconds for the chart's own line: whole above ten, one decimal under. */
+function seconds(ms) {
+  const s = ms / 1000;
+  return `${(s >= 10 ? Math.round(s) : Math.round(s * 10) / 10).toLocaleString('ru-RU')} с`;
+}
+
+/**
+ * The run, word by word: a bar per attempt, in the order they came, as tall
+ * as the word took long. The word the clock died on is sunk paper — time
+ * spent, nothing won. The line underneath names the slowest word, and
+ * tapping any bar reads that bar's word into it instead.
+ */
+function paintDmChart(attempts) {
+  const bars = $('d-bars');
+  bars.textContent = '';
+  $('d-chart').hidden = !attempts.length;
+  if (!attempts.length) return;
+  const top = Math.max(1, ...attempts.map(a => a.time));
+  let slowest = attempts[0];
+  for (const entry of attempts) {
+    if (entry.time > slowest.time) slowest = entry;
+    const bar = document.createElement('button');
+    bar.type = 'button';
+    bar.className = entry.outcome === 'guessed'
+      ? 'dm-chart__bar'
+      : 'dm-chart__bar dm-chart__bar--kept';
+    // Never below 4%: a word guessed in half a second is the chart's best
+    // news, and it must not render as an invisible sliver of it.
+    bar.style.height = `${Math.max(4, entry.time / top * 100)}%`;
+    const read = `«${entry.word}» — ${seconds(entry.time)}`
+      + (entry.outcome ? '' : ', осталось в руке');
+    bar.setAttribute('aria-label', read);
+    bar.title = read;
+    bar.dataset.read = read;
+    bars.append(bar);
+  }
+  $('d-note').textContent = `Дольше всего — «${slowest.word}», ${seconds(slowest.time)}`;
+}
+
+// The bars are rebuilt for every game, so the listener sits on the container
+// that stays.
+$('d-bars').addEventListener('click', (event) => {
+  const bar = event.target.closest('.dm-chart__bar');
+  if (bar) $('d-note').textContent = bar.dataset.read;
+});
 
 // -- history ----------------------------------------------------------------
 //

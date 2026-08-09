@@ -378,6 +378,12 @@
     <div class="pad center">
         <p class="muted">Отгадано слов</p>
         <p class="dm-final" id="d-final">0</p>
+        <!-- The run, word by word: one bar per word, as tall as the word took
+             long. Tapping a bar reads its word back into the line below. -->
+        <div class="dm-chart" id="d-chart" hidden>
+            <div class="dm-chart__bars" id="d-bars" aria-label="Время на каждое слово"></div>
+            <p class="dm-chart__note" id="d-note"></p>
+        </div>
         <div class="btn-row btn-row--center">
             <button class="btn btn--primary" data-act="new-dm">Ещё раз</button>
             <!-- Only where the phone has a share sheet to open. -->
