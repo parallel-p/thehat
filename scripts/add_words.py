@@ -3,15 +3,20 @@
 
     python -m scripts.add_words --project the-hat-staging --file words/new.txt
     python -m scripts.add_words --project the-hat-staging --file - --dry-run
+    python -m scripts.add_words --project the-hat-staging --ratings-file pred.jsonl
 
 New words are created with the same seed rating the old
-``TaskQueueAddWords`` handler used (E=50.0, D=50/3, tags=""). Words already
-present are left untouched -- their accumulated ratings must not be reset.
+``TaskQueueAddWords`` handler used (E=50.0, D=50/3, tags=""). With
+``--ratings-file`` (jsonl rows {"word", "E"}, e.g. from
+``ml/word_difficulty/predict.py``) each word is seeded with its predicted E
+instead; D stays at the not-yet-played default. Words already present are
+left untouched -- their accumulated ratings must not be reset.
 
 Run ``python -m app.dictionary_gen`` afterwards to publish a new blob.
 """
 
 import argparse
+import json
 import logging
 import os
 import sys
@@ -36,11 +41,26 @@ def read_words(path):
     return list(dict.fromkeys(seen))
 
 
+def read_ratings(path):
+    """jsonl rows {"word", "E"} -> ordered {word: E}, last row wins."""
+    ratings = {}
+    with open(path, encoding="utf-8") as stream:
+        for line in stream:
+            if line.strip():
+                row = json.loads(line)
+                ratings[row["word"].strip()] = float(row["E"])
+    return ratings
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True)
-    parser.add_argument("--file", required=True, help="one word per line, or -")
+    source = parser.add_mutually_exclusive_group(required=True)
+    source.add_argument("--file", help="one word per line, or -")
+    source.add_argument("--ratings-file",
+                        help='jsonl rows {"word", "E"}: seed each word with '
+                             "its predicted E")
     parser.add_argument("--lang", default="ru")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -52,7 +72,12 @@ def main():
     from app.models import GlobalDictionaryWord
     from scripts.gcloud_auth import ndb_client
 
-    words = read_words(args.file)
+    if args.ratings_file:
+        ratings = read_ratings(args.ratings_file)
+        words = list(ratings)
+    else:
+        ratings = {}
+        words = read_words(args.file)
     logger.info("%d candidate words", len(words))
 
     client = ndb_client(args.project)
@@ -69,8 +94,8 @@ def main():
                 added += len(new)
                 continue
             ndb.put_multi([
-                GlobalDictionaryWord(id=w, word=w, E=50.0, D=50.0 / 3,
-                                     tags="", lang=args.lang)
+                GlobalDictionaryWord(id=w, word=w, E=ratings.get(w, 50.0),
+                                     D=50.0 / 3, tags="", lang=args.lang)
                 for w in new
             ])
             added += len(new)
